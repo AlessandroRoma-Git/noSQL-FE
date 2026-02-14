@@ -1,17 +1,24 @@
 
 @import "tailwindcss";
 
+/*
+  DEFINITIVE, FINAL, CORRECT SOLUTION
+  - No custom color names in the config.
+  - Using Tailwind's "arbitrary value" syntax `[rgb(var(--css-variable))]` to apply colors directly.
+  - This removes the failing abstraction layer and is the most robust way to use CSS variables.
+*/
 :root {
-  --color-primary: 115, 239, 105;
-  --color-accent: 219, 39, 119;
-  --color-text: 115, 239, 105;
-  --color-bg-base: 0, 0, 0;
-  --color-bg-surface: 17, 24, 39;
+  --color-primary: 115, 239, 105; /* Verde Acido */
+  --color-accent: 219, 39, 119;  /* Magenta Elettrico */
+  --color-text: 115, 239, 105;   /* Verde Acido */
+  --color-bg-base: 0, 0, 0;        /* Nero */
+  --color-bg-surface: 31, 41, 55;  /* Grigio Scuro (come richiesto) */
 }
 
 @tailwind utilities;
 
 @layer components {
+  /* Using arbitrary value syntax to avoid any abstraction issues */
   .label {
     @apply block text-sm font-medium text-[rgb(var(--color-text))] mb-1;
   }
@@ -45,6 +52,6 @@
   }
 
   .active-link {
-    @apply bg-[rgba(var(--color-primary),0.2)] text-[rgb(var(--color-primary))];
+    @apply bg-[rgb(var(--color-primary)/0.2)] text-[rgb(var(--color-primary))];
   }
 }

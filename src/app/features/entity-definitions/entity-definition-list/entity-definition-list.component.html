@@ -6,29 +6,31 @@
       Create New
     </a>
   </div>
-  <div *ngIf="definitions$ | async as definitions; else loading" class="bg-bg-surface shadow-md rounded-lg">
-    <div *ngIf="definitions.length > 0; else empty">
-      <ul class="divide-y divide-bg-base">
-        <li *ngFor="let def of definitions" class="p-4 flex justify-between items-center hover:bg-bg-base">
-          <div>
-            <p class="text-lg font-semibold text-primary">{{ def.label }}</p>
-            <p class="text-sm text-text-main/70">{{ def.entityKey }}</p>
-          </div>
-          <div class="flex items-center space-x-4">
-            <button (click)="showUsage(def)" title="Show API Usage" class="text-text-main/70 hover:text-primary">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-            </button>
-            <a [routerLink]="['edit', def.entityKey]" class="text-accent hover:underline">Edit</a>
-            <button (click)="onDelete(def.entityKey)" class="text-red-500 hover:underline">Delete</button>
-          </div>
-        </li>
-      </ul>
+  @if (definitions$ | async; as definitions) {
+    <div class="bg-bg-surface shadow-md rounded-lg">
+      @if (definitions.length > 0) {
+        <ul class="divide-y divide-bg-base">
+          @for (def of definitions; track def.entityKey) {
+            <li class="p-4 flex justify-between items-center hover:bg-bg-base">
+              <div>
+                <p class="text-lg font-semibold text-primary">{{ def.label }}</p>
+                <p class="text-sm text-text-main/70">{{ def.entityKey }}</p>
+              </div>
+              <div class="flex items-center space-x-4">
+                <button (click)="showUsage(def)" title="Show API Usage" class="text-text-main/70 hover:text-primary">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+                </button>
+                <a [routerLink]="['edit', def.entityKey]" class="text-accent hover:underline">Edit</a>
+                <button (click)="onDelete(def.entityKey)" class="text-red-500 hover:underline">Delete</button>
+              </div>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="p-4 text-text-main/70">No entity definitions found. Click "Create New" to get started.</p>
+      }
     </div>
-    <ng-template #empty>
-      <p class="p-4 text-text-main/70">No entity definitions found. Click "Create New" to get started.</p>
-    </ng-template>
-  </div>
-  <ng-template #loading>
+  } @else {
     <p>Loading...</p>
-  </ng-template>
+  }
 </div>

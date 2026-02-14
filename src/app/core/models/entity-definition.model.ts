@@ -1,43 +1,28 @@
 
-export type FieldType = 'STRING' | 'NUMBER' | 'BOOLEAN' | 'DATE' | 'EMAIL' | 'ENUM';
-
-export interface FieldDefinitionDto {
+export interface Field {
   name: string;
-  type: FieldType;
-  required?: boolean;
-  min?: number;
-  max?: number;
+  type: 'STRING' | 'NUMBER' | 'BOOLEAN' | 'DATE' | 'EMAIL' | 'ENUM';
+  required: boolean;
   maxLen?: number;
   pattern?: string;
+  min?: number;
+  max?: number;
   enumValues?: string[];
 }
 
-export interface AclDto {
-  read?: string[];
-  write?: string[];
-  delete?: string[];
-  search?: string[];
-}
-
 export interface EntityDefinition {
-  id: string;
   entityKey: string;
   label: string;
-  fields: FieldDefinitionDto[];
-  acl: AclDto;
+  acl: {
+    read: { [groupName: string]: boolean };
+    write: { [groupName: string]: boolean };
+    delete: { [groupName: string]: boolean };
+    search: { [groupName: string]: boolean };
+  };
+  fields: Field[];
   createdAt: string;
   updatedAt: string;
 }
 
-export interface CreateEntityDefinitionRequest {
-  entityKey: string;
-  label: string;
-  fields: FieldDefinitionDto[];
-  acl?: AclDto;
-}
-
-export interface UpdateEntityDefinitionRequest {
-  label: string;
-  fields: FieldDefinitionDto[];
-  acl?: AclDto;
-}
+export interface CreateEntityDefinitionRequest extends Omit<EntityDefinition, 'id' | 'createdAt' | 'updatedAt'> {}
+export interface UpdateEntityDefinitionRequest extends Partial<CreateEntityDefinitionRequest> {}

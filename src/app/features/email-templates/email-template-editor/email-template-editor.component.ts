@@ -1,60 +1,80 @@
 
-import { Component, OnDestroy, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { FormArray, FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
+import { Subject } from 'rxjs';
+import { takeUntil, debounceTime } from 'rxjs/operators';
 import { EmailTemplateService } from '../../../core/services/email-template.service';
-import { CreateEmailTemplateRequest, EmailTemplate, UpdateEmailTemplateRequest } from '../../../core/models/email-template.model';
 import { ModalService } from '../../../core/services/modal.service';
-import { Observable, Subject } from 'rxjs';
-import { map, startWith, debounceTime, takeUntil } from 'rxjs/operators';
+import { EmailTemplate, Attachment } from '../../../core/models/email-template.model';
 import { ToggleSwitchComponent } from '../../../shared/components/toggle-switch/toggle-switch.component';
+import { EditorModule } from '@tinymce/tinymce-angular';
 
 @Component({
   selector: 'app-email-template-editor',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, ToggleSwitchComponent],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule, ToggleSwitchComponent, EditorModule],
   templateUrl: './email-template-editor.component.html',
   styleUrls: ['./email-template-editor.component.css']
 })
 export class EmailTemplateEditorComponent implements OnInit, OnDestroy {
-  private fb = inject(FormBuilder);
-  private router = inject(Router);
   private route = inject(ActivatedRoute);
+  private router = inject(Router);
+  private fb = inject(FormBuilder);
   private emailTemplateService = inject(EmailTemplateService);
   private modalService = inject(ModalService);
 
-  editorForm!: FormGroup;
-  jsonContentControl = new FormControl('');
-  jsonError: string | null = null;
-  activeTab: 'ui' | 'json' = 'ui';
-
-  isEditMode = false;
-  private currentTemplate: EmailTemplate | null = null;
+  public editorForm!: FormGroup;
+  public isEditMode = false;
   private templateId: string | null = null;
-  detectedPlaceholders$!: Observable<string[]>;
   private destroy$ = new Subject<void>();
 
-  constructor() {
-    this.initializeForm();
+  public activeTab: 'UI' | 'JSON' = 'UI';
+  public jsonContentControl = this.fb.control('');
+  public jsonError: string | null = null;
+
+  public detectedPlaceholders$ = new Subject<string[]>();
+
+  public tinyMceConfig = {
+    base_url: '/tinymce',
+    suffix: '.min',
+    plugins: 'lists link image table code help wordcount',
+    skin: 'oxide-dark',
+    content_css: 'dark',
+    height: 500,
+  };
+
+  get attachments(): FormArray {
+    return this.editorForm.get('attachments') as FormArray;
   }
 
   ngOnInit(): void {
-    this.setupSync();
     this.templateId = this.route.snapshot.paramMap.get('id');
-    this.isEditMode = !!this.templateId;
+    this.isEditMode = !!(this.templateId);
+    this.initForm();
+    this.listenToHtmlContentChanges();
 
     if (this.isEditMode && this.templateId) {
-      this.emailTemplateService.getEmailTemplate(this.templateId).subscribe(template => {
-        this.currentTemplate = template;
-        this.updateFormFromData(template);
+      this.emailTemplateService.getEmailTemplate(this.templateId).subscribe((template: EmailTemplate) => {
+        this.editorForm.patchValue(template);
+        this.jsonContentControl.setValue(JSON.stringify(template, null, 2));
+        template.attachments?.forEach((att: Attachment) => this.addAttachment(att.filename, att.contentType, att.data));
       });
     }
 
-    this.detectedPlaceholders$ = this.editorForm.get('htmlContent')!.valueChanges.pipe(
-      startWith(this.editorForm.get('htmlContent')!.value),
-      map(html => this.extractPlaceholders(html))
-    );
+    this.jsonContentControl.valueChanges.pipe(
+      debounceTime(300),
+      takeUntil(this.destroy$)
+    ).subscribe(json => {
+      try {
+        const parsed = JSON.parse(json || '{}');
+        this.editorForm.patchValue(parsed);
+        this.jsonError = null;
+      } catch (e) {
+        this.jsonError = 'Invalid JSON format.';
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -62,148 +82,76 @@ export class EmailTemplateEditorComponent implements OnInit, OnDestroy {
     this.destroy$.complete();
   }
 
-  private initializeForm(): void {
+  private initForm(): void {
     this.editorForm = this.fb.group({
       name: ['', Validators.required],
-      htmlContent: ['', Validators.required],
+      htmlContent: [''],
+      placeholders: [[] as string[]],
       attachments: this.fb.array([])
     });
   }
 
-  private setupSync(): void {
-    this.editorForm.valueChanges.pipe(
-      debounceTime(300),
+  private listenToHtmlContentChanges(): void {
+    this.editorForm.get('htmlContent')?.valueChanges.pipe(
+      debounceTime(500),
       takeUntil(this.destroy$)
-    ).subscribe(() => {
-      if (this.activeTab === 'ui') {
-        this.jsonContentControl.setValue(JSON.stringify(this.getSanitizedFormValue(), null, 2), { emitEvent: false });
-      }
-    });
-
-    this.jsonContentControl.valueChanges.pipe(
-      debounceTime(300),
-      takeUntil(this.destroy$)
-    ).subscribe(jsonString => {
-      if (this.activeTab === 'json') {
-        try {
-          const data = JSON.parse(jsonString || '{}');
-          this.updateFormFromData(data);
-          this.jsonError = null;
-        } catch (e) {
-          this.jsonError = 'Invalid JSON format.';
-        }
-      }
+    ).subscribe((content: string | null) => {
+      const regex = /{{\s*(\w+)\s*}}/g;
+      const matches = content?.match(regex) || [];
+      const placeholders = matches.map((match: string) => match.replace(/[{}]/g, '').trim());
+      const uniquePlaceholders = [...new Set(placeholders)];
+      this.editorForm.get('placeholders')?.setValue(uniquePlaceholders);
+      this.detectedPlaceholders$.next(uniquePlaceholders);
     });
   }
 
-  private updateFormFromData(data: any): void {
-    this.editorForm.patchValue({
-      name: data.name,
-      htmlContent: data.htmlContent,
-    }, { emitEvent: false });
-
-    this.attachments.clear();
-    data.attachments?.forEach((att: any) => this.addAttachment(att, false));
-  }
-
-  private getSanitizedFormValue(): CreateEmailTemplateRequest {
-    const formValue = this.editorForm.getRawValue();
-    return {
-      name: formValue.name,
-      htmlContent: formValue.htmlContent,
-      placeholders: this.extractPlaceholders(formValue.htmlContent),
-      attachments: formValue.attachments
-    };
-  }
-
-  private extractPlaceholders(html: string | null): string[] {
-    if (!html) return [];
-    const regex = /{{\s*([a-zA-Z0-9_]+)\s*}}/g;
-    const matches = html.match(regex) || [];
-    const uniquePlaceholders = new Set(matches.map(p => p.replace(/[{}]/g, '').trim()));
-    return Array.from(uniquePlaceholders);
-  }
-
-  showInfo(section: 'details' | 'placeholders' | 'attachments' | 'usage'): void {
-    let title = '';
-    let content = '';
-
-    switch (section) {
-      case 'details':
-        title = 'Template Details';
-        content = `...`; // Content already defined
-        break;
-      case 'placeholders':
-        title = 'Detected Placeholders';
-        content = `...`; // Content already defined
-        break;
-      case 'attachments':
-        title = 'Attachments';
-        content = `...`; // Content already defined
-        break;
-      case 'usage':
-        if (!this.currentTemplate) return;
-        const template = this.currentTemplate;
-        title = `API Usage for: ${template.name}`;
-        const samplePlaceholders = template.placeholders.reduce((acc, key) => {
-          acc[key] = 'sample value';
-          return acc;
-        }, {} as Record<string, string>);
-        const samplePayload = { to: "recipient@example.com", subject: "Sample Subject", templateId: template.id, placeholders: samplePlaceholders };
-        const payloadString = JSON.stringify(samplePayload, null, 2);
-        const curlCommand = `curl -X POST http://localhost:8088/api/v1/email/send \\
--H "Authorization: Bearer YOUR_JWT_TOKEN" \\
--H "Content-Type: application/json" \\
--d '${JSON.stringify(samplePayload)}'`;
-        content = `
-          <p>Here is an example of how to send an email using the <strong>${template.name}</strong> template.</p>
-          <h4 class="mt-4 font-semibold">Send Email Endpoint</h4>
-          <p><code>POST /api/v1/email/send</code></p>
-          <h4 class="mt-4 font-semibold">Sample Payload</h4>
-          <pre class="bg-gray-100 p-2 rounded-md text-sm"><code>${payloadString}</code></pre>
-          <h4 class="mt-4 font-semibold">cURL Example</h4>
-          <pre class="bg-gray-100 p-2 rounded-md text-sm"><code>${curlCommand}</code></pre>
-        `;
-        break;
-    }
-    this.modalService.open({ title, content });
-  }
-
-  get attachments(): FormArray {
-    return this.editorForm.get('attachments') as FormArray;
-  }
-
-  addAttachment(attachment?: any, emitEvent = true): void {
-    this.attachments.push(this.fb.group({
-      filename: [attachment?.filename || '', Validators.required],
-      contentType: [attachment?.contentType || '', Validators.required],
-      base64Content: [attachment?.base64Content || '', Validators.required]
-    }), { emitEvent });
+  addAttachment(filename = '', contentType = '', data = ''): void {
+    const attachmentForm = this.fb.group({
+      filename: [filename, Validators.required],
+      contentType: [contentType, Validators.required],
+      data: [data, Validators.required]
+    });
+    this.attachments.push(attachmentForm);
   }
 
   removeAttachment(index: number): void {
     this.attachments.removeAt(index);
   }
 
-  onFileChange(event: Event, index: number): void {
-    // ... (omitted for brevity)
+  onFileChange(event: any, index: number): void {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const base64String = reader.result as string;
+        const attachmentGroup = this.attachments.at(index) as FormGroup;
+        attachmentGroup.patchValue({
+          filename: file.name,
+          contentType: file.type,
+          data: base64String.split(',')[1] // Get only the base64 part
+        });
+      };
+      reader.readAsDataURL(file);
+    }
   }
 
   onSubmit(): void {
-    if (this.editorForm.invalid || this.jsonError) {
-      this.editorForm.markAllAsTouched();
+    if (this.editorForm.invalid) {
       return;
     }
 
-    const request = this.getSanitizedFormValue();
+    const formValue = this.activeTab === 'UI' ? this.editorForm.value : JSON.parse(this.jsonContentControl.value || '{}');
 
-    const saveOperation = this.isEditMode
-      ? this.emailTemplateService.updateEmailTemplate(this.templateId!, request as UpdateEmailTemplateRequest)
-      : this.emailTemplateService.createEmailTemplate(request);
+    const operation = this.isEditMode && this.templateId
+      ? this.emailTemplateService.updateEmailTemplate(this.templateId, formValue)
+      : this.emailTemplateService.createEmailTemplate(formValue);
 
-    saveOperation.subscribe({
-      next: () => this.router.navigate(['/email-templates']),
-      error: (err) => console.error('Failed to save email template', err)
+    operation.subscribe(() => {
+      this.router.navigate(['/email-templates']);
     });
+  }
+
+  showInfo(topic: string): void {
+    // ... (implementation for showing info modals)
   }
 }

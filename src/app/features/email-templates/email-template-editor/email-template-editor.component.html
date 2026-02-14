@@ -2,24 +2,24 @@
 <div class="container mx-auto p-4">
   <div class="flex justify-between items-center mb-4">
     <div class="flex items-center space-x-4">
-      <h1 class="text-3xl font-bold">{{ isEditMode ? 'Edit Email Template' : 'Create Email Template' }}</h1>
-      <button *ngIf="isEditMode" (click)="showInfo('usage')" title="Show API Usage" class="text-gray-500 hover:text-indigo-600">
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-      </button>
+      <h1 class="text-3xl font-bold text-primary">{{ isEditMode ? 'Edit Email Template' : 'Create Email Template' }}</h1>
+      @if (isEditMode) {
+        <button (click)="showInfo('usage')" title="Show API Usage" class="text-main-text/70 hover:text-primary">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
+        </button>
+      }
     </div>
-    <app-toggle-switch [activeOption]="activeTab" (toggleChange)="activeTab = $event === 'UI' ? 'ui' : 'json'"></app-toggle-switch>
+    <app-toggle-switch [activeOption]="activeTab" (toggleChange)="activeTab = $event"></app-toggle-switch>
   </div>
 
   <!-- Tab Content -->
-  <div [ngSwitch]="activeTab">
-
-    <!-- UI View -->
-    <div *ngSwitchCase="'ui'">
+  @switch (activeTab) {
+    @case ('UI') {
       <form [formGroup]="editorForm" (ngSubmit)="onSubmit()" class="space-y-8">
         <!-- Main Details -->
-        <div class="bg-white p-6 rounded-lg shadow-md">
-          <div class="flex justify-between items-center border-b pb-2 mb-4">
-            <h2 class="text-xl font-semibold">Template Details</h2>
+        <div class="bg-surface p-6 rounded-lg shadow-md">
+          <div class="flex justify-between items-center border-b border-base pb-2 mb-4">
+            <h2 class="text-xl font-semibold text-primary">Template Details</h2>
             <button type="button" (click)="showInfo('details')" class="info-button">i</button>
           </div>
           <div class="space-y-4">
@@ -29,8 +29,8 @@
             </div>
             <div>
               <label for="htmlContent" class="label">HTML Content</label>
-              <textarea formControlName="htmlContent" id="htmlContent" rows="15" class="input" placeholder="<html>...</html>"></textarea>
-              <p class="text-xs text-gray-500 mt-1" ngNonBindable>Use {{placeholder_name}} for placeholders.</p>
+              <editor formControlName="htmlContent" [init]="tinyMceConfig"></editor>
+              <p class="text-xs text-main-text/70 mt-1" ngNonBindable>Use {{placeholder_name}} for placeholders.</p>
             </div>
           </div>
         </div>
@@ -38,32 +38,37 @@
         <!-- Placeholders & Attachments -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
           <!-- Detected Placeholders -->
-          <div class="bg-white p-6 rounded-lg shadow-md">
-            <div class="flex justify-between items-center border-b pb-2 mb-4">
-              <h2 class="text-xl font-semibold">Detected Placeholders</h2>
+          <div class="bg-surface p-6 rounded-lg shadow-md">
+            <div class="flex justify-between items-center border-b border-base pb-2 mb-4">
+              <h2 class="text-xl font-semibold text-primary">Detected Placeholders</h2>
               <button type="button" (click)="showInfo('placeholders')" class="info-button">i</button>
             </div>
-            <div *ngIf="detectedPlaceholders$ | async as placeholders; else noPlaceholders">
-              <ul *ngIf="placeholders.length > 0; else noPlaceholders" class="list-disc list-inside bg-gray-50 p-4 rounded-md">
-                <li *ngFor="let p of placeholders" class="text-gray-700"><code>{{p}}</code></li>
-              </ul>
-            </div>
-            <ng-template #noPlaceholders>
-              <p class="text-sm text-gray-500 italic">No placeholders detected yet.</p>
-            </ng-template>
+            @if (detectedPlaceholders$ | async; as placeholders) {
+              @if (placeholders.length > 0) {
+                <ul class="list-disc list-inside bg-base p-4 rounded-md">
+                  @for (p of placeholders; track p) {
+                    <li class="text-main-text"><code>{{p}}</code></li>
+                  }
+                </ul>
+              } @else {
+                <p class="text-sm text-main-text/70 italic">No placeholders detected yet.</p>
+              }
+            }
           </div>
 
           <!-- Attachments -->
-          <div class="bg-white p-6 rounded-lg shadow-md" formArrayName="attachments">
-            <div class="flex justify-between items-center border-b pb-2 mb-4">
-              <h2 class="text-xl font-semibold">Attachments</h2>
+          <div class="bg-surface p-6 rounded-lg shadow-md" formArrayName="attachments">
+            <div class="flex justify-between items-center border-b border-base pb-2 mb-4">
+              <h2 class="text-xl font-semibold text-primary">Attachments</h2>
               <button type="button" (click)="showInfo('attachments')" class="info-button">i</button>
             </div>
-            <div *ngFor="let attachment of attachments.controls; let i = index" [formGroupName]="i" class="space-y-2 p-4 border rounded-md bg-gray-50 mb-2">
-               <div class="flex justify-end"><button type="button" (click)="removeAttachment(i)" class="text-red-500 hover:underline font-semibold">Remove</button></div>
-              <div><label class="label">File</label><input type="file" (change)="onFileChange($event, i)" class="input"></div>
-              <div><label class="label">Filename</label><input formControlName="filename" class="input bg-gray-100" readonly></div>
-            </div>
+            @for (attachment of attachments.controls; track i; let i = $index) {
+              <div [formGroupName]="i" class="space-y-2 p-4 border border-base rounded-md bg-base/50 mb-2">
+                 <div class="flex justify-end"><button type="button" (click)="removeAttachment(i)" class="text-red-500 hover:underline font-semibold">Remove</button></div>
+                <div><label class="label">File</label><input type="file" (change)="onFileChange($event, i)" class="input"></div>
+                <div><label class="label">Filename</label><input formControlName="filename" class="input bg-base" readonly></div>
+              </div>
+            }
              <button type="button" (click)="addAttachment()" class="button-secondary-sm mt-2">Add Attachment</button>
           </div>
         </div>
@@ -73,20 +78,20 @@
           <button type="submit" [disabled]="editorForm.invalid" class="button-primary disabled:opacity-50">{{ isEditMode ? 'Update Template' : 'Create Template' }}</button>
         </div>
       </form>
-    </div>
-
-    <!-- JSON View -->
-    <div *ngSwitchCase="'json'">
-      <div class="bg-white p-6 rounded-lg shadow-md">
-        <h2 class="text-xl font-semibold mb-4 border-b pb-2">JSON Configuration</h2>
+    }
+    @case ('JSON') {
+      <div class="bg-surface p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4 border-b border-base pb-2 text-primary">JSON Configuration</h2>
         <textarea [formControl]="jsonContentControl" rows="25" class="input font-mono text-sm"></textarea>
-        <div *ngIf="jsonError" class="error-text mt-2">{{ jsonError }}</div>
+        @if (jsonError) {
+          <div class="error-text mt-2">{{ jsonError }}</div>
+        }
       </div>
        <!-- Form Actions -->
       <div class="flex justify-end space-x-4 mt-8">
         <a routerLink="/email-templates" class="button-secondary">Cancel</a>
         <button type="button" (click)="onSubmit()" [disabled]="editorForm.invalid || jsonError" class="button-primary disabled:opacity-50">{{ isEditMode ? 'Update Template' : 'Create Template' }}</button>
       </div>
-    </div>
-  </div>
+    }
+  }
 </div>

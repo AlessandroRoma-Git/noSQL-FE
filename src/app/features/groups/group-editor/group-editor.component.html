@@ -1,8 +1,8 @@
 
 <div class="container mx-auto p-4">
-  <h1 class="text-3xl font-bold mb-6">{{ isEditMode ? 'Edit Group' : 'Create Group' }}</h1>
+  <h1 class="text-3xl font-bold mb-6 text-primary">{{ isEditMode ? 'Edit Group' : 'Create Group' }}</h1>
 
-  <form [formGroup]="editorForm" (ngSubmit)="onSubmit()" class="space-y-8 bg-white p-6 rounded-lg shadow-md max-w-lg mx-auto">
+  <form [formGroup]="editorForm" (ngSubmit)="onSubmit()" class="space-y-8 bg-surface p-6 rounded-lg shadow-md max-w-lg mx-auto">
 
     <!-- Main Details -->
     <div class="space-y-4">

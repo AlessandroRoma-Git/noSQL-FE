@@ -57,22 +57,15 @@ export class EmailTemplateListComponent implements OnInit {
     };
 
     const payloadString = JSON.stringify(samplePayload, null, 2);
-    const curlCommand = `curl -X POST http://localhost:8088/api/v1/email/send \\
--H "Authorization: Bearer YOUR_JWT_TOKEN" \\
--H "Content-Type: application/json" \\
--d '${JSON.stringify(samplePayload)}'`;
 
     const content = `
       <p>Here is an example of how to send an email using the <strong>${template.name}</strong> template.</p>
 
-      <h4 class="mt-4 font-semibold">Send Email Endpoint</h4>
+      <h4 class="mt-4 font-semibold text-[rgb(var(--color-primary))]">Send Email Endpoint</h4>
       <p><code>POST /api/v1/email/send</code></p>
 
-      <h4 class="mt-4 font-semibold">Sample Payload</h4>
-      <pre class="bg-gray-100 p-2 rounded-md text-sm"><code>${payloadString}</code></pre>
-
-      <h4 class="mt-4 font-semibold">cURL Example</h4>
-      <pre class="bg-gray-100 p-2 rounded-md text-sm"><code>${curlCommand}</code></pre>
+      <h4 class="mt-4 font-semibold text-[rgb(var(--color-primary))]">Sample Payload</h4>
+      <pre class="bg-[rgb(var(--color-bg-base))] p-2 rounded-md text-sm text-[rgb(var(--color-text))]"><code>${payloadString}</code></pre>
     `;
 
     this.modalService.open({ title, content });

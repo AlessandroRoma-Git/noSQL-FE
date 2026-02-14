@@ -1,56 +1,52 @@
 
-import { Injectable } from '@angular/core';
+import { Injectable, Type } from '@angular/core';
 import { BehaviorSubject, Observable, Subject } from 'rxjs';
-import { ModalData } from '../models/modal.model';
+import { take } from 'rxjs/operators';
 
-interface ConfirmationModalData extends ModalData {
-  confirmText?: string;
-  cancelText?: string;
+// Exporting interfaces so other components can use them
+export interface ModalData {
+  title: string;
+  content: string;
+}
+
+export type ModalContent = Type<any> | ModalData;
+
+export interface ModalState {
+  content: ModalContent | null;
+  isConfirmation: boolean;
+  isOpen: boolean;
 }
 
 @Injectable({
   providedIn: 'root'
 })
 export class ModalService {
-  private display = new BehaviorSubject<boolean>(false);
-  private data = new BehaviorSubject<ConfirmationModalData | null>(null);
-  private confirmationResult = new Subject<boolean>();
+  // Exposing the state as a public observable
+  public modalState$: Observable<ModalState>;
 
-  get display$(): Observable<boolean> {
-    return this.display.asObservable();
+  private modalState = new BehaviorSubject<ModalState>({ content: null, isConfirmation: false, isOpen: false });
+  private responseSubject = new Subject<boolean>();
+
+  constructor() {
+    this.modalState$ = this.modalState.asObservable();
   }
 
-  get data$(): Observable<ConfirmationModalData | null> {
-    return this.data.asObservable();
+  open(content: ModalContent): void {
+    this.modalState.next({ content, isConfirmation: false, isOpen: true });
   }
 
-  open(data: ModalData): void {
-    this.data.next({ ...data, confirmText: undefined, cancelText: undefined });
-    this.display.next(true);
+  confirm(title: string, content: string): Observable<boolean> {
+    const data: ModalData = { title, content };
+    this.modalState.next({ content: data, isConfirmation: true, isOpen: true });
+    return this.responseSubject.asObservable().pipe(take(1));
   }
 
-  confirm(title: string, content: string, confirmText = 'Confirm', cancelText = 'Cancel'): Observable<boolean> {
-    this.data.next({ title, content, confirmText, cancelText });
-    this.display.next(true);
-
-    // Reset the subject for the new confirmation
-    this.confirmationResult = new Subject<boolean>();
-    return this.confirmationResult.asObservable();
-  }
-
-  respond(result: boolean): void {
-    this.confirmationResult.next(result);
-    this.confirmationResult.complete();
+  respond(response: boolean): void {
+    this.responseSubject.next(response);
     this.close();
   }
 
   close(): void {
-    this.display.next(false);
-    this.data.next(null);
-    // If a confirmation is pending, closing it is considered a "false"
-    if (!this.confirmationResult.closed) {
-      this.confirmationResult.next(false);
-      this.confirmationResult.complete();
-    }
+    this.modalState.next({ content: null, isConfirmation: false, isOpen: false });
   }
 }

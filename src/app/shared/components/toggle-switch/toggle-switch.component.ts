@@ -7,16 +7,13 @@ import { CommonModule } from '@angular/common';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './toggle-switch.component.html',
-  styleUrls: ['./toggle-switch.component.css']
 })
 export class ToggleSwitchComponent {
-  @Input() option1 = 'UI';
-  @Input() option2 = 'JSON';
-  @Input() activeOption: string = this.option1;
-  @Output() toggleChange = new EventEmitter<string>();
+  @Input() activeOption: 'UI' | 'JSON' = 'UI';
+  @Output() toggleChange = new EventEmitter<'UI' | 'JSON'>();
 
   toggle(): void {
-    this.activeOption = this.activeOption === this.option1 ? this.option2 : this.option1;
+    this.activeOption = this.activeOption === 'UI' ? 'JSON' : 'UI';
     this.toggleChange.emit(this.activeOption);
   }
 }

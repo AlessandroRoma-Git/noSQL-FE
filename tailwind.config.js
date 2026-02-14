@@ -6,7 +6,8 @@ module.exports = {
   ],
   theme: {
     extend: {
-      // Color extensions removed. We will use CSS variables directly.
+      // All color extensions are removed to prevent unknown class errors.
+      // We will use CSS variables directly in the HTML/CSS.
     },
   },
   plugins: [],

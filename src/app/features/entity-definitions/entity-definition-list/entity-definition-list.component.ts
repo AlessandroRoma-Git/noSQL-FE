@@ -59,22 +59,15 @@ export class EntityDefinitionListComponent implements OnInit {
     }, {} as Record<string, any>);
 
     const payloadString = JSON.stringify({ data: samplePayload }, null, 2);
-    const curlCommand = `curl -X POST http://localhost:8088/api/v1/records/${def.entityKey} \\
--H "Authorization: Bearer YOUR_JWT_TOKEN" \\
--H "Content-Type: application/json" \\
--d '${JSON.stringify({ data: samplePayload })}'`;
 
     const content = `
-      <p>Here are some examples of how to interact with the <strong>${def.entityKey}</strong> entity via the API.</p>
+      <p>Here is an example of how to interact with the <strong>${def.entityKey}</strong> entity via the API.</p>
 
-      <h4 class="mt-4 font-semibold">Create Record Endpoint</h4>
+      <h4 class="mt-4 font-semibold text-[rgb(var(--color-primary))]">Create Record Endpoint</h4>
       <p><code>POST /api/v1/records/${def.entityKey}</code></p>
 
-      <h4 class="mt-4 font-semibold">Sample Payload</h4>
-      <pre class="bg-gray-100 p-2 rounded-md text-sm"><code>${payloadString}</code></pre>
-
-      <h4 class="mt-4 font-semibold">cURL Example</h4>
-      <pre class="bg-gray-100 p-2 rounded-md text-sm"><code>${curlCommand}</code></pre>
+      <h4 class="mt-4 font-semibold text-[rgb(var(--color-primary))]">Sample Payload</h4>
+      <pre class="bg-[rgb(var(--color-bg-base))] p-2 rounded-md text-sm text-[rgb(var(--color-text))]"><code>${payloadString}</code></pre>
     `;
 
     this.modalService.open({ title, content });

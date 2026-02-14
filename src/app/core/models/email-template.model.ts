@@ -1,8 +1,8 @@
 
-export interface TemplateAttachmentDto {
+export interface Attachment {
   filename: string;
   contentType: string;
-  base64Content: string;
+  data: string; // base64 encoded
 }
 
 export interface EmailTemplate {
@@ -10,8 +10,7 @@ export interface EmailTemplate {
   name: string;
   htmlContent: string;
   placeholders: string[];
-  attachments?: TemplateAttachmentDto[];
-  createdBy: string;
+  attachments: Attachment[];
   createdAt: string;
   updatedAt: string;
 }
@@ -19,8 +18,11 @@ export interface EmailTemplate {
 export interface CreateEmailTemplateRequest {
   name: string;
   htmlContent: string;
-  placeholders: string[];
-  attachments?: TemplateAttachmentDto[];
+  attachments: Attachment[];
 }
 
-export interface UpdateEmailTemplateRequest extends CreateEmailTemplateRequest {}
+export interface UpdateEmailTemplateRequest {
+  name?: string;
+  htmlContent?: string;
+  attachments?: Attachment[];
+}

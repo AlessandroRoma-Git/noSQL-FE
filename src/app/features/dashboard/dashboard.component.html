@@ -1,0 +1,43 @@
+
+<div class="container mx-auto p-4">
+  <h1 class="text-3xl font-bold text-primary mb-6">Dashboard</h1>
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+
+    <!-- Entity Definitions Card -->
+    <a routerLink="/entity-definitions" class="block p-6 bg-surface rounded-lg shadow-lg hover:bg-base transition-colors">
+      <h2 class="text-xl font-semibold text-primary">Entities</h2>
+      <p class="text-4xl font-bold mt-2">{{ entityCount$ | async }}</p>
+      <p class="text-sm text-main-text/70">Total Definitions</p>
+    </a>
+
+    <!-- Email Templates Card -->
+    <a routerLink="/email-templates" class="block p-6 bg-surface rounded-lg shadow-lg hover:bg-base transition-colors">
+      <h2 class="text-xl font-semibold text-primary">Email Templates</h2>
+      <p class="text-4xl font-bold mt-2">{{ templateCount$ | async }}</p>
+      <p class="text-sm text-main-text/70">Total Templates</p>
+    </a>
+
+    <!-- Groups Card -->
+    <a routerLink="/groups" class="block p-6 bg-surface rounded-lg shadow-lg hover:bg-base transition-colors">
+      <h2 class="text-xl font-semibold text-primary">Groups</h2>
+      <p class="text-4xl font-bold mt-2">{{ groupCount$ | async }}</p>
+      <p class="text-sm text-main-text/70">Total Groups</p>
+    </a>
+
+    <!-- Users Card -->
+    <a routerLink="/users" class="block p-6 bg-surface rounded-lg shadow-lg hover:bg-base transition-colors">
+      <h2 class="text-xl font-semibold text-primary">Users</h2>
+      <p class="text-4xl font-bold mt-2">{{ userCount$ | async }}</p>
+      <p class="text-sm text-main-text/70">Total Users</p>
+    </a>
+
+    <!-- Menu Card -->
+    <a routerLink="/menu" class="block p-6 bg-surface rounded-lg shadow-lg hover:bg-base transition-colors">
+      <h2 class="text-xl font-semibold text-primary">Menu Items</h2>
+      <p class="text-4xl font-bold mt-2">{{ menuCount$ | async }}</p>
+      <p class="text-sm text-main-text/70">Total Menu Items</p>
+    </a>
+
+  </div>
+</div>

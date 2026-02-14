@@ -6,26 +6,28 @@
       Create New Group
     </a>
   </div>
-  <div *ngIf="groups$ | async as groups; else loading" class="bg-bg-surface shadow-md rounded-lg">
-    <div *ngIf="groups.length > 0; else empty">
-      <ul class="divide-y divide-bg-base">
-        <li *ngFor="let group of groups" class="p-4 flex justify-between items-center hover:bg-bg-base">
-          <div>
-            <p class="text-lg font-semibold text-primary">{{ group.name }}</p>
-            <p class="text-sm text-text-main/70">{{ group.description || 'No description' }}</p>
-          </div>
-          <div class="space-x-4">
-            <a [routerLink]="['/groups/edit', group.id]" class="text-accent hover:underline">Edit</a>
-            <button (click)="onDelete(group.id, group.name)" class="text-red-500 hover:underline">Delete</button>
-          </div>
-        </li>
-      </ul>
+  @if (groups$ | async; as groups) {
+    <div class="bg-bg-surface shadow-md rounded-lg">
+      @if (groups.length > 0) {
+        <ul class="divide-y divide-bg-base">
+          @for (group of groups; track group.id) {
+            <li class="p-4 flex justify-between items-center hover:bg-bg-base">
+              <div>
+                <p class="text-lg font-semibold text-primary">{{ group.name }}</p>
+                <p class="text-sm text-text-main/70">{{ group.description || 'No description' }}</p>
+              </div>
+              <div class="space-x-4">
+                <a [routerLink]="['/groups/edit', group.id]" class="text-accent hover:underline">Edit</a>
+                <button (click)="onDelete(group.id, group.name)" class="text-red-500 hover:underline">Delete</button>
+              </div>
+            </li>
+          }
+        </ul>
+      } @else {
+        <p class="p-4 text-text-main/70">No groups found. Click "Create New Group" to get started.</p>
+      }
     </div>
-    <ng-template #empty>
-      <p class="p-4 text-text-main/70">No groups found. Click "Create New Group" to get started.</p>
-    </ng-template>
-  </div>
-  <ng-template #loading>
+  } @else {
     <p>Loading...</p>
-  </ng-template>
+  }
 </div>
