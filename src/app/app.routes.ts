@@ -6,6 +6,8 @@ import { authGuard } from './core/guards/auth.guard';
 import { ChangePasswordComponent } from './features/auth/change-password/change-password.component';
 import { RecoverPasswordComponent } from './features/auth/recover-password/recover-password.component';
 import { EntityDefinitionEditorComponent } from './features/entity-definitions/entity-definition-editor/entity-definition-editor.component';
+import { EmailTemplateListComponent } from './features/email-templates/email-template-list/email-template-list.component';
+import { EmailTemplateEditorComponent } from './features/email-templates/email-template-editor/email-template-editor.component';
 
 export const routes: Routes = [
   {
@@ -39,7 +41,20 @@ export const routes: Routes = [
       }
     ]
   },
-
+  {
+    path: 'email-templates',
+    canActivate: [authGuard],
+    children: [
+      {
+        path: '',
+        component: EmailTemplateListComponent
+      },
+      {
+        path: 'new',
+        component: EmailTemplateEditorComponent
+      }
+    ]
+  },
   {
     path: '',
     redirectTo: '/entity-definitions',

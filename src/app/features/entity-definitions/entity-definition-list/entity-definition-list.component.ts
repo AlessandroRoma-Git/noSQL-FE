@@ -10,43 +10,8 @@ import { RouterLink } from '@angular/router';
   selector: 'app-entity-definition-list',
   standalone: true,
   imports: [CommonModule, RouterLink],
-  template: `
-    <div class="container mx-auto p-4">
-      <div class="flex justify-between items-center mb-4">
-        <h1 class="text-2xl font-bold">Entity Definitions</h1>
-        <a routerLink="new" class="px-4 py-2 text-sm font-medium text-white bg-indigo-600 rounded-md hover:bg-indigo-700">
-          Create New
-        </a>
-      </div>
-      <div *ngIf="definitions$ | async as definitions; else loading" class="bg-white shadow-md rounded-lg">
-        <div *ngIf="definitions.length > 0; else empty">
-          <ul class="divide-y divide-gray-200">
-            <li *ngFor="let def of definitions" class="p-4 flex justify-between items-center hover:bg-gray-50">
-              <div>
-                <p class="text-lg font-semibold text-indigo-600">{{ def.label }}</p>
-                <p class="text-sm text-gray-500">{{ def.entityKey }}</p>
-              </div>
-              <div class="space-x-4">
-                <a [routerLink]="['edit', def.entityKey]" class="text-blue-500 hover:underline">Edit</a>
-                <button (click)="onDelete(def.entityKey)" class="text-red-500 hover:underline">Delete</button>
-              </div>
-            </li>
-          </ul>
-        </div>
-        <ng-template #empty>
-          <p class="p-4 text-gray-500">No entity definitions found. Click "Create New" to get started.</p>
-        </ng-template>
-      </div>
-      <ng-template #loading>
-        <p>Loading...</p>
-      </ng-template>
-    </div>
-  `,
-  styles: [`
-    :host {
-      display: block;
-    }
-  `]
+  templateUrl: './entity-definition-list.component.html',
+  styleUrls: ['./entity-definition-list.component.css']
 })
 export class EntityDefinitionListComponent implements OnInit {
   private entityDefinitionService = inject(EntityDefinitionService);
