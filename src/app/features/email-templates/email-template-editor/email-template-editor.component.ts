@@ -1,5 +1,5 @@
 
-import { Component, OnInit, inject, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject, OnDestroy, SecurityContext } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
@@ -9,12 +9,12 @@ import { EmailTemplateService } from '../../../core/services/email-template.serv
 import { ModalService } from '../../../core/services/modal.service';
 import { EmailTemplate, Attachment } from '../../../core/models/email-template.model';
 import { ToggleSwitchComponent } from '../../../shared/components/toggle-switch/toggle-switch.component';
-import { EditorModule } from '@tinymce/tinymce-angular';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-email-template-editor',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule, ToggleSwitchComponent, EditorModule],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule, ToggleSwitchComponent],
   templateUrl: './email-template-editor.component.html',
   styleUrls: ['./email-template-editor.component.css']
 })
@@ -24,6 +24,7 @@ export class EmailTemplateEditorComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private emailTemplateService = inject(EmailTemplateService);
   private modalService = inject(ModalService);
+  private sanitizer = inject(DomSanitizer);
 
   public editorForm!: FormGroup;
   public isEditMode = false;
@@ -35,15 +36,8 @@ export class EmailTemplateEditorComponent implements OnInit, OnDestroy {
   public jsonError: string | null = null;
 
   public detectedPlaceholders$ = new Subject<string[]>();
-
-  public tinyMceConfig = {
-    base_url: '/tinymce',
-    suffix: '.min',
-    plugins: 'lists link image table code help wordcount',
-    skin: 'oxide-dark',
-    content_css: 'dark',
-    height: 500,
-  };
+  public previewContent: SafeHtml = '';
+  public previewDevice: 'desktop' | 'tablet' | 'mobile' = 'desktop';
 
   get attachments(): FormArray {
     return this.editorForm.get('attachments') as FormArray;
@@ -51,7 +45,7 @@ export class EmailTemplateEditorComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.templateId = this.route.snapshot.paramMap.get('id');
-    this.isEditMode = !!(this.templateId);
+    this.isEditMode = !!this.templateId;
     this.initForm();
     this.listenToHtmlContentChanges();
 
@@ -59,6 +53,7 @@ export class EmailTemplateEditorComponent implements OnInit, OnDestroy {
       this.emailTemplateService.getEmailTemplate(this.templateId).subscribe((template: EmailTemplate) => {
         this.editorForm.patchValue(template);
         this.jsonContentControl.setValue(JSON.stringify(template, null, 2));
+        this.attachments.clear();
         template.attachments?.forEach((att: Attachment) => this.addAttachment(att.filename, att.contentType, att.data));
       });
     }
@@ -102,7 +97,16 @@ export class EmailTemplateEditorComponent implements OnInit, OnDestroy {
       const uniquePlaceholders = [...new Set(placeholders)];
       this.editorForm.get('placeholders')?.setValue(uniquePlaceholders);
       this.detectedPlaceholders$.next(uniquePlaceholders);
+      this.updatePreview(content || '');
     });
+  }
+
+  updatePreview(content: string): void {
+    this.previewContent = this.sanitizer.bypassSecurityTrustHtml(content);
+  }
+
+  setPreviewDevice(device: 'desktop' | 'tablet' | 'mobile'): void {
+    this.previewDevice = device;
   }
 
   addAttachment(filename = '', contentType = '', data = ''): void {
@@ -118,9 +122,10 @@ export class EmailTemplateEditorComponent implements OnInit, OnDestroy {
     this.attachments.removeAt(index);
   }
 
-  onFileChange(event: any, index: number): void {
-    const file = event.target.files[0];
-    if (file) {
+  onFileChange(event: Event, index: number): void {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files.length > 0) {
+      const file = input.files[0];
       const reader = new FileReader();
       reader.onload = () => {
         const base64String = reader.result as string;
@@ -128,7 +133,7 @@ export class EmailTemplateEditorComponent implements OnInit, OnDestroy {
         attachmentGroup.patchValue({
           filename: file.name,
           contentType: file.type,
-          data: base64String.split(',')[1] // Get only the base64 part
+          data: base64String.split(',')[1]
         });
       };
       reader.readAsDataURL(file);
@@ -136,22 +141,15 @@ export class EmailTemplateEditorComponent implements OnInit, OnDestroy {
   }
 
   onSubmit(): void {
-    if (this.editorForm.invalid) {
-      return;
-    }
-
+    if (this.editorForm.invalid) return;
     const formValue = this.activeTab === 'UI' ? this.editorForm.value : JSON.parse(this.jsonContentControl.value || '{}');
-
     const operation = this.isEditMode && this.templateId
       ? this.emailTemplateService.updateEmailTemplate(this.templateId, formValue)
       : this.emailTemplateService.createEmailTemplate(formValue);
-
-    operation.subscribe(() => {
-      this.router.navigate(['/email-templates']);
-    });
+    operation.subscribe(() => this.router.navigate(['/email-templates']));
   }
 
-  showInfo(topic: string): void {
+  showInfo(topic: 'details' | 'placeholders' | 'attachments' | 'usage'): void {
     // ... (implementation for showing info modals)
   }
 }

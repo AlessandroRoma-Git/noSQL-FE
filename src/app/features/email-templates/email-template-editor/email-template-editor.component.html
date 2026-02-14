@@ -29,9 +29,32 @@
             </div>
             <div>
               <label for="htmlContent" class="label">HTML Content</label>
-              <editor formControlName="htmlContent" [init]="tinyMceConfig"></editor>
+              <textarea formControlName="htmlContent" id="htmlContent" rows="15" class="input font-mono"></textarea>
               <p class="text-xs text-main-text/70 mt-1" ngNonBindable>Use {{placeholder_name}} for placeholders.</p>
             </div>
+          </div>
+        </div>
+
+        <!-- Live Preview -->
+        <div class="bg-surface p-6 rounded-lg shadow-md">
+          <div class="flex justify-between items-center border-b border-base pb-2 mb-4">
+            <h2 class="text-xl font-semibold text-primary">Live Preview</h2>
+            <div class="flex space-x-2">
+              <button type="button" (click)="setPreviewDevice('desktop')" class="button-secondary-sm" [class.bg-primary]="previewDevice === 'desktop'">Desktop</button>
+              <button type="button" (click)="setPreviewDevice('tablet')" class="button-secondary-sm" [class.bg-primary]="previewDevice === 'tablet'">Tablet</button>
+              <button type="button" (click)="setPreviewDevice('mobile')" class="button-secondary-sm" [class.bg-primary]="previewDevice === 'mobile'">Mobile</button>
+            </div>
+          </div>
+          <div class="mt-4 p-2 bg-base rounded-md flex justify-center">
+            <iframe
+              class="border-2 border-primary transition-all duration-300 ease-in-out"
+              [srcdoc]="previewContent"
+              [ngClass]="{
+                'w-full h-[600px]': previewDevice === 'desktop',
+                'w-[768px] h-[1024px]': previewDevice === 'tablet',
+                'w-[375px] h-[667px]': previewDevice === 'mobile'
+              }"
+            ></iframe>
           </div>
         </div>
 
