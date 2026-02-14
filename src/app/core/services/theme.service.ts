@@ -17,11 +17,16 @@ export class ThemeService {
   private readonly THEME_KEY = 'app-theme';
 
   private themes: Theme[] = [
-    // Original Themes
     {
       name: 'Coder',
       id: 'coder',
-      colors: { '--color-primary': '115, 239, 105', '--color-accent': '219, 39, 119', '--color-text': '115, 239, 105', '--color-bg-base': '0, 0, 0', '--color-bg-surface': '31, 41, 55' }
+      colors: {
+        '--color-primary': '115, 239, 105',
+        '--color-accent': '219, 39, 119', // Magenta (Restored)
+        '--color-text': '115, 239, 105',
+        '--color-bg-base': '0, 0, 0',
+        '--color-bg-surface': '17, 24, 39'
+      }
     },
     {
       name: 'Light',
@@ -48,7 +53,6 @@ export class ThemeService {
       id: 'rose',
       colors: { '--color-primary': '244, 63, 94', '--color-accent': '139, 92, 246', '--color-text': '55, 65, 81', '--color-bg-base': '249, 250, 251', '--color-bg-surface': '255, 255, 255' }
     },
-    // 10 New Themes
     {
       name: 'Dracula',
       id: 'dracula',
