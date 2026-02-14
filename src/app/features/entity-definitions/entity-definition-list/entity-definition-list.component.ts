@@ -21,11 +21,8 @@ export class EntityDefinitionListComponent implements OnInit {
   public definitions$!: Observable<EntityDefinition[]>;
 
   ngOnInit(): void {
-    this.loadDefinitions();
-  }
-
-  loadDefinitions(): void {
-    this.definitions$ = this.entityDefinitionService.getEntityDefinitions();
+    this.definitions$ = this.entityDefinitionService.definitions$;
+    this.entityDefinitionService.loadEntityDefinitions().subscribe();
   }
 
   onDelete(key: string): void {
@@ -33,11 +30,10 @@ export class EntityDefinitionListComponent implements OnInit {
       'Confirm Deletion',
       `Are you sure you want to delete the entity definition <strong>${key}</strong>? This action cannot be undone.`
     ).pipe(
-      filter(confirmed => confirmed) // Proceed only if the user confirmed
+      filter(confirmed => confirmed)
     ).subscribe(() => {
-      this.entityDefinitionService.deleteEntityDefinition(key).subscribe(() => {
-        this.loadDefinitions();
-      });
+      // The service will automatically reload the list
+      this.entityDefinitionService.deleteEntityDefinition(key).subscribe();
     });
   }
 

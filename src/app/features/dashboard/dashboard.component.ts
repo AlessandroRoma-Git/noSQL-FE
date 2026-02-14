@@ -29,10 +29,18 @@ export class DashboardComponent implements OnInit {
   public menuCount$!: Observable<number>;
 
   ngOnInit(): void {
-    this.entityCount$ = this.entityService.getEntityDefinitions().pipe(map(items => items.length));
-    this.templateCount$ = this.emailTemplateService.getEmailTemplates().pipe(map(items => items.length));
-    this.groupCount$ = this.groupService.getGroups().pipe(map(items => items.length));
-    this.userCount$ = this.userService.getUsers().pipe(map(items => items.length));
-    this.menuCount$ = this.menuService.getMenuItems().pipe(map(items => items.length));
+    // Use the public observables from the services
+    this.entityCount$ = this.entityService.definitions$.pipe(map(items => items.length));
+    this.templateCount$ = this.emailTemplateService.templates$.pipe(map(items => items.length));
+    this.groupCount$ = this.groupService.groups$.pipe(map(items => items.length));
+    this.userCount$ = this.userService.users$.pipe(map(items => items.length));
+    this.menuCount$ = this.menuService.menuItems$.pipe(map(items => items.length));
+
+    // Trigger the initial load for all services
+    this.entityService.loadEntityDefinitions().subscribe();
+    this.emailTemplateService.loadEmailTemplates().subscribe();
+    this.groupService.loadGroups().subscribe();
+    this.userService.loadUsers().subscribe();
+    this.menuService.loadMenuItems().subscribe();
   }
 }

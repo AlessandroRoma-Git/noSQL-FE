@@ -21,11 +21,8 @@ export class GroupListComponent implements OnInit {
   public groups$!: Observable<Group[]>;
 
   ngOnInit(): void {
-    this.loadGroups();
-  }
-
-  loadGroups(): void {
-    this.groups$ = this.groupService.getGroups();
+    this.groups$ = this.groupService.groups$;
+    this.groupService.loadGroups().subscribe();
   }
 
   onDelete(id: string, name: string): void {
@@ -35,9 +32,7 @@ export class GroupListComponent implements OnInit {
     ).pipe(
       filter(confirmed => confirmed)
     ).subscribe(() => {
-      this.groupService.deleteGroup(id).subscribe(() => {
-        this.loadGroups();
-      });
+      this.groupService.deleteGroup(id).subscribe();
     });
   }
 }

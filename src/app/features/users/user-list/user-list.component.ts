@@ -21,11 +21,8 @@ export class UserListComponent implements OnInit {
   public users$!: Observable<User[]>;
 
   ngOnInit(): void {
-    this.loadUsers();
-  }
-
-  loadUsers(): void {
-    this.users$ = this.userService.getUsers();
+    this.users$ = this.userService.users$;
+    this.userService.loadUsers().subscribe();
   }
 
   onDelete(id: string, username: string): void {
@@ -35,9 +32,7 @@ export class UserListComponent implements OnInit {
     ).pipe(
       filter(confirmed => confirmed)
     ).subscribe(() => {
-      this.userService.deleteUser(id).subscribe(() => {
-        this.loadUsers();
-      });
+      this.userService.deleteUser(id).subscribe();
     });
   }
 

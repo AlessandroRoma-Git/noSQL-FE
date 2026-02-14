@@ -21,11 +21,8 @@ export class EmailTemplateListComponent implements OnInit {
   public templates$!: Observable<EmailTemplate[]>;
 
   ngOnInit(): void {
-    this.loadTemplates();
-  }
-
-  loadTemplates(): void {
-    this.templates$ = this.emailTemplateService.getEmailTemplates();
+    this.templates$ = this.emailTemplateService.templates$;
+    this.emailTemplateService.loadEmailTemplates().subscribe();
   }
 
   onDelete(id: string, name: string): void {
@@ -35,9 +32,7 @@ export class EmailTemplateListComponent implements OnInit {
     ).pipe(
       filter(confirmed => confirmed)
     ).subscribe(() => {
-      this.emailTemplateService.deleteEmailTemplate(id).subscribe(() => {
-        this.loadTemplates();
-      });
+      this.emailTemplateService.deleteEmailTemplate(id).subscribe();
     });
   }
 

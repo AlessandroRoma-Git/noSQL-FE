@@ -5,6 +5,8 @@ import { RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 import { MenuItem } from '../../../core/models/menu-item.model';
 import { MenuService } from '../../../core/services/menu.service';
+import { ModalService } from '../../../core/services/modal.service';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-menu-list',
@@ -15,21 +17,22 @@ import { MenuService } from '../../../core/services/menu.service';
 })
 export class MenuListComponent implements OnInit {
   private menuService = inject(MenuService);
+  private modalService = inject(ModalService);
   public menuItems$!: Observable<MenuItem[]>;
 
   ngOnInit(): void {
-    this.loadMenuItems();
+    this.menuItems$ = this.menuService.menuItems$;
+    this.menuService.loadMenuItems().subscribe();
   }
 
-  loadMenuItems(): void {
-    this.menuItems$ = this.menuService.getMenuItems();
-  }
-
-  onDelete(id: string): void {
-    if (confirm('Are you sure you want to delete this menu item?')) {
-      this.menuService.deleteMenuItem(id).subscribe(() => {
-        this.loadMenuItems();
-      });
-    }
+  onDelete(id: string, label: string): void {
+    this.modalService.confirm(
+      'Confirm Deletion',
+      `Are you sure you want to delete the menu item <strong>${label}</strong>?`
+    ).pipe(
+      filter(confirmed => confirmed)
+    ).subscribe(() => {
+      this.menuService.deleteMenuItem(id).subscribe();
+    });
   }
 }

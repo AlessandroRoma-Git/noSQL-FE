@@ -91,7 +91,7 @@ export class EntityDefinitionEditorComponent implements OnInit, OnDestroy {
   }
 
   private loadGroups(): void {
-    this.groupService.getGroups().subscribe(groups => {
+    this.groupService.loadGroups().subscribe(groups => {
       this.allGroups = groups;
       const aclRead = this.editorForm.get('acl.read') as FormGroup;
       const aclWrite = this.editorForm.get('acl.write') as FormGroup;
