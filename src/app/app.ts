@@ -15,7 +15,7 @@ import { ThemeService } from './core/services/theme.service';
 })
 export class App {
   public authService = inject(AuthService);
-  private themeService = inject(ThemeService); // This ensures the service is instantiated
+  private themeService = inject(ThemeService); // Service is injected but non-operational
   public isSidebarOpen = true;
 
   toggleSidebar(): void {
