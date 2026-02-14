@@ -1,21 +1,46 @@
 
-<header class="bg-gray-800 text-white shadow-md">
-  <div class="container mx-auto flex justify-between items-center p-4">
-    <h1 class="text-xl font-semibold">CMS NoSQL Config</h1>
-    <nav *ngIf="authService.isAuthenticated$ | async" class="flex items-center space-x-6">
-      <a routerLink="/entity-definitions" routerLinkActive="active-link"
-         class="nav-link">Entity Definitions</a>
-      <a routerLink="/email-templates" routerLinkActive="active-link"
-         class="nav-link">Email Templates</a>
-      <button (click)="logout()" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded">
+<div class="flex h-screen bg-bg-base text-text-main">
+  <!-- Sidebar -->
+  <aside
+    *ngIf="authService.isAuthenticated$ | async"
+    class="fixed top-0 left-0 h-full w-64 bg-bg-surface flex flex-col transition-transform duration-300 ease-in-out z-40"
+    [class.translate-x-0]="isSidebarOpen"
+    [class.-translate-x-full]="!isSidebarOpen">
+
+    <div class="flex items-center justify-center h-16 bg-bg-base text-xl font-semibold">
+      CMS Config
+    </div>
+    <nav class="flex flex-col flex-grow p-4 space-y-2">
+      <a routerLink="/entity-definitions" routerLinkActive="bg-primary/20 text-primary font-semibold" class="flex items-center w-full px-4 py-2 text-text-main rounded-md hover:bg-bg-base">Entities</a>
+      <a routerLink="/email-templates" routerLinkActive="bg-primary/20 text-primary font-semibold" class="flex items-center w-full px-4 py-2 text-text-main rounded-md hover:bg-bg-base">Email Templates</a>
+      <a routerLink="/groups" routerLinkActive="bg-primary/20 text-primary font-semibold" class="flex items-center w-full px-4 py-2 text-text-main rounded-md hover:bg-bg-base">Groups</a>
+      <a routerLink="/users" routerLinkActive="bg-primary/20 text-primary font-semibold" class="flex items-center w-full px-4 py-2 text-text-main rounded-md hover:bg-bg-base">Users</a>
+      <a routerLink="/menu" routerLinkActive="bg-primary/20 text-primary font-semibold" class="flex items-center w-full px-4 py-2 text-text-main rounded-md hover:bg-bg-base">Menu</a>
+    </nav>
+    <div class="p-4 border-t border-bg-base">
+      <button (click)="logout()" class="w-full px-4 py-2 text-sm font-medium text-white bg-accent rounded-md hover:opacity-80">
         Logout
       </button>
-    </nav>
-  </div>
-</header>
+    </div>
+  </aside>
 
-<main class="container mx-auto p-4">
-  <router-outlet></router-outlet>
-</main>
+  <!-- Main Content -->
+  <div class="flex-1 flex flex-col transition-all duration-300 ease-in-out"
+       [class.md:ml-64]="isSidebarOpen && (authService.isAuthenticated$ | async)">
+    <!-- Topbar -->
+    <header *ngIf="authService.isAuthenticated$ | async" class="bg-bg-surface shadow-md h-16 flex items-center px-4 z-30">
+      <button (click)="toggleSidebar()" class="p-2 rounded-md hover:bg-bg-base">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
+    </header>
+
+    <!-- Content Area -->
+    <main class="flex-1 p-4 overflow-y-auto">
+      <router-outlet></router-outlet>
+    </main>
+  </div>
+</div>
 
 <app-modal></app-modal>

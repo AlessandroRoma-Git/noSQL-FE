@@ -1,0 +1,12 @@
+
+<div class="flex justify-center space-x-2 p-2">
+  <button *ngFor="let theme of themes" (click)="setTheme(theme.id)" class="w-8 h-8 rounded-full border-2 border-white/50" [title]="theme.name">
+    <div
+      class="w-full h-full rounded-full"
+      [ngClass]="{
+        'bg-gray-800': theme.id === 'theme-dark' || theme.id === 'theme-coder',
+        'bg-gray-100': theme.id === 'theme-light'
+      }"
+    ></div>
+  </button>
+</div>

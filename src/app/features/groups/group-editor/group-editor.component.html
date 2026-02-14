@@ -1,0 +1,27 @@
+
+<div class="container mx-auto p-4">
+  <h1 class="text-3xl font-bold mb-6">{{ isEditMode ? 'Edit Group' : 'Create Group' }}</h1>
+
+  <form [formGroup]="editorForm" (ngSubmit)="onSubmit()" class="space-y-8 bg-white p-6 rounded-lg shadow-md max-w-lg mx-auto">
+
+    <!-- Main Details -->
+    <div class="space-y-4">
+      <div>
+        <label for="name" class="label">Group Name</label>
+        <input formControlName="name" id="name" type="text" class="input" placeholder="e.g., editors">
+      </div>
+      <div>
+        <label for="description" class="label">Description</label>
+        <textarea formControlName="description" id="description" rows="4" class="input" placeholder="A brief description of the group's purpose."></textarea>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex justify-end space-x-4">
+      <a routerLink="/groups" class="button-secondary">Cancel</a>
+      <button type="submit" [disabled]="editorForm.invalid" class="button-primary disabled:opacity-50">
+        {{ isEditMode ? 'Update Group' : 'Create Group' }}
+      </button>
+    </div>
+  </form>
+</div>

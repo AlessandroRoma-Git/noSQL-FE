@@ -1,0 +1,19 @@
+
+<div class="relative flex items-center bg-gray-200 rounded-full p-1 cursor-pointer w-32" (click)="toggle()">
+  <!-- Background slider -->
+  <div class="absolute bg-white shadow-md rounded-full h-7 w-1/2 transition-transform duration-300 ease-in-out"
+       [style.transform]="activeOption === option1 ? 'translateX(0)' : 'translateX(100%)'">
+  </div>
+
+  <!-- Options -->
+  <div class="flex-1 text-center z-10 text-sm font-medium transition-colors"
+       [class.text-gray-800]="activeOption === option1"
+       [class.text-gray-500]="activeOption !== option1">
+    {{ option1 }}
+  </div>
+  <div class="flex-1 text-center z-10 text-sm font-medium transition-colors"
+       [class.text-gray-800]="activeOption === option2"
+       [class.text-gray-500]="activeOption !== option2">
+    {{ option2 }}
+  </div>
+</div>

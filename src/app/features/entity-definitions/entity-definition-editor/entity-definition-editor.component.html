@@ -1,132 +1,123 @@
 
 <div class="container mx-auto p-4">
-  <h1 class="text-3xl font-bold mb-6">{{ isEditMode ? 'Edit Entity Definition' : 'Create Entity Definition' }}</h1>
-  <form [formGroup]="editorForm" (ngSubmit)="onSubmit()" class="space-y-8">
-
-    <!-- Main Details & ACLs -->
-    <div class="bg-white p-6 rounded-lg shadow-md">
-      <h2 class="text-xl font-semibold mb-4 border-b pb-2">Main Details</h2>
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label for="entityKey" class="label">Entity Key</label>
-          <input formControlName="entityKey" id="entityKey" type="text" class="input" [class.bg-gray-100]="isEditMode" placeholder="e.g., blog_posts">
-          <div *ngIf="editorForm.get('entityKey')?.touched && editorForm.get('entityKey')?.errors" class="error-text">
-            <span *ngIf="editorForm.get('entityKey')?.errors?.['required']">Key is required.</span>
-            <span *ngIf="editorForm.get('entityKey')?.errors?.['pattern']">Key must be lowercase with letters, numbers, and underscores.</span>
-          </div>
-        </div>
-        <div>
-          <label for="label" class="label">Label</label>
-          <input formControlName="label" id="label" type="text" class="input" placeholder="e.g., Blog Posts">
-           <div *ngIf="editorForm.get('label')?.touched && editorForm.get('label')?.errors?.['required']" class="error-text">
-            Label is required.
-          </div>
-        </div>
-      </div>
-
-      <h2 class="text-xl font-semibold mt-8 mb-4 border-b pb-2">Access Control List (ACL)</h2>
-      <p class="text-sm text-gray-500 mb-4">Enter roles separated by commas (e.g., admin, editor). Leave blank for open access.</p>
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6" formGroupName="acl">
-        <div>
-          <label for="acl-read" class="label">Read Roles</label>
-          <input formControlName="read" id="acl-read" type="text" class="input" placeholder="admin, user">
-        </div>
-        <div>
-          <label for="acl-write" class="label">Write Roles</label>
-          <input formControlName="write" id="acl-write" type="text" class="input" placeholder="admin">
-        </div>
-        <div>
-          <label for="acl-delete" class="label">Delete Roles</label>
-          <input formControlName="delete" id="acl-delete" type="text" class="input" placeholder="admin">
-        </div>
-        <div>
-          <label for="acl-search" class="label">Search Roles</label>
-          <input formControlName="search" id="acl-search" type="text" class="input" placeholder="admin, user">
-        </div>
-      </div>
-    </div>
-
-    <!-- Fields -->
-    <div class="bg-white p-6 rounded-lg shadow-md" formArrayName="fields">
-      <div class="flex justify-between items-center mb-4 border-b pb-2">
-        <h2 class="text-xl font-semibold">Fields</h2>
-        <button type="button" (click)="addField()" class="button-primary">Add Field</button>
-      </div>
-       <div *ngIf="editorForm.get('fields')?.touched && editorForm.get('fields')?.errors?.['minlength']" class="error-text mb-4">
-          At least one field is required.
-      </div>
-
-      <div *ngFor="let fieldGroup of fields.controls; let i = index" [formGroupName]="i" class="space-y-4 p-4 mb-4 border rounded-md bg-gray-50 relative">
-        <button type="button" (click)="removeField(i)" class="absolute top-2 right-2 text-red-500 hover:text-red-700 font-semibold">X</button>
-
-        <!-- Field Main Details -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <div>
-            <label [for]="'field-name-' + i" class="label">Field Name</label>
-            <input [id]="'field-name-' + i" formControlName="name" placeholder="e.g., title" class="input">
-          </div>
-          <div>
-            <label [for]="'field-type-' + i" class="label">Type</label>
-            <select [id]="'field-type-' + i" formControlName="type" class="input">
-              <option *ngFor="let type of fieldTypes" [value]="type">{{ type }}</option>
-            </select>
-          </div>
-          <div class="flex items-end pb-2">
-            <label class="flex items-center">
-              <input formControlName="required" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
-              <span class="ml-2 text-sm text-gray-600">Required</span>
-            </label>
-          </div>
-        </div>
-
-        <!-- Conditional Validation Fields -->
-        <ng-container [ngSwitch]="fieldGroup.get('type')?.value">
-
-          <!-- STRING Type -->
-          <div *ngSwitchCase="'STRING'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label [for]="'field-maxlen-' + i" class="label">Max Length</label>
-              <input [id]="'field-maxlen-' + i" formControlName="maxLen" type="number" class="input" placeholder="e.g., 255">
-            </div>
-            <div>
-              <label [for]="'field-pattern-' + i" class="label">Regex Pattern</label>
-              <input [id]="'field-pattern-' + i" formControlName="pattern" type="text" class="input" placeholder="e.g., ^[A-Za-z]+$">
-            </div>
-          </div>
-
-          <!-- NUMBER Type -->
-          <div *ngSwitchCase="'NUMBER'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label [for]="'field-min-' + i" class="label">Min Value</label>
-              <input [id]="'field-min-' + i" formControlName="min" type="number" class="input" placeholder="e.g., 0">
-            </div>
-            <div>
-              <label [for]="'field-max-' + i" class="label">Max Value</label>
-              <input [id]="'field-max-' + i" formControlName="max" type="number" class="input" placeholder="e.g., 100">
-            </div>
-          </div>
-
-          <!-- ENUM Type -->
-          <div *ngSwitchCase="'ENUM'" formArrayName="enumValues">
-            <label class="label">Enum Values</label>
-            <div *ngFor="let enumControl of getEnumValues(fieldGroup).controls; let j = index" class="flex items-center space-x-2 mb-2">
-              <input [formControlName]="j" class="input flex-grow" placeholder="e.g., active">
-              <button type="button" (click)="removeEnumValue(fieldGroup, j)" class="button-danger-sm">Remove</button>
-            </div>
-            <button type="button" (click)="addEnumValue(fieldGroup)" class="button-secondary-sm mt-2">Add Value</button>
-          </div>
-
-        </ng-container>
-      </div>
-    </div>
-
-    <!-- Form Actions -->
-    <div class="flex justify-end space-x-4">
-      <a routerLink="/entity-definitions" class="button-secondary">Cancel</a>
-      <button type="submit" [disabled]="editorForm.invalid" class="button-primary disabled:opacity-50">
-        {{ isEditMode ? 'Update Definition' : 'Create Definition' }}
+  <div class="flex justify-between items-center mb-4">
+    <div class="flex items-center space-x-4">
+      <h1 class="text-3xl font-bold">{{ isEditMode ? 'Edit Entity Definition' : 'Create Entity Definition' }}</h1>
+      <button *ngIf="isEditMode" (click)="showUsage()" title="Show API Usage" class="text-gray-500 hover:text-indigo-600">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
       </button>
     </div>
+    <app-toggle-switch [activeOption]="activeTab" (toggleChange)="activeTab = $event === 'UI' ? 'ui' : 'json'"></app-toggle-switch>
+  </div>
 
-  </form>
+  <!-- Tab Content -->
+  <div [ngSwitch]="activeTab">
+
+    <!-- UI View -->
+    <div *ngSwitchCase="'ui'">
+      <form [formGroup]="editorForm" (ngSubmit)="onSubmit()" class="space-y-8">
+        <!-- Main Details -->
+        <div class="bg-white p-6 rounded-lg shadow-md">
+          <h2 class="text-xl font-semibold mb-4 border-b pb-2">Main Details</h2>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label for="entityKey" class="label">Entity Key</label>
+              <input formControlName="entityKey" id="entityKey" type="text" class="input" [class.bg-gray-100]="isEditMode" placeholder="e.g., blog_posts">
+            </div>
+            <div>
+              <label for="label" class="label">Label</label>
+              <input formControlName="label" id="label" type="text" class="input" placeholder="e.g., Blog Posts">
+            </div>
+          </div>
+        </div>
+
+        <!-- ACLs -->
+        <div class="bg-white p-6 rounded-lg shadow-md" formGroupName="acl">
+          <h2 class="text-xl font-semibold mb-4 border-b pb-2">Access Control List (by Group)</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div formGroupName="read">
+              <h3 class="font-medium mb-2">Read Access</h3>
+              <div *ngFor="let group of allGroups" class="flex items-center mb-1">
+                <input [formControlName]="group.name" [id]="'read-' + group.name" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                <label [for]="'read-' + group.name" class="ml-2 text-sm text-gray-600">{{ group.name }}</label>
+              </div>
+            </div>
+            <div formGroupName="write">
+              <h3 class="font-medium mb-2">Write Access</h3>
+              <div *ngFor="let group of allGroups" class="flex items-center mb-1">
+                <input [formControlName]="group.name" [id]="'write-' + group.name" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                <label [for]="'write-' + group.name" class="ml-2 text-sm text-gray-600">{{ group.name }}</label>
+              </div>
+            </div>
+            <div formGroupName="delete">
+              <h3 class="font-medium mb-2">Delete Access</h3>
+              <div *ngFor="let group of allGroups" class="flex items-center mb-1">
+                <input [formControlName]="group.name" [id]="'delete-' + group.name" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                <label [for]="'delete-' + group.name" class="ml-2 text-sm text-gray-600">{{ group.name }}</label>
+              </div>
+            </div>
+            <div formGroupName="search">
+              <h3 class="font-medium mb-2">Search Access</h3>
+              <div *ngFor="let group of allGroups" class="flex items-center mb-1">
+                <input [formControlName]="group.name" [id]="'search-' + group.name" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+                <label [for]="'search-' + group.name" class="ml-2 text-sm text-gray-600">{{ group.name }}</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fields -->
+        <div class="bg-white p-6 rounded-lg shadow-md" formArrayName="fields">
+          <div class="flex justify-between items-center mb-4 border-b pb-2">
+            <h2 class="text-xl font-semibold">Fields</h2>
+            <button type="button" (click)="addField()" class="button-primary">Add Field</button>
+          </div>
+          <div *ngFor="let fieldGroup of fields.controls; let i = index" [formGroupName]="i" class="space-y-4 p-4 mb-4 border rounded-md bg-gray-50 relative">
+            <button type="button" (click)="removeField(i)" class="absolute top-2 right-2 text-red-500 hover:text-red-700 font-semibold">X</button>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div><label [for]="'field-name-' + i" class="label">Field Name</label><input [id]="'field-name-' + i" formControlName="name" placeholder="e.g., title" class="input"></div>
+              <div><label [for]="'field-type-' + i" class="label">Type</label><select [id]="'field-type-' + i" formControlName="type" class="input"><option *ngFor="let type of fieldTypes" [value]="type">{{ type }}</option></select></div>
+              <div class="flex items-end pb-2"><label class="flex items-center"><input formControlName="required" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"><span class="ml-2 text-sm text-gray-600">Required</span></label></div>
+            </div>
+            <ng-container [ngSwitch]="fieldGroup.get('type')?.value">
+              <div *ngSwitchCase="'STRING'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><label [for]="'field-maxlen-' + i" class="label">Max Length</label><input [id]="'field-maxlen-' + i" formControlName="maxLen" type="number" class="input" placeholder="e.g., 255"></div>
+                <div><label [for]="'field-pattern-' + i" class="label">Regex Pattern</label><input [id]="'field-pattern-' + i" formControlName="pattern" type="text" class="input" placeholder="e.g., ^[A-Za-z]+$"></div>
+              </div>
+              <div *ngSwitchCase="'NUMBER'" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div><label [for]="'field-min-' + i" class="label">Min Value</label><input [id]="'field-min-' + i" formControlName="min" type="number" class="input" placeholder="e.g., 0"></div>
+                <div><label [for]="'field-max-' + i" class="label">Max Value</label><input [id]="'field-max-' + i" formControlName="max" type="number" class="input" placeholder="e.g., 100"></div>
+              </div>
+              <div *ngSwitchCase="'ENUM'" formArrayName="enumValues">
+                <label class="label">Enum Values</label>
+                <div *ngFor="let enumControl of getEnumValues(fieldGroup).controls; let j = index" class="flex items-center space-x-2 mb-2">
+                  <input [formControlName]="j" class="input flex-grow" placeholder="e.g., active"><button type="button" (click)="removeEnumValue(fieldGroup, j)" class="button-danger-sm">Remove</button>
+                </div>
+                <button type="button" (click)="addEnumValue(fieldGroup)" class="button-secondary-sm mt-2">Add Value</button>
+              </div>
+            </ng-container>
+          </div>
+        </div>
+        <!-- Form Actions -->
+        <div class="flex justify-end space-x-4 mt-8">
+          <a routerLink="/entity-definitions" class="button-secondary">Cancel</a>
+          <button type="submit" [disabled]="editorForm.invalid" class="button-primary disabled:opacity-50">{{ isEditMode ? 'Update Definition' : 'Create Definition' }}</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- JSON View -->
+    <div *ngSwitchCase="'json'">
+      <div class="bg-white p-6 rounded-lg shadow-md">
+        <h2 class="text-xl font-semibold mb-4 border-b pb-2">JSON Configuration</h2>
+        <textarea [formControl]="jsonContentControl" rows="25" class="input font-mono text-sm"></textarea>
+        <div *ngIf="jsonError" class="error-text mt-2">{{ jsonError }}</div>
+      </div>
+       <!-- Form Actions -->
+      <div class="flex justify-end space-x-4 mt-8">
+        <a routerLink="/entity-definitions" class="button-secondary">Cancel</a>
+        <button type="button" (click)="onSubmit()" [disabled]="editorForm.invalid || jsonError" class="button-primary disabled:opacity-50">{{ isEditMode ? 'Update Definition' : 'Create Definition' }}</button>
+      </div>
+    </div>
+  </div>
 </div>

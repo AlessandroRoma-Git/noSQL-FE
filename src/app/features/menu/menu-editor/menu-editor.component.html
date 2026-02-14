@@ -1,0 +1,50 @@
+
+<div class="container mx-auto p-4">
+  <h1 class="text-3xl font-bold mb-6">{{ isEditMode ? 'Edit Menu Item' : 'Create Menu Item' }}</h1>
+
+  <form [formGroup]="editorForm" (ngSubmit)="onSubmit()" class="space-y-8 bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto">
+
+    <!-- Main Details -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div>
+        <label for="label" class="label">Label</label>
+        <input formControlName="label" id="label" type="text" class="input" placeholder="e.g., Customers">
+      </div>
+      <div>
+        <label for="position" class="label">Position</label>
+        <input formControlName="position" id="position" type="number" class="input">
+      </div>
+      <div>
+        <label for="entityKey" class="label">Associated Entity (Optional)</label>
+        <select formControlName="entityKey" id="entityKey" class="input">
+          <option value="">None</option>
+          <option *ngFor="let entity of allEntities" [value]="entity.entityKey">{{ entity.label }} ({{ entity.entityKey }})</option>
+        </select>
+      </div>
+      <div>
+        <label for="icon" class="label">Icon (Optional)</label>
+        <input formControlName="icon" id="icon" type="text" class="input" placeholder="e.g., user-icon">
+      </div>
+    </div>
+
+    <!-- Groups -->
+    <div formGroupName="groups">
+      <h3 class="font-medium mb-2">Visible to Groups (Optional)</h3>
+      <p class="text-sm text-gray-500 mb-2">If no groups are selected, the item will be visible to everyone.</p>
+      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+        <div *ngFor="let group of allGroups" class="flex items-center">
+          <input [formControlName]="group.name" [id]="'group-' + group.name" type="checkbox" class="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500">
+          <label [for]="'group-' + group.name" class="ml-2 text-sm text-gray-600">{{ group.name }}</label>
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex justify-end space-x-4 border-t pt-6 mt-8">
+      <a routerLink="/menu" class="button-secondary">Cancel</a>
+      <button type="submit" [disabled]="editorForm.invalid" class="button-primary disabled:opacity-50">
+        {{ isEditMode ? 'Update Menu Item' : 'Create Menu Item' }}
+      </button>
+    </div>
+  </form>
+</div>

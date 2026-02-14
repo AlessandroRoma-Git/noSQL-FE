@@ -1,0 +1,44 @@
+
+<div class="p-4 bg-bg-surface text-text-main">
+  <h2 class="text-xl font-bold text-primary mb-4">Theme Editor</h2>
+
+  <!-- Live Color Pickers -->
+  <div class="grid grid-cols-2 gap-4 mb-6">
+    <div class="space-y-2">
+      <label class="text-sm font-medium">Primary</label>
+      <input [(colorPicker)]="liveColors.primary" [style.background]="liveColors.primary" class="w-full h-10 rounded-md border border-bg-base cursor-pointer"/>
+    </div>
+    <div class="space-y-2">
+      <label class="text-sm font-medium">Accent</label>
+      <input [(colorPicker)]="liveColors.accent" [style.background]="liveColors.accent" class="w-full h-10 rounded-md border border-bg-base cursor-pointer"/>
+    </div>
+    <div class="space-y-2">
+      <label class="text-sm font-medium">Text</label>
+      <input [(colorPicker)]="liveColors.text" [style.background]="liveColors.text" class="w-full h-10 rounded-md border border-bg-base cursor-pointer"/>
+    </div>
+    <div class="space-y-2">
+      <label class="text-sm font-medium">Background</label>
+      <input [(colorPicker)]="liveColors.bgBase" [style.background]="liveColors.bgBase" class="w-full h-10 rounded-md border border-bg-base cursor-pointer"/>
+    </div>
+    <div class="space-y-2">
+      <label class="text-sm font-medium">Surface</label>
+      <input [(colorPicker)]="liveColors.bgSurface" [style.background]="liveColors.bgSurface" class="w-full h-10 rounded-md border border-bg-base cursor-pointer"/>
+    </div>
+  </div>
+
+  <!-- Palette Presets -->
+  <div class="mb-6">
+    <h3 class="text-lg font-semibold mb-2">Presets</h3>
+    <div class="flex space-x-2">
+      <button (click)="applyPalette('coder')" class="px-4 py-2 text-sm rounded-md bg-bg-base hover:opacity-80">Coder</button>
+      <button (click)="applyPalette('light')" class="px-4 py-2 text-sm rounded-md bg-bg-base hover:opacity-80">Light</button>
+      <button (click)="applyPalette('dark')" class="px-4 py-2 text-sm rounded-md bg-bg-base hover:opacity-80">Dark</button>
+    </div>
+  </div>
+
+  <!-- Actions -->
+  <div class="flex justify-end space-x-4 border-t border-bg-base pt-4">
+    <button (click)="applyColors()" class="px-4 py-2 text-sm rounded-md bg-bg-base hover:opacity-80">Apply</button>
+    <button (click)="saveTheme()" class="px-4 py-2 text-sm text-white bg-primary rounded-md hover:opacity-80">Save & Apply</button>
+  </div>
+</div>

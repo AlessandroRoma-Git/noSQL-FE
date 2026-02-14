@@ -22,3 +22,5 @@ export interface CreateEmailTemplateRequest {
   placeholders: string[];
   attachments?: TemplateAttachmentDto[];
 }
+
+export interface UpdateEmailTemplateRequest extends CreateEmailTemplateRequest {}

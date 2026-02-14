@@ -2,7 +2,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { EmailTemplate, CreateEmailTemplateRequest } from '../models/email-template.model';
+import { EmailTemplate, CreateEmailTemplateRequest, UpdateEmailTemplateRequest } from '../models/email-template.model';
 
 @Injectable({
   providedIn: 'root'
@@ -22,6 +22,10 @@ export class EmailTemplateService {
 
   createEmailTemplate(data: CreateEmailTemplateRequest): Observable<EmailTemplate> {
     return this.http.post<EmailTemplate>(this.apiUrl, data);
+  }
+
+  updateEmailTemplate(id: string, data: UpdateEmailTemplateRequest): Observable<EmailTemplate> {
+    return this.http.put<EmailTemplate>(`${this.apiUrl}/${id}`, data);
   }
 
   deleteEmailTemplate(id: string): Observable<void> {

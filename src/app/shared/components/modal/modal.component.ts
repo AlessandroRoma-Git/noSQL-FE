@@ -15,7 +15,7 @@ import { ModalData } from '../../../core/models/modal.model';
 export class ModalComponent {
   modalService = inject(ModalService);
   display$: Observable<boolean>;
-  data$: Observable<ModalData | null>;
+  data$: Observable<any>; // Use 'any' to handle both ModalData and ConfirmationModalData
 
   constructor() {
     this.display$ = this.modalService.display$;
@@ -26,8 +26,15 @@ export class ModalComponent {
     this.modalService.close();
   }
 
+  confirm(): void {
+    this.modalService.respond(true);
+  }
+
+  cancel(): void {
+    this.modalService.respond(false);
+  }
+
   onContainerClick(event: MouseEvent): void {
-    // Close modal only if the backdrop is clicked, not the content
     if (event.target === event.currentTarget) {
       this.close();
     }
