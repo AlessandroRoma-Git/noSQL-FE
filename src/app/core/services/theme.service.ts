@@ -3,12 +3,21 @@ import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { BehaviorSubject } from 'rxjs';
 
+/**
+ * @interface Theme
+ * @description Represents a theme, including its name, ID, and color palette.
+ */
 export interface Theme {
   name: string;
   id: string;
   colors: { [key: string]: string };
 }
 
+/**
+ * @class ThemeService
+ * @description Manages the application's theming. It allows changing the active theme,
+ * loads the saved theme from local storage, and applies the color variables to the document.
+ */
 @Injectable({
   providedIn: 'root'
 })
@@ -20,13 +29,7 @@ export class ThemeService {
     {
       name: 'Coder',
       id: 'coder',
-      colors: {
-        '--color-primary': '115, 239, 105',
-        '--color-accent': '219, 39, 119', // Magenta (Restored)
-        '--color-text': '115, 239, 105',
-        '--color-bg-base': '0, 0, 0',
-        '--color-bg-surface': '17, 24, 39'
-      }
+      colors: { '--color-primary': '115, 239, 105', '--color-accent': '219, 39, 119', '--color-text': '115, 239, 105', '--color-bg-base': '0, 0, 0', '--color-bg-surface': '17, 24, 39' }
     },
     {
       name: 'Light',
@@ -105,6 +108,9 @@ export class ThemeService {
     }
   ];
 
+  /**
+   * Observable stream of the active theme's ID.
+   */
   public activeTheme$ = new BehaviorSubject<string>('coder');
 
   constructor() {
@@ -113,10 +119,20 @@ export class ThemeService {
     }
   }
 
+  /**
+   * Returns the list of all available themes.
+   * @returns An array of Theme objects.
+   */
   getThemes(): Theme[] {
     return this.themes;
   }
 
+  /**
+   * Sets the active theme for the application.
+   * It applies the theme's colors as CSS variables to the root element
+   * and saves the selected theme ID to local storage.
+   * @param themeId - The ID of the theme to set.
+   */
   setTheme(themeId: string): void {
     const theme = this.themes.find(t => t.id === themeId);
     if (!theme || !isPlatformBrowser(this.platformId)) {
@@ -131,6 +147,11 @@ export class ThemeService {
     this.activeTheme$.next(themeId);
   }
 
+  /**
+   * Loads the saved theme from local storage on initialization.
+   * Defaults to 'coder' if no theme is saved.
+   * @private
+   */
   private loadTheme(): void {
     const savedThemeId = localStorage.getItem(this.THEME_KEY) || 'coder';
     this.setTheme(savedThemeId);
