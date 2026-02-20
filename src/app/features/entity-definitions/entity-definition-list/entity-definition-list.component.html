@@ -1,23 +1,24 @@
 
 <div class="container mx-auto p-4">
   <div class="flex justify-between items-center mb-4">
-    <h1 class="text-2xl font-bold">Entity Definitions</h1>
-    <a routerLink="new" class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:opacity-80">
+    <h1 class="text-2xl font-bold text-primary">Entity Definitions</h1>
+    <a routerLink="new" class="button-primary">
       Create New
     </a>
   </div>
   @if (definitions$ | async; as definitions) {
-    <div class="bg-bg-surface shadow-md rounded-lg">
+    <div class="bg-surface shadow-md rounded-lg">
       @if (definitions.length > 0) {
-        <ul class="divide-y divide-bg-base">
+        <ul class="divide-y divide-base">
           @for (def of definitions; track def.entityKey) {
-            <li class="p-4 flex justify-between items-center hover:bg-bg-base">
+            <li class="p-4 flex justify-between items-center hover:bg-base">
               <div>
                 <p class="text-lg font-semibold text-primary">{{ def.label }}</p>
-                <p class="text-sm text-text-main/70">{{ def.entityKey }}</p>
+                <p class="text-sm text-main-text/70">{{ def.entityKey }}</p>
               </div>
               <div class="flex items-center space-x-4">
-                <button (click)="showUsage(def)" title="Show API Usage" class="text-text-main/70 hover:text-primary">
+                <a [routerLink]="['/records', def.entityKey]" class="button-secondary-sm">View Records</a>
+                <button (click)="showUsage(def)" title="Show API Usage" class="text-main-text/70 hover:text-primary">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
                 </button>
                 <a [routerLink]="['edit', def.entityKey]" class="text-accent hover:underline">Edit</a>
@@ -27,7 +28,7 @@
           }
         </ul>
       } @else {
-        <p class="p-4 text-text-main/70">No entity definitions found. Click "Create New" to get started.</p>
+        <p class="p-4 text-main-text/70">No entity definitions found. Click "Create New" to get started.</p>
       }
     </div>
   } @else {

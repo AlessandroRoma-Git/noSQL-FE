@@ -14,7 +14,7 @@ import { EmailTemplate, CreateEmailTemplateRequest, UpdateEmailTemplateRequest }
   providedIn: 'root'
 })
 export class EmailTemplateService {
-  private readonly apiUrl = 'http://localhost:8088/api/v1/email-templates';
+  private readonly apiUrl = 'http://localhost:8088/api/v1/email/templates'; // Corrected URL
   private http = inject(HttpClient);
 
   private templatesSubject = new BehaviorSubject<EmailTemplate[]>([]);

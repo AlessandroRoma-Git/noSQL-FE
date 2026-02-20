@@ -14,6 +14,16 @@
         <label for="description" class="label">Description</label>
         <textarea formControlName="description" id="description" rows="4" class="input" placeholder="A brief description of the group's purpose."></textarea>
       </div>
+      <div>
+        <label for="systemRole" class="label">System Role (Optional)</label>
+        <select formControlName="systemRole" id="systemRole" class="input">
+          <option [ngValue]="null">None</option>
+          @for (role of systemRoles; track role) {
+            <option [value]="role">{{ role }}</option>
+          }
+        </select>
+        <p class="text-xs text-main-text/70 mt-1">Assigning a system role grants special permissions to all users in this group.</p>
+      </div>
     </div>
 
     <!-- Form Actions -->

@@ -3,7 +3,7 @@ import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
-import { Subject } from 'rxjs';
+import { Subject, forkJoin } from 'rxjs';
 import { takeUntil, debounceTime } from 'rxjs/operators';
 import { EntityDefinitionService } from '../../../core/services/entity-definition.service';
 import { ModalService } from '../../../core/services/modal.service';
@@ -36,7 +36,8 @@ export class EntityDefinitionEditorComponent implements OnInit, OnDestroy {
   public jsonError: string | null = null;
 
   public allGroups: Group[] = [];
-  public fieldTypes = ['STRING', 'NUMBER', 'BOOLEAN', 'DATE', 'EMAIL', 'ENUM'];
+  public allEntities: EntityDefinition[] = [];
+  public fieldTypes = ['STRING', 'NUMBER', 'BOOLEAN', 'DATE', 'EMAIL', 'ENUM', 'REFERENCE'];
 
   get fields(): FormArray {
     return this.editorForm.get('fields') as FormArray;
@@ -46,10 +47,11 @@ export class EntityDefinitionEditorComponent implements OnInit, OnDestroy {
     this.entityKey = this.route.snapshot.paramMap.get('key');
     this.isEditMode = !!this.entityKey;
     this.initForm();
-    this.loadGroups();
+    this.loadDependencies();
 
     if (this.isEditMode && this.entityKey) {
       this.entityDefinitionService.getEntityDefinition(this.entityKey).subscribe(def => {
+        this.fields.clear(); // Clear fields before patching
         this.editorForm.patchValue(def);
         this.jsonContentControl.setValue(JSON.stringify(def, null, 2));
         def.fields.forEach(field => this.addField(field));
@@ -80,6 +82,7 @@ export class EntityDefinitionEditorComponent implements OnInit, OnDestroy {
     this.editorForm = this.fb.group({
       entityKey: ['', Validators.required],
       label: ['', Validators.required],
+      historyEnabled: [false],
       acl: this.fb.group({
         read: this.fb.group({}),
         write: this.fb.group({}),
@@ -90,9 +93,13 @@ export class EntityDefinitionEditorComponent implements OnInit, OnDestroy {
     });
   }
 
-  private loadGroups(): void {
-    this.groupService.loadGroups().subscribe(groups => {
+  private loadDependencies(): void {
+    forkJoin({
+      groups: this.groupService.loadGroups(),
+      entities: this.entityDefinitionService.loadEntityDefinitions()
+    }).subscribe(({ groups, entities }) => {
       this.allGroups = groups;
+      this.allEntities = entities;
       const aclRead = this.editorForm.get('acl.read') as FormGroup;
       const aclWrite = this.editorForm.get('acl.write') as FormGroup;
       const aclDelete = this.editorForm.get('acl.delete') as FormGroup;
@@ -125,7 +132,8 @@ export class EntityDefinitionEditorComponent implements OnInit, OnDestroy {
       pattern: [field?.pattern],
       min: [field?.min],
       max: [field?.max],
-      enumValues: this.fb.array(field?.enumValues || [])
+      enumValues: this.fb.array(field?.enumValues || []),
+      referenceEntityKey: [field?.referenceEntityKey || '']
     });
     this.fields.push(fieldGroup);
   }

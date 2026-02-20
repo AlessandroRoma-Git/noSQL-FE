@@ -1,0 +1,65 @@
+
+<div class="p-6 bg-surface">
+  <h2 class="text-2xl font-bold text-[rgb(var(--color-primary))] mb-6">Advanced Search for '{{ definition.label }}'</h2>
+
+  <form [formGroup]="searchForm" (ngSubmit)="onSearch()">
+    <!-- Filters Section -->
+    <div class="mb-6">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="text-lg font-semibold">Filters</h3>
+        <button type="button" (click)="addFilter()" class="button-secondary-sm">Add Filter</button>
+      </div>
+      <div formArrayName="filters" class="space-y-2">
+        @for (filter of filters.controls; track i; let i = $index) {
+          <div [formGroupName]="i" class="grid grid-cols-3 gap-2 items-center bg-base p-2 rounded-md">
+            <select formControlName="field" class="input">
+              @for (field of definition.fields; track field.name) {
+                <option [value]="field.name">{{ field.name }}</option>
+              }
+            </select>
+            <select formControlName="op" class="input">
+              @for (op of filterOperators; track op) {
+                <option [value]="op">{{ op }}</option>
+              }
+            </select>
+            <div class="flex items-center">
+              <input formControlName="value" type="text" class="input w-full" placeholder="Value">
+              <button type="button" (click)="removeFilter(i)" class="ml-2 text-red-500">&times;</button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Sorts Section -->
+    <div class="mb-8">
+      <div class="flex justify-between items-center mb-2">
+        <h3 class="text-lg font-semibold">Sorting</h3>
+        <button type="button" (click)="addSort()" class="button-secondary-sm">Add Sort</button>
+      </div>
+      <div formArrayName="sorts" class="space-y-2">
+        @for (sort of sorts.controls; track i; let i = $index) {
+          <div [formGroupName]="i" class="grid grid-cols-3 gap-2 items-center bg-base p-2 rounded-md">
+            <select formControlName="field" class="input">
+              @for (field of definition.fields; track field.name) {
+                <option [value]="field.name">{{ field.name }}</option>
+              }
+            </select>
+            <select formControlName="direction" class="input">
+              @for (dir of sortDirections; track dir) {
+                <option [value]="dir">{{ dir }}</option>
+              }
+            </select>
+            <button type="button" (click)="removeSort(i)" class="ml-2 text-red-500">&times;</button>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Actions -->
+    <div class="flex justify-end space-x-4 pt-4 border-t border-base">
+      <button type="button" (click)="modalService.close()" class="button-secondary">Cancel</button>
+      <button type="submit" class="button-primary">Apply Search</button>
+    </div>
+  </form>
+</div>

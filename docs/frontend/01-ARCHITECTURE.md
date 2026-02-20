@@ -5,18 +5,16 @@ This document provides a high-level overview of the frontend architecture for th
 
 ## 1.1. Core Technologies
 
-- **Framework**: Angular (v21+) using Standalone Components. This choice promotes a modular, simplified, and more maintainable component structure.
-- **Styling**: Tailwind CSS, used for its utility-first approach, which allows for rapid and consistent UI development directly in the HTML.
-- **State Management**: A lightweight, reactive state management pattern using RxJS `BehaviorSubject` within services. This avoids the boilerplate of larger state management libraries while providing robust, reactive data flows.
-- **Build Tool**: Angular CLI, powered by Vite for fast development server startup and builds.
+- **Framework**: Angular (v21+) using Standalone Components.
+- **Styling**: Tailwind CSS, using the "arbitrary value" syntax `[rgb(var(--css-variable))]` to consume a dynamic, CSS-variable-driven theming system.
+- **State Management**: A reactive "Service-with-a-Subject" pattern using RxJS.
+- **Build Tool**: Angular CLI (Vite).
 
 ## 1.2. Project Structure
 
-The project's source code is organized to separate concerns and improve scalability:
-
-- `src/app/core/`: Contains the application's core logic, including singleton services, data models, and route guards. This is the brain of the application.
-- `src/app/features/`: Encapsulates the primary business features. Each feature (e.g., `dashboard`, `entity-definitions`, `users`) resides in its own folder, promoting modularity.
-- `src/app/shared/`: Holds reusable UI components, directives, and pipes that are not tied to a specific feature, such as the global `ModalComponent` and `ToggleSwitchComponent`.
+- `src/app/core/`: Contains singleton services, data models, and route guards.
+- `src/app/features/`: Encapsulates the primary features, each in its own folder (e.g., `dashboard`, `entity-definitions`, `records`, `files`).
+- `src/app/shared/`: Holds reusable UI components like the global `ModalComponent`.
 
 ## 1.3. Navigation
 
@@ -26,3 +24,4 @@ This documentation is split into several parts for clarity:
 - **[3. Theming System](./03-THEMING.md)**
 - **[4. Authentication Flow](./04-AUTHENTICATION.md)**
 - **[5. Modal System](./05-MODAL_SYSTEM.md)**
+- **[6. Dynamic Forms for Records](./06-DYNAMIC_FORMS.md)** (New)

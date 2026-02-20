@@ -1,0 +1,31 @@
+
+<div class="p-6 bg-surface">
+  <h2 class="text-2xl font-bold text-primary mb-4">Send Test Email</h2>
+  <p class="text-sm text-main-text/70 mb-6">Using template: <strong>{{ template.name }}</strong></p>
+
+  <form [formGroup]="testForm" (ngSubmit)="onSubmit()" class="space-y-4">
+    <div>
+      <label for="to" class="label">Recipient Email</label>
+      <input id="to" formControlName="to" type="email" class="input" placeholder="test@example.com">
+    </div>
+    <div>
+      <label for="subject" class="label">Subject</label>
+      <input id="subject" formControlName="subject" type="text" class="input">
+    </div>
+
+    <div formGroupName="placeholders">
+      <h3 class="label mt-6 mb-2">Placeholders</h3>
+      @for (placeholder of template.placeholders; track placeholder) {
+        <div class="mb-2">
+          <label [for]="placeholder" class="text-sm text-main-text/80">{{ placeholder }}</label>
+          <input [id]="placeholder" [formControlName]="placeholder" type="text" class="input">
+        </div>
+      }
+    </div>
+
+    <div class="flex justify-end space-x-4 pt-4">
+      <button type="button" (click)="modalService.close()" class="button-secondary">Cancel</button>
+      <button type="submit" [disabled]="testForm.invalid" class="button-primary disabled:opacity-50">Send Test</button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,56 @@
+
+<div class="container mx-auto p-4">
+  @if (entityDefinition) {
+    <h1 class="text-3xl font-bold mb-6 text-[rgb(var(--color-primary))]">
+      {{ isEditMode ? 'Edit' : 'Create' }} {{ entityDefinition.label }} Record
+    </h1>
+
+    <form [formGroup]="editorForm" (ngSubmit)="onSubmit()" class="space-y-8 bg-surface p-6 rounded-lg shadow-md max-w-4xl mx-auto">
+
+      @for (field of entityDefinition.fields; track field.name) {
+        <div class="grid grid-cols-1">
+          <label [for]="field.name" class="label">{{ field.name }}</label>
+
+          @switch (field.type) {
+            @case ('STRING') {
+              <input [id]="field.name" [formControlName]="field.name" type="text" class="input">
+            }
+            @case ('EMAIL') {
+              <input [id]="field.name" [formControlName]="field.name" type="email" class="input">
+            }
+            @case ('NUMBER') {
+              <input [id]="field.name" [formControlName]="field.name" type="number" class="input">
+            }
+            @case ('BOOLEAN') {
+              <input [id]="field.name" [formControlName]="field.name" type="checkbox" class="h-6 w-6 rounded border-surface text-[rgb(var(--color-primary))] focus:ring-[rgb(var(--color-primary))]">
+            }
+            @case ('DATE') {
+              <input [id]="field.name" [formControlName]="field.name" type="datetime-local" class="input">
+            }
+            @case ('ENUM') {
+              <select [id]="field.name" [formControlName]="field.name" class="input">
+                <option [ngValue]="null">-- Select Value --</option>
+                @for (enumValue of field.enumValues; track enumValue) {
+                  <option [value]="enumValue">{{ enumValue }}</option>
+                }
+              </select>
+            }
+            @case ('REFERENCE') {
+              <app-reference-search [formControlName]="field.name" [entityKey]="field.referenceEntityKey!"></app-reference-search>
+            }
+          }
+        </div>
+      }
+
+      <!-- Form Actions -->
+      <div class="flex justify-end space-x-4 border-t border-base pt-6 mt-8">
+        <a [routerLink]="['/records', entityKey]" class="button-secondary">Cancel</a>
+        <button type="submit" [disabled]="editorForm.invalid" class="button-primary disabled:opacity-50">
+          {{ isEditMode ? 'Update Record' : 'Create Record' }}
+        </button>
+      </div>
+    </form>
+  } @else {
+    <p>Loading definition...</p>
+  }
+</div>

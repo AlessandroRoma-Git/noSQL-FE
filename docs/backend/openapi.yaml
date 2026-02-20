@@ -5,7 +5,7 @@ info:
     Backend configurabile per data entry dinamico.
     Definisci entità a runtime (come form), salva record in MongoDB, e cerca con DSL paginato.
     Autenticazione JWT con ACL per gruppi su ogni entity definition.
-    Supporto gruppi utente, gerarchia ruoli (super_admin > admin > user) e menu di navigazione configurabile.
+    Supporto gruppi utente, ruoli di sistema (SUPER_ADMIN, ADMIN) tramite gruppi e menu di navigazione configurabile.
   version: 1.0.0
   contact:
     name: WolfCoding
@@ -16,7 +16,7 @@ servers:
 
 tags:
   - name: Auth
-    description: Registrazione, login, recupero password e cambio password
+    description: Login, recupero password e cambio password
   - name: Entity Definitions
     description: CRUD definizioni entità (solo ruolo admin)
   - name: Records
@@ -24,7 +24,7 @@ tags:
   - name: Files
     description: Upload, download e eliminazione file (autenticazione richiesta)
   - name: Email
-    description: Invio email con allegati e gestione template (richiede ruolo sender)
+    description: Invio email con allegati e gestione template (richiede ruolo di sistema ADMIN)
   - name: Groups
     description: CRUD gruppi (richiede ruolo admin)
   - name: Users
@@ -39,45 +39,6 @@ paths:
   # ──────────────────────────────────────────────
   #  AUTH
   # ──────────────────────────────────────────────
-  /api/v1/auth/register:
-    post:
-      tags: [Auth]
-      summary: Registra un nuovo utente
-      description: |
-        La password viene auto-generata e inviata via email all'indirizzo fornito.
-        Il token JWT restituito ha `firstAccess: true`: l'utente deve cambiare
-        la password prima di poter utilizzare le altre API.
-      security: []
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/RegisterRequest'
-            example:
-              username: mario
-              email: mario@example.com
-              roles: [admin]
-      responses:
-        '201':
-          description: Utente creato (password inviata via email)
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/AuthResponse'
-              example:
-                token: eyJhbGciOiJIUzI1NiJ9...
-                username: mario
-                roles: [admin]
-                lastAccessAt: null
-                firstAccess: true
-        '409':
-          description: Username già esistente
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorResponse'
-
   /api/v1/auth/login:
     post:
       tags: [Auth]
@@ -102,7 +63,6 @@ paths:
               example:
                 token: eyJhbGciOiJIUzI1NiJ9...
                 username: mario
-                roles: [admin]
                 lastAccessAt: "2025-01-15T10:00:00Z"
                 firstAccess: false
         '401':
@@ -173,7 +133,6 @@ paths:
               example:
                 token: eyJhbGciOiJIUzI1NiJ9...
                 username: mario
-                roles: [admin]
                 lastAccessAt: "2025-01-15T10:00:00Z"
                 firstAccess: false
         '401':
@@ -200,30 +159,73 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateEntityDefinitionRequest'
-            example:
-              entityKey: customers
-              label: Clienti
-              fields:
-                - name: first_name
-                  type: STRING
-                  required: true
-                  maxLen: 100
-                - name: email
-                  type: EMAIL
-                  required: true
-                - name: age
-                  type: NUMBER
-                  min: 0
-                  max: 150
-                - name: role
-                  type: ENUM
-                  required: true
-                  enumValues: [admin, user, guest]
-              acl:
-                read: [admin, user]
-                write: [admin]
-                delete: [admin]
-                search: [admin, user]
+            examples:
+              entita_base:
+                summary: Entita con campi base
+                value:
+                  entityKey: customers
+                  label: Clienti
+                  fields:
+                    - name: first_name
+                      type: STRING
+                      required: true
+                      maxLen: 100
+                    - name: email
+                      type: EMAIL
+                      required: true
+                    - name: age
+                      type: NUMBER
+                      min: 0
+                      max: 150
+                    - name: role
+                      type: ENUM
+                      required: true
+                      enumValues: [admin, user, guest]
+                  acl:
+                    read: [admin, user]
+                    write: [admin]
+                    delete: [admin]
+                    search: [admin, user]
+              entita_con_reference:
+                summary: Entita con campo REFERENCE a un'altra entita
+                description: |
+                  Esempio di entity definition "assets" con un campo "assigned_to"
+                  di tipo REFERENCE che referenzia record dell'entita "customers".
+                  Il valore di un campo REFERENCE e sempre una lista di ID.
+                  Al salvataggio di un record, il sistema verifica che ogni ID
+                  nella lista esista effettivamente nella collection "customers".
+                  Esempio di valore nel record: {"assigned_to": ["id_customer_1", "id_customer_2"]}
+                value:
+                  entityKey: assets
+                  label: Asset aziendali
+                  historyEnabled: true
+                  fields:
+                    - name: name
+                      type: STRING
+                      required: true
+                      maxLen: 200
+                    - name: serial_number
+                      type: STRING
+                      required: true
+                      pattern: "^[A-Z0-9\\-]+$"
+                    - name: purchase_date
+                      type: DATE
+                      required: true
+                    - name: value
+                      type: NUMBER
+                      min: 0
+                    - name: status
+                      type: ENUM
+                      required: true
+                      enumValues: [active, maintenance, retired]
+                    - name: assigned_to
+                      type: REFERENCE
+                      referenceEntityKey: customers
+                  acl:
+                    read: [admin, user]
+                    write: [admin]
+                    delete: [admin]
+                    search: [admin, user]
       responses:
         '201':
           description: Definizione creata
@@ -342,12 +344,32 @@ paths:
           application/json:
             schema:
               $ref: '#/components/schemas/CreateRecordRequest'
-            example:
-              data:
-                first_name: Mario
-                email: mario@example.com
-                age: 35
-                role: admin
+            examples:
+              record_base:
+                summary: Record con campi base (entity "customers")
+                value:
+                  data:
+                    first_name: Mario
+                    email: mario@example.com
+                    age: 35
+                    role: admin
+              record_con_reference:
+                summary: Record con campo REFERENCE (entity "assets")
+                description: |
+                  Esempio di creazione record per l'entity "assets" che ha un campo
+                  "assigned_to" di tipo REFERENCE verso "customers".
+                  Il campo REFERENCE e sempre una lista di ID di record
+                  esistenti nella collection referenziata.
+                value:
+                  data:
+                    name: Laptop Dell XPS 15
+                    serial_number: DELL-XPS-2025-001
+                    purchase_date: "2025-03-15T00:00:00Z"
+                    value: 1500
+                    status: active
+                    assigned_to:
+                      - "66a1b2c3d4e5f600000001"
+                      - "66a1b2c3d4e5f600000002"
       responses:
         '201':
           description: Record creato
@@ -551,6 +573,47 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
+  /api/v1/records/{entityKey}/{id}/history:
+    parameters:
+      - $ref: '#/components/parameters/EntityKeyPath'
+      - $ref: '#/components/parameters/RecordId'
+    get:
+      tags: [Records]
+      summary: Storico modifiche record
+      description: Lista di tutte le versioni storicizzate del record. Richiede permesso ACL read.
+      responses:
+        '200':
+          description: Lista versioni
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/RecordHistoryResponse'
+
+  /api/v1/records/{entityKey}/{id}/history/{version}:
+    parameters:
+      - $ref: '#/components/parameters/EntityKeyPath'
+      - $ref: '#/components/parameters/RecordId'
+      - name: version
+        in: path
+        required: true
+        schema:
+          type: integer
+    get:
+      tags: [Records]
+      summary: Dettaglio versione storica
+      description: Recupera una versione specifica dello storico. Richiede permesso ACL read.
+      responses:
+        '200':
+          description: Versione trovata
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecordHistoryResponse'
+        '404':
+          description: Versione non trovata
+
   # ──────────────────────────────────────────────
   #  FILES
   # ──────────────────────────────────────────────
@@ -703,7 +766,7 @@ paths:
         Il corpo HTML viene determinato dal template indicato tramite `templateId`,
         con i placeholder sostituiti dai valori forniti nella mappa `placeholders`.
 
-        **Richiede ruolo `sender`** nella lista `roles` dell'utente.
+        **Richiede ruolo di sistema `ADMIN`** (o `SUPER_ADMIN`).
 
         **Sorgenti allegati:**
         - `attachments`: allegati Base64 inline (CID) o classici
@@ -799,7 +862,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '403':
-          description: Ruolo sender mancante
+          description: Ruolo admin mancante
           content:
             application/json:
               schema:
@@ -836,7 +899,7 @@ paths:
         Quando il template viene usato per inviare un'email, gli allegati vengono inclusi
         automaticamente come allegati classici (non inline CID).
 
-        **Richiede ruolo `sender`.**
+        **Richiede ruolo `admin`.**
       requestBody:
         required: true
         content:
@@ -1200,7 +1263,7 @@ components:
       bearerFormat: JWT
       description: |
         JWT ottenuto da `/api/v1/auth/login`.
-        Il token contiene `sub` (username), `roles` (lista ruoli) e `firstAccess` (boolean).
+        Il token contiene `sub` (username), `systemRoles` (lista ruoli di sistema) e `firstAccess` (boolean).
         Se `firstAccess` e `true`, tutte le API tranne `/api/v1/auth/**` rispondono con 403.
 
   parameters:
@@ -1249,35 +1312,6 @@ components:
 
   schemas:
     # ── Auth ──────────────────────────────────
-    RegisterRequest:
-      type: object
-      required: [username, email]
-      description: |
-        Richiesta di registrazione utente. La password viene auto-generata
-        dal sistema e inviata via email.
-      properties:
-        username:
-          type: string
-          minLength: 3
-          maxLength: 50
-          example: mario
-        email:
-          type: string
-          format: email
-          description: Indirizzo email per ricevere la password generata
-          example: mario@example.com
-        roles:
-          type: array
-          items:
-            type: string
-          description: Ruoli assegnati. Default ["user"] se omesso.
-          example: [admin]
-        groupIds:
-          type: array
-          items:
-            type: string
-          description: Lista degli ID dei gruppi a cui assegnare l'utente
-
     LoginRequest:
       type: object
       required: [username, password]
@@ -1300,11 +1334,6 @@ components:
         username:
           type: string
           example: mario
-        roles:
-          type: array
-          items:
-            type: string
-          example: [admin]
         groups:
           type: array
           items:
@@ -1354,7 +1383,7 @@ components:
     # ── Entity Definition ─────────────────────
     FieldType:
       type: string
-      enum: [STRING, NUMBER, BOOLEAN, DATE, EMAIL, ENUM]
+      enum: [STRING, NUMBER, BOOLEAN, DATE, EMAIL, ENUM, REFERENCE]
 
     FieldDefinitionDto:
       type: object
@@ -1392,6 +1421,11 @@ components:
           nullable: true
           description: Valori ammessi (solo ENUM)
           example: [active, inactive]
+        referenceEntityKey:
+          type: string
+          nullable: true
+          description: Chiave dell'entita referenziata (solo per campi di tipo REFERENCE)
+          example: users
 
     AclDto:
       type: object
@@ -1446,6 +1480,8 @@ components:
             $ref: '#/components/schemas/FieldDefinitionDto'
         acl:
           $ref: '#/components/schemas/AclDto'
+        historyEnabled:
+          type: boolean
 
     UpdateEntityDefinitionRequest:
       type: object
@@ -1461,6 +1497,8 @@ components:
             $ref: '#/components/schemas/FieldDefinitionDto'
         acl:
           $ref: '#/components/schemas/AclDto'
+        historyEnabled:
+          type: boolean
 
     EntityDefinitionResponse:
       type: object
@@ -1480,6 +1518,8 @@ components:
             $ref: '#/components/schemas/FieldDefinitionDto'
         acl:
           $ref: '#/components/schemas/AclDto'
+        historyEnabled:
+          type: boolean
         createdAt:
           type: string
           format: date-time
@@ -1528,6 +1568,26 @@ components:
           type: string
           format: date-time
         updatedAt:
+          type: string
+          format: date-time
+
+    RecordHistoryResponse:
+      type: object
+      properties:
+        id:
+          type: string
+        recordId:
+          type: string
+        entityKey:
+          type: string
+        data:
+          type: object
+          additionalProperties: true
+        version:
+          type: integer
+        modifiedBy:
+          type: string
+        modifiedAt:
           type: string
           format: date-time
 
@@ -1915,6 +1975,10 @@ components:
           maxLength: 50
         description:
           type: string
+        systemRole:
+          type: string
+          nullable: true
+          enum: [SUPER_ADMIN, ADMIN]
 
     UpdateGroupRequest:
       type: object
@@ -1926,6 +1990,10 @@ components:
           maxLength: 50
         description:
           type: string
+        systemRole:
+          type: string
+          nullable: true
+          enum: [SUPER_ADMIN, ADMIN]
 
     GroupResponse:
       type: object
@@ -1936,6 +2004,10 @@ components:
           type: string
         description:
           type: string
+        systemRole:
+          type: string
+          nullable: true
+          enum: [SUPER_ADMIN, ADMIN]
         createdAt:
           type: string
           format: date-time
@@ -1955,10 +2027,6 @@ components:
         email:
           type: string
           format: email
-        roles:
-          type: array
-          items:
-            type: string
         groupIds:
           type: array
           items:
@@ -1970,10 +2038,6 @@ components:
         email:
           type: string
           format: email
-        roles:
-          type: array
-          items:
-            type: string
         groupIds:
           type: array
           items:
@@ -1991,10 +2055,6 @@ components:
         email:
           type: string
           format: email
-        roles:
-          type: array
-          items:
-            type: string
         groupIds:
           type: array
           items:

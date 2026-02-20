@@ -16,6 +16,9 @@ import { UserEditorComponent } from './features/users/user-editor/user-editor.co
 import { MenuListComponent } from './features/menu/menu-list/menu-list.component';
 import { MenuEditorComponent } from './features/menu/menu-editor/menu-editor.component';
 import { DashboardComponent } from './features/dashboard/dashboard.component';
+import { FileListComponent } from './features/files/file-list.component';
+import { RecordListComponent } from './features/records/record-list.component';
+import { RecordEditorComponent } from './features/records/record-editor.component';
 
 export const routes: Routes = [
   // Public routes
@@ -35,20 +38,23 @@ export const routes: Routes = [
     path: '',
     canActivate: [authGuard],
     children: [
-      {
-        path: 'dashboard',
-        component: DashboardComponent
-      },
-      {
-        path: 'change-password',
-        component: ChangePasswordComponent,
-      },
+      { path: 'dashboard', component: DashboardComponent },
+      { path: 'files', component: FileListComponent },
+      { path: 'change-password', component: ChangePasswordComponent },
       {
         path: 'entity-definitions',
         children: [
           { path: '', component: EntityDefinitionListComponent },
           { path: 'new', component: EntityDefinitionEditorComponent },
           { path: 'edit/:key', component: EntityDefinitionEditorComponent }
+        ]
+      },
+      {
+        path: 'records/:entityKey',
+        children: [
+          { path: '', component: RecordListComponent },
+          { path: 'new', component: RecordEditorComponent },
+          { path: 'edit/:id', component: RecordEditorComponent }
         ]
       },
       {

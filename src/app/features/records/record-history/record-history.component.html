@@ -1,0 +1,25 @@
+
+<div class="p-6 bg-surface">
+  <h2 class="text-2xl font-bold text-[rgb(var(--color-primary))] mb-4">Record History</h2>
+  <p class="text-sm text-[rgb(var(--color-text))] opacity-70 mb-6">Showing history for record: <strong>{{ recordId }}</strong></p>
+
+  @if (history$ | async; as history) {
+    @if (history.length > 0) {
+      <div class="space-y-4 max-h-96 overflow-y-auto">
+        @for (version of history; track version.version) {
+          <div class="p-4 border border-base rounded-md">
+            <div class="flex justify-between items-center text-sm mb-2">
+              <span class="font-bold text-[rgb(var(--color-primary))]">Version {{ version.version }}</span>
+              <span class="text-[rgb(var(--color-text))] opacity-70">{{ version.modifiedAt | date:'medium' }} by <strong>{{ version.modifiedBy }}</strong></span>
+            </div>
+            <pre class="bg-base p-2 rounded-md text-sm text-[rgb(var(--color-text))]"><code>{{ getJsonData(version.data) }}</code></pre>
+          </div>
+        }
+      </div>
+    } @else {
+      <p class="text-[rgb(var(--color-text))] opacity-70">No history found for this record.</p>
+    }
+  } @else {
+    <p>Loading history...</p>
+  }
+</div>

@@ -29,6 +29,12 @@
               <input formControlName="label" id="label" type="text" class="input" placeholder="e.g., Blog Posts">
             </div>
           </div>
+          <div class="mt-4">
+            <label class="flex items-center">
+              <input formControlName="historyEnabled" type="checkbox" class="h-4 w-4 rounded border-surface text-primary focus:ring-primary">
+              <span class="ml-2 text-sm text-main-text">Enable Record History</span>
+            </label>
+          </div>
         </div>
 
         <!-- ACLs -->
@@ -110,6 +116,17 @@
                       </div>
                     }
                     <button type="button" (click)="addEnumValue(fieldGroup)" class="button-secondary-sm mt-2">Add Value</button>
+                  </div>
+                }
+                @case ('REFERENCE') {
+                  <div>
+                    <label [for]="'field-ref-' + i" class="label">Reference Entity</label>
+                    <select [id]="'field-ref-' + i" formControlName="referenceEntityKey" class="input">
+                      <option value="">-- Select Entity --</option>
+                      @for (entity of allEntities; track entity.entityKey) {
+                        <option [value]="entity.entityKey">{{ entity.label }}</option>
+                      }
+                    </select>
                   </div>
                 }
               }

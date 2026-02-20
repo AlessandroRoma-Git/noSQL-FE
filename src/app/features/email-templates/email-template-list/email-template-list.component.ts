@@ -7,6 +7,7 @@ import { EmailTemplate } from '../../../core/models/email-template.model';
 import { EmailTemplateService } from '../../../core/services/email-template.service';
 import { ModalService } from '../../../core/services/modal.service';
 import { filter } from 'rxjs/operators';
+import { EmailTestSendComponent } from '../email-test-send/email-test-send.component';
 
 @Component({
   selector: 'app-email-template-list',
@@ -36,33 +37,30 @@ export class EmailTemplateListComponent implements OnInit {
     });
   }
 
+  onTestSend(template: EmailTemplate): void {
+    this.modalService.open(EmailTestSendComponent, { template: template });
+  }
+
   showUsage(template: EmailTemplate): void {
     const title = `API Usage for: ${template.name}`;
-
     const samplePlaceholders = template.placeholders.reduce((acc, key) => {
       acc[key] = 'sample value';
       return acc;
     }, {} as Record<string, string>);
-
     const samplePayload = {
       to: "recipient@example.com",
       subject: "Sample Subject",
       templateId: template.id,
       placeholders: samplePlaceholders
     };
-
     const payloadString = JSON.stringify(samplePayload, null, 2);
-
     const content = `
       <p>Here is an example of how to send an email using the <strong>${template.name}</strong> template.</p>
-
       <h4 class="mt-4 font-semibold text-[rgb(var(--color-primary))]">Send Email Endpoint</h4>
       <p><code>POST /api/v1/email/send</code></p>
-
       <h4 class="mt-4 font-semibold text-[rgb(var(--color-primary))]">Sample Payload</h4>
       <pre class="bg-[rgb(var(--color-bg-base))] p-2 rounded-md text-sm text-[rgb(var(--color-text))]"><code>${payloadString}</code></pre>
     `;
-
     this.modalService.open({ title, content });
   }
 }

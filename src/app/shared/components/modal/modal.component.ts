@@ -1,7 +1,7 @@
 
-import { Component, inject, ViewChild, ViewContainerRef, ComponentRef, Type, OnDestroy, OnInit } from '@angular/core';
+import { Component, inject, ViewChild, ViewContainerRef, OnDestroy, OnInit, TemplateRef, Type, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ModalService, ModalState, ModalData } from '../../../core/services/modal.service';
+import { ModalService, ModalState, ModalData, ModalContent } from '../../../core/services/modal.service';
 import { Subscription } from 'rxjs';
 
 @Component({
@@ -9,65 +9,51 @@ import { Subscription } from 'rxjs';
   standalone: true,
   imports: [CommonModule],
   templateUrl: './modal.component.html',
-  styleUrls: ['./modal.component.css']
 })
 export class ModalComponent implements OnInit, OnDestroy {
-  modalService = inject(ModalService);
-  @ViewChild('content', { read: ViewContainerRef, static: true }) content!: ViewContainerRef;
+  private modalService = inject(ModalService);
+  private cdr = inject(ChangeDetectorRef);
+  @ViewChild('content', { read: ViewContainerRef, static: true }) private contentContainer!: ViewContainerRef;
 
-  private componentRef?: ComponentRef<any>;
   private subscription?: Subscription;
 
-  public state?: ModalState;
-  public isComponent = false;
-  public data?: ModalData;
+  public state: ModalState | null = null;
+
+  // Type-safe getters
+  get contentAsComponent(): Type<any> | null {
+    return (typeof this.state?.content === 'function') ? this.state.content : null;
+  }
+
+  get contentAsTemplate(): TemplateRef<any> | null {
+    return (this.state?.content instanceof TemplateRef) ? this.state.content : null;
+  }
+
+  get contentAsData(): ModalData | null {
+    const content = this.state?.content;
+    return (!!content && typeof content !== 'function' && !(content instanceof TemplateRef)) ? content : null;
+  }
 
   ngOnInit() {
     this.subscription = this.modalService.modalState$.subscribe(state => {
       this.state = state;
+      this.contentContainer.clear();
 
-      // If the modal is closing, clear the content.
-      if (!state.isOpen) {
-        this.clearContent();
-        return;
-      }
-
-      // If the modal is opening, set the new content.
-      if (state.content) {
-        const content = state.content;
-        if (typeof content === 'function') {
-          this.isComponent = true;
-          this.data = undefined;
-          // Defer component loading until the view container is ready.
-          setTimeout(() => this.loadComponent(content), 0);
-        } else {
-          this.isComponent = false;
-          this.data = content;
+      if (state.isOpen && this.contentAsComponent) {
+        const componentRef = this.contentContainer.createComponent(this.contentAsComponent);
+        if (state.data) {
+          Object.assign(componentRef.instance, state.data);
         }
+        // Manually trigger change detection for the dynamic component
+        componentRef.changeDetectorRef.detectChanges();
       }
+
+      // Manually trigger change detection for the modal component itself
+      this.cdr.detectChanges();
     });
   }
 
   ngOnDestroy() {
     this.subscription?.unsubscribe();
-  }
-
-  loadComponent(component: Type<any>) {
-    if (!this.content) return;
-    this.content.clear(); // Clear previous component before loading new one
-    this.componentRef = this.content.createComponent(component);
-  }
-
-  clearContent() {
-    if (this.content) {
-      this.content.clear();
-    }
-    if (this.componentRef) {
-      this.componentRef.destroy();
-      this.componentRef = undefined;
-    }
-    this.data = undefined;
-    this.isComponent = false;
   }
 
   confirm(): void {

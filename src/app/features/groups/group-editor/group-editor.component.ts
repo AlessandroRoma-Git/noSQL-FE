@@ -11,7 +11,6 @@ import { CreateGroupRequest, UpdateGroupRequest } from '../../../core/models/gro
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './group-editor.component.html',
-  styleUrls: ['./group-editor.component.css']
 })
 export class GroupEditorComponent implements OnInit {
   private fb = inject(FormBuilder);
@@ -22,14 +21,12 @@ export class GroupEditorComponent implements OnInit {
   editorForm!: FormGroup;
   isEditMode = false;
   private groupId: string | null = null;
-
-  constructor() {
-    this.initializeForm();
-  }
+  public systemRoles = ['ADMIN', 'SUPER_ADMIN'];
 
   ngOnInit(): void {
     this.groupId = this.route.snapshot.paramMap.get('id');
     this.isEditMode = !!this.groupId;
+    this.initializeForm();
 
     if (this.isEditMode && this.groupId) {
       this.groupService.getGroup(this.groupId).subscribe(group => {
@@ -41,7 +38,8 @@ export class GroupEditorComponent implements OnInit {
   private initializeForm(): void {
     this.editorForm = this.fb.group({
       name: ['', Validators.required],
-      description: ['']
+      description: [''],
+      systemRole: [null]
     });
   }
 
@@ -53,7 +51,8 @@ export class GroupEditorComponent implements OnInit {
     const formValue = this.editorForm.getRawValue();
     const request: CreateGroupRequest | UpdateGroupRequest = {
       name: formValue.name,
-      description: formValue.description
+      description: formValue.description,
+      systemRole: formValue.systemRole || null
     };
 
     const saveOperation = this.isEditMode

@@ -31,25 +31,13 @@ export class MenuEditorComponent implements OnInit {
 
   public allGroups: Group[] = [];
   public allEntities: EntityDefinition[] = [];
+  public allMenuItems: MenuItem[] = [];
 
   ngOnInit(): void {
     this.itemId = this.route.snapshot.paramMap.get('id');
     this.isEditMode = !!this.itemId;
     this.initForm();
     this.loadDependencies();
-
-    if (this.isEditMode && this.itemId) {
-      this.menuService.getMenuItem(this.itemId).subscribe((item: MenuItem) => {
-        this.editorForm.patchValue(item);
-        const groupControls = this.editorForm.get('groups') as FormGroup;
-        groupControls.patchValue(
-          this.allGroups.reduce((acc, group) => {
-            acc[group.name] = item.groups?.includes(group.name) || false;
-            return acc;
-          }, {} as Record<string, boolean>)
-        );
-      });
-    }
   }
 
   private initForm(): void {
@@ -58,6 +46,7 @@ export class MenuEditorComponent implements OnInit {
       entityKey: [''],
       icon: [''],
       position: [0, Validators.required],
+      parentId: [null],
       groups: this.fb.group({})
     });
   }
@@ -65,14 +54,29 @@ export class MenuEditorComponent implements OnInit {
   private loadDependencies(): void {
     forkJoin({
       groups: this.groupService.loadGroups(),
-      entities: this.entityDefService.loadEntityDefinitions()
-    }).subscribe(({ groups, entities }) => {
+      entities: this.entityDefService.loadEntityDefinitions(),
+      menuItems: this.menuService.loadMenuItems()
+    }).subscribe(({ groups, entities, menuItems }) => {
       this.allGroups = groups;
       this.allEntities = entities;
+      this.allMenuItems = menuItems;
+
       const groupControls = this.editorForm.get('groups') as FormGroup;
       groups.forEach(group => {
         groupControls.addControl(group.name, this.fb.control(false));
       });
+
+      if (this.isEditMode && this.itemId) {
+        this.menuService.getMenuItem(this.itemId).subscribe((item: MenuItem) => {
+          this.editorForm.patchValue(item);
+          groupControls.patchValue(
+            this.allGroups.reduce((acc, group) => {
+              acc[group.name] = item.groups?.includes(group.name) || false;
+              return acc;
+            }, {} as Record<string, boolean>)
+          );
+        });
+      }
     });
   }
 
@@ -81,7 +85,7 @@ export class MenuEditorComponent implements OnInit {
 
     const formValue = this.editorForm.value;
     const selectedGroups = Object.keys(formValue.groups).filter(key => formValue.groups[key]);
-    const payload = { ...formValue, groups: selectedGroups };
+    const payload = { ...formValue, groups: selectedGroups, parentId: formValue.parentId || null };
 
     const operation = this.isEditMode && this.itemId
       ? this.menuService.updateMenuItem(this.itemId, payload)

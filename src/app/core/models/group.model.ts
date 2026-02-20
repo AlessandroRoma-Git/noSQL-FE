@@ -2,7 +2,8 @@
 export interface Group {
   id: string;
   name: string;
-  description?: string;
+  description: string;
+  systemRole: 'ADMIN' | 'SUPER_ADMIN' | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -10,9 +11,7 @@ export interface Group {
 export interface CreateGroupRequest {
   name: string;
   description?: string;
+  systemRole?: 'ADMIN' | 'SUPER_ADMIN' | null;
 }
 
-export interface UpdateGroupRequest {
-  name: string;
-  description?: string;
-}
+export interface UpdateGroupRequest extends CreateGroupRequest {}

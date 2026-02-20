@@ -8,6 +8,7 @@ import { EmailTemplateService } from '../../core/services/email-template.service
 import { GroupService } from '../../core/services/group.service';
 import { UserService } from '../../core/services/user.service';
 import { MenuService } from '../../core/services/menu.service';
+import { User } from '../../core/models/user.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -27,16 +28,20 @@ export class DashboardComponent implements OnInit {
   public groupCount$!: Observable<number>;
   public userCount$!: Observable<number>;
   public menuCount$!: Observable<number>;
+  public recentUsers$!: Observable<User[]>;
 
   ngOnInit(): void {
-    // Use the public observables from the services
     this.entityCount$ = this.entityService.definitions$.pipe(map(items => items.length));
     this.templateCount$ = this.emailTemplateService.templates$.pipe(map(items => items.length));
     this.groupCount$ = this.groupService.groups$.pipe(map(items => items.length));
     this.userCount$ = this.userService.users$.pipe(map(items => items.length));
     this.menuCount$ = this.menuService.menuItems$.pipe(map(items => items.length));
 
-    // Trigger the initial load for all services
+    this.recentUsers$ = this.userService.users$.pipe(
+      map(users => users.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5))
+    );
+
+    // Trigger initial loads
     this.entityService.loadEntityDefinitions().subscribe();
     this.emailTemplateService.loadEmailTemplates().subscribe();
     this.groupService.loadGroups().subscribe();

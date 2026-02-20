@@ -17,6 +17,7 @@
                 <p class="text-sm text-main-text/70">Placeholders: {{ template.placeholders.join(', ') || 'None' }}</p>
               </div>
               <div class="flex items-center space-x-4">
+                <button (click)="onTestSend(template)" class="button-secondary-sm">Test Send</button>
                 <button (click)="showUsage(template)" title="Show API Usage" class="text-main-text/70 hover:text-primary">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
                 </button>
