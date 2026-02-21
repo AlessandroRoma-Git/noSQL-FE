@@ -44,7 +44,7 @@ export class UserListComponent implements OnInit {
       filter(confirmed => confirmed)
     ).subscribe(() => {
       this.userService.resetPassword(id).subscribe(() => {
-        this.modalService.open({ title: 'Success', content: 'Password has been reset and sent to the user.' });
+        this.modalService.openInfo('Success', 'Password has been reset and sent to the user.');
       });
     });
   }

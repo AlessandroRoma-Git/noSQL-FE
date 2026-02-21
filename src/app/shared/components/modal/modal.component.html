@@ -7,13 +7,13 @@
     <div class="bg-[rgb(var(--color-bg-surface))] rounded-lg shadow-xl max-w-lg w-full m-4 border-2 border-[rgb(var(--color-primary))] text-[rgb(var(--color-primary))]">
 
       <!-- Dynamic Component Content -->
-      @if (contentAsComponent) {
-        <ng-template #content></ng-template>
+      @if (contentAsComponent; as component) {
+        <ng-container *ngComponentOutlet="component; inputs: state!.data || {}"></ng-container>
       }
 
       <!-- Dynamic Template Content -->
       @if (contentAsTemplate; as template) {
-        <ng-container [ngTemplateOutlet]="template"></ng-container>
+        <ng-container *ngTemplateOutlet="template"></ng-container>
       }
 
       <!-- Simple Data Content (for confirmation/info) -->

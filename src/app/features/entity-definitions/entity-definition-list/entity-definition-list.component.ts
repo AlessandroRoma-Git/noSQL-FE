@@ -32,14 +32,12 @@ export class EntityDefinitionListComponent implements OnInit {
     ).pipe(
       filter(confirmed => confirmed)
     ).subscribe(() => {
-      // The service will automatically reload the list
       this.entityDefinitionService.deleteEntityDefinition(key).subscribe();
     });
   }
 
   showUsage(def: EntityDefinition): void {
     const title = `API Usage for: ${def.label}`;
-
     const samplePayload = def.fields.reduce((acc, field) => {
       let value: any = '';
       switch (field.type) {
@@ -49,6 +47,7 @@ export class EntityDefinitionListComponent implements OnInit {
         case 'BOOLEAN': value = true; break;
         case 'DATE': value = new Date().toISOString(); break;
         case 'ENUM': value = field.enumValues?.[0] || 'enum_value'; break;
+        case 'REFERENCE': value = ['related_id_1', 'related_id_2']; break;
       }
       acc[field.name] = value;
       return acc;
@@ -58,14 +57,12 @@ export class EntityDefinitionListComponent implements OnInit {
 
     const content = `
       <p>Here is an example of how to interact with the <strong>${def.entityKey}</strong> entity via the API.</p>
-
       <h4 class="mt-4 font-semibold text-[rgb(var(--color-primary))]">Create Record Endpoint</h4>
       <p><code>POST /api/v1/records/${def.entityKey}</code></p>
-
       <h4 class="mt-4 font-semibold text-[rgb(var(--color-primary))]">Sample Payload</h4>
       <pre class="bg-[rgb(var(--color-bg-base))] p-2 rounded-md text-sm text-[rgb(var(--color-text))]"><code>${payloadString}</code></pre>
     `;
 
-    this.modalService.open({ title, content });
+    this.modalService.openInfo(title, content);
   }
 }

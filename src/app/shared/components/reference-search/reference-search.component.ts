@@ -26,7 +26,7 @@ export class ReferenceSearchComponent implements ControlValueAccessor, OnInit {
   @ViewChild('selectionModal') selectionModalTemplate!: TemplateRef<any>;
 
   private recordService = inject(RecordService);
-  public modalService = inject(ModalService); // Made public
+  public modalService = inject(ModalService);
 
   public selectedIds: string[] = [];
   public availableRecords$: Observable<Record[]> = of([]);
@@ -65,7 +65,7 @@ export class ReferenceSearchComponent implements ControlValueAccessor, OnInit {
   openSelectionModal(): void {
     this.tempSelectedIds = [...this.selectedIds];
     this.search('');
-    this.modalService.open(this.selectionModalTemplate);
+    this.modalService.openTemplate(this.selectionModalTemplate);
   }
 
   toggleSelection(recordId: string): void {

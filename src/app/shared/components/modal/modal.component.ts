@@ -1,54 +1,39 @@
 
-import { Component, inject, ViewChild, ViewContainerRef, OnDestroy, OnInit, TemplateRef, Type, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, inject, OnInit, OnDestroy, TemplateRef, Type, ViewContainerRef, ViewChild } from '@angular/core';
+import { CommonModule, NgComponentOutlet } from '@angular/common';
 import { ModalService, ModalState, ModalData, ModalContent } from '../../../core/services/modal.service';
 import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-modal',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, NgComponentOutlet],
   templateUrl: './modal.component.html',
 })
 export class ModalComponent implements OnInit, OnDestroy {
   private modalService = inject(ModalService);
-  private cdr = inject(ChangeDetectorRef);
-  @ViewChild('content', { read: ViewContainerRef, static: true }) private contentContainer!: ViewContainerRef;
+  @ViewChild('componentHost', { read: ViewContainerRef, static: true }) componentHost!: ViewContainerRef;
 
   private subscription?: Subscription;
 
   public state: ModalState | null = null;
 
-  // Type-safe getters
+  // Type-safe getters for the template
   get contentAsComponent(): Type<any> | null {
-    return (typeof this.state?.content === 'function') ? this.state.content : null;
+    return this.state?.contentType === 'component' ? this.state.content as Type<any> : null;
   }
 
   get contentAsTemplate(): TemplateRef<any> | null {
-    return (this.state?.content instanceof TemplateRef) ? this.state.content : null;
+    return this.state?.contentType === 'template' ? this.state.content as TemplateRef<any> : null;
   }
 
   get contentAsData(): ModalData | null {
-    const content = this.state?.content;
-    return (!!content && typeof content !== 'function' && !(content instanceof TemplateRef)) ? content : null;
+    return this.state?.contentType === 'data' ? this.state.content as ModalData : null;
   }
 
   ngOnInit() {
     this.subscription = this.modalService.modalState$.subscribe(state => {
       this.state = state;
-      this.contentContainer.clear();
-
-      if (state.isOpen && this.contentAsComponent) {
-        const componentRef = this.contentContainer.createComponent(this.contentAsComponent);
-        if (state.data) {
-          Object.assign(componentRef.instance, state.data);
-        }
-        // Manually trigger change detection for the dynamic component
-        componentRef.changeDetectorRef.detectChanges();
-      }
-
-      // Manually trigger change detection for the modal component itself
-      this.cdr.detectChanges();
     });
   }
 

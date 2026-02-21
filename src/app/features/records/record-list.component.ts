@@ -29,9 +29,6 @@ export class RecordListComponent implements OnInit {
   public entityDefinition!: EntityDefinition;
   public entityKey!: string;
 
-  private currentFilters: any[] = [];
-  private currentSorts: any[] = [];
-
   ngOnInit(): void {
     this.entityKey = this.route.snapshot.paramMap.get('entityKey')!;
     this.records$ = this.recordService.records$;
@@ -45,7 +42,8 @@ export class RecordListComponent implements OnInit {
   }
 
   loadRecords(page = 0): void {
-    this.recordService.loadRecords(this.entityKey, page, 20, this.currentFilters, this.currentSorts).subscribe();
+    // The service now manages filters, so we just need to trigger a load.
+    this.recordService.loadRecords(this.entityKey, page).subscribe();
   }
 
   onDelete(id: string): void {
@@ -60,23 +58,16 @@ export class RecordListComponent implements OnInit {
   }
 
   onShowHistory(recordId: string): void {
-    // ... (implementation remains the same)
+    this.modalService.openComponent(RecordHistoryComponent, {
+      entityKey: this.entityKey,
+      recordId: recordId
+    });
   }
 
   openSearchModal(): void {
-    const componentRef = this.modalService.open(RecordSearchComponent);
-    // This is a hacky way to pass data.
-    setTimeout(() => {
-      const instance = (document.querySelector('app-record-search') as any);
-      if (instance) {
-        instance.definition = this.entityDefinition;
-        instance.search.subscribe((event: { filters: any[], sorts: any[] }) => {
-          this.currentFilters = event.filters;
-          this.currentSorts = event.sorts;
-          this.loadRecords();
-        });
-      }
-    }, 0);
+    this.modalService.openComponent(RecordSearchComponent, {
+      definition: this.entityDefinition
+    });
   }
 
   getJsonData(data: any): string {

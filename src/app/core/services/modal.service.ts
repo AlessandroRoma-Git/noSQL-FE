@@ -8,10 +8,12 @@ export interface ModalData {
   content: string;
 }
 
+export type ModalContent = Type<any> | TemplateRef<any> | ModalData;
+
 export interface ModalState {
   isOpen: boolean;
   contentType: 'component' | 'template' | 'data' | null;
-  content: Type<any> | TemplateRef<any> | ModalData | null;
+  content: ModalContent | null;
   data?: any; // For component inputs
   isConfirmation: boolean;
 }

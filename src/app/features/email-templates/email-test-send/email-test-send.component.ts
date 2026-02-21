@@ -17,7 +17,7 @@ export class EmailTestSendComponent implements OnInit {
 
   private fb = inject(FormBuilder);
   private emailService = inject(EmailService);
-  public modalService = inject(ModalService); // Made public
+  public modalService = inject(ModalService);
 
   public testForm!: FormGroup;
 
@@ -50,7 +50,7 @@ export class EmailTestSendComponent implements OnInit {
     };
 
     this.emailService.sendEmail(request).subscribe(() => {
-      this.modalService.open({ title: 'Success', content: `Test email sent successfully to ${formValue.to}.` });
+      this.modalService.openInfo('Success', `Test email sent successfully to ${formValue.to}.`);
     });
   }
 }

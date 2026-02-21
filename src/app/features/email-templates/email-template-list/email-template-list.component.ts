@@ -38,7 +38,7 @@ export class EmailTemplateListComponent implements OnInit {
   }
 
   onTestSend(template: EmailTemplate): void {
-    this.modalService.open(EmailTestSendComponent, { template: template });
+    this.modalService.openComponent(EmailTestSendComponent, { template: template });
   }
 
   showUsage(template: EmailTemplate): void {
@@ -61,6 +61,6 @@ export class EmailTemplateListComponent implements OnInit {
       <h4 class="mt-4 font-semibold text-[rgb(var(--color-primary))]">Sample Payload</h4>
       <pre class="bg-[rgb(var(--color-bg-base))] p-2 rounded-md text-sm text-[rgb(var(--color-text))]"><code>${payloadString}</code></pre>
     `;
-    this.modalService.open({ title, content });
+    this.modalService.openInfo(title, content);
   }
 }
