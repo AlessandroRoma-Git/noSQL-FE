@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, OnDestroy, Input, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, KeyValuePipe } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { RecordService } from 'app/consumer-app/services/record.service';
@@ -13,6 +13,12 @@ import { FilterCondition, FilterOperator } from 'app/consumer-app/services/filte
 import { take, finalize } from 'rxjs/operators';
 import { FormsModule } from '@angular/forms';
 
+/**
+ * @class ConsumerRecordListComponent
+ * @description
+ * Visualizzazione record per utenti non-admin.
+ * Implementa un Query Builder con righe di filtri editabili.
+ */
 @Component({
   selector: 'app-consumer-record-list',
   standalone: true,
@@ -36,11 +42,10 @@ export class ConsumerRecordListComponent implements OnInit, OnChanges, OnDestroy
   public currentPage = 0;
   public isLoading = true;
 
-  // --- FILTRI AVANZATI ---
-  public showAdvancedFilters = false;
-  public activeFilters: FilterCondition[] = [];
-  public editingFilterIndex: number | null = null;
-  public nextFilter: FilterCondition = { field: '', op: 'eq', value: '' };
+  // --- QUERY BUILDER STATE ---
+  public showFilters = false;
+  public filterRows: FilterCondition[] = [];
+  
   public availableOperators: { label: string, value: FilterOperator }[] = [
     { label: 'Uguale', value: 'eq' },
     { label: 'Diverso', value: 'ne' },
@@ -64,7 +69,7 @@ export class ConsumerRecordListComponent implements OnInit, OnChanges, OnDestroy
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['entityKey'] && !changes['entityKey'].firstChange) {
-      this.activeFilters = [];
+      this.filterRows = []; 
       this.loadAll();
     }
   }
@@ -82,7 +87,6 @@ export class ConsumerRecordListComponent implements OnInit, OnChanges, OnDestroy
     ).subscribe({
       next: (def: EntityDefinition) => {
         this.definition = def;
-        if (def.fields.length > 0) this.nextFilter.field = def.fields[0].name;
         this.calculatePermissions(def);
         this.applySearch();
       }
@@ -107,18 +111,28 @@ export class ConsumerRecordListComponent implements OnInit, OnChanges, OnDestroy
   }
 
   /**
-   * Applica la ricerca effettiva (Tasto CERCA)
+   * Applica i filtri ed esegue la ricerca
    */
   applySearch(page = 0): void {
     this.currentPage = page;
     this.isLoading = true;
     if (this.dataSub) this.dataSub.unsubscribe();
     
+    // Pulizia valori per operatore 'in' prima dell'invio
+    const processedFilters = this.filterRows
+      .filter(f => f.field && f.value !== '')
+      .map(f => {
+        if (f.op === 'in' && typeof f.value === 'string') {
+          return { ...f, value: f.value.split(',').map(s => s.trim()).filter(s => s) };
+        }
+        return f;
+      });
+
     this.dataSub = this.recordService.loadRecords(
       this.entityKey, 
       page, 
       10, 
-      this.activeFilters, 
+      processedFilters, 
       this.currentSorts
     ).pipe(
       finalize(() => {
@@ -133,37 +147,21 @@ export class ConsumerRecordListComponent implements OnInit, OnChanges, OnDestroy
     });
   }
 
-  // --- LOGICA FILTRI ---
+  // --- QUERY BUILDER ACTIONS ---
 
-  addOrUpdateFilter(): void {
-    if (!this.nextFilter.field || this.nextFilter.value === '') return;
-    
-    let finalValue = this.nextFilter.value;
-    if (this.nextFilter.op === 'in' && typeof finalValue === 'string') {
-      finalValue = finalValue.split(',').map(s => s.trim());
-    }
-
-    if (this.editingFilterIndex !== null) {
-      this.activeFilters[this.editingFilterIndex] = { ...this.nextFilter, value: finalValue };
-      this.editingFilterIndex = null;
-    } else {
-      this.activeFilters.push({ ...this.nextFilter, value: finalValue });
-    }
-
-    this.nextFilter.value = '';
-    // NOTA: Non chiamiamo applySearch() qui, aspettiamo il tasto Cerca
+  addFilterRow(): void {
+    const defaultField = this.definition?.fields[0]?.name || '';
+    this.filterRows.push({ field: defaultField, op: 'eq', value: '' });
+    this.showFilters = true;
   }
 
-  editFilter(index: number): void {
-    this.editingFilterIndex = index;
-    const filter = this.activeFilters[index];
-    this.nextFilter = { ...filter, value: Array.isArray(filter.value) ? filter.value.join(', ') : filter.value };
-    this.showAdvancedFilters = true;
+  removeFilterRow(index: number): void {
+    this.filterRows.splice(index, 1);
   }
 
-  removeFilter(index: number): void {
-    this.activeFilters.splice(index, 1);
-    if (this.editingFilterIndex === index) this.editingFilterIndex = null;
+  resetFilters(): void {
+    this.filterRows = [];
+    this.applySearch(0);
   }
 
   toggleSort(fieldName: string): void {
