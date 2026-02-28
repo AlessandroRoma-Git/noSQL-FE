@@ -14,10 +14,7 @@ import { ToastService } from '../../core/services/toast.service';
 
 /**
  * @class SettingsComponent
- * @description
- * Il pannello di controllo per gli Admin.
- * Permette di configurare tutto: dal nome dell'app alla lingua,
- * fino alla creazione di nuovi temi grafici personalizzati.
+ * @description Pannello di controllo Admin per branding e configurazioni di sistema.
  */
 @Component({
   selector: 'app-settings',
@@ -26,7 +23,6 @@ import { ToastService } from '../../core/services/toast.service';
   templateUrl: './settings.component.html',
 })
 export class SettingsComponent implements OnInit {
-  // --- STRUMENTI ---
   private fb = inject(FormBuilder);
   private settingsService = inject(SettingsService);
   private emailTemplateService = inject(EmailTemplateService);
@@ -36,27 +32,21 @@ export class SettingsComponent implements OnInit {
   public i18nService = inject(I18nService);
   private toastService = inject(ToastService);
 
-  // --- DATI ---
   public settingsForm!: FormGroup;
   public emailTemplates$!: Observable<EmailTemplate[]>;
   public themes: Theme[] = [];
   
-  // Variabili per il "Creatore di Temi"
   public showThemeDesigner = false;
   public isEditingTheme = false;
   public editingThemeId: string | null = null;
   public newThemeName = '';
 
-  /**
-   * All'avvio carichiamo i temi e prepariamo il modulo.
-   */
   ngOnInit(): void {
     this.refreshThemes();
     this.initForm();
     this.emailTemplates$ = this.emailTemplateService.templates$;
     this.emailTemplateService.loadEmailTemplates().subscribe();
 
-    // Carichiamo le impostazioni attuali
     this.settingsService.getSettings().subscribe(settings => {
       this.settingsForm.patchValue(settings);
     });
@@ -67,8 +57,12 @@ export class SettingsComponent implements OnInit {
           appName: config.appName,
           logoUrl: config.logoUrl,
           language: config.language,
-          layoutMode: config.layoutMode,
-          themeId: config.themeId
+          themeId: config.themeId,
+          defaults: {
+            desktop: config.defaults.desktop,
+            tablet: config.defaults.tablet,
+            mobile: config.defaults.mobile
+          }
         }
       });
     });
@@ -80,8 +74,12 @@ export class SettingsComponent implements OnInit {
         appName: ['', Validators.required],
         logoUrl: [''],
         language: ['en'],
-        layoutMode: ['sidebar'],
-        themeId: ['coder']
+        themeId: ['coder'],
+        defaults: this.fb.group({
+          desktop: ['sidebar'],
+          tablet: ['navbar'],
+          mobile: ['bottom-nav']
+        })
       }),
       themeDesigner: this.fb.group({
         primary: ['#73ef69'],
@@ -104,7 +102,6 @@ export class SettingsComponent implements OnInit {
       })
     });
 
-    // Anteprima in tempo reale
     this.settingsForm.get('themeDesigner')?.valueChanges.subscribe(colors => {
       if (this.showThemeDesigner) {
         this.themeService.previewColors({
@@ -118,9 +115,6 @@ export class SettingsComponent implements OnInit {
     });
   }
 
-  /**
-   * Mostra il pannello per creare un nuovo tema.
-   */
   openThemeDesigner(): void {
     this.isEditingTheme = false;
     this.editingThemeId = null;
@@ -128,16 +122,11 @@ export class SettingsComponent implements OnInit {
     this.showThemeDesigner = true;
   }
 
-  /**
-   * Apre il designer caricando i dati di un tema esistente.
-   */
   editTheme(theme: Theme, event: Event): void {
     event.stopPropagation();
     this.isEditingTheme = true;
     this.editingThemeId = theme.id;
     this.newThemeName = theme.name;
-    
-    // Carichiamo i colori nel form
     this.settingsForm.get('themeDesigner')?.patchValue({
       primary: this.rgbToHex(theme.colors['--color-primary']),
       accent: this.rgbToHex(theme.colors['--color-accent']),
@@ -145,20 +134,15 @@ export class SettingsComponent implements OnInit {
       bgBase: this.rgbToHex(theme.colors['--color-bg-base']),
       bgSurface: this.rgbToHex(theme.colors['--color-bg-surface'])
     });
-
     this.showThemeDesigner = true;
     this.themeService.setTheme(theme.id);
   }
 
-  /**
-   * Salva o aggiorna il tema.
-   */
   saveNewTheme(): void {
     if (!this.newThemeName.trim()) {
       this.toastService.error('Inserisci un nome per il tema!');
       return;
     }
-
     const colors = this.settingsForm.get('themeDesigner')?.value;
     const cssVars = {
       '--color-primary': this.hexToRgb(colors.primary),
@@ -167,7 +151,6 @@ export class SettingsComponent implements OnInit {
       '--color-bg-base': this.hexToRgb(colors.bgBase),
       '--color-bg-surface': this.hexToRgb(colors.bgSurface)
     };
-
     if (this.isEditingTheme && this.editingThemeId) {
       this.themeService.updateCustomTheme(this.editingThemeId, this.newThemeName, cssVars);
       this.toastService.success('Tema aggiornato!');
@@ -176,7 +159,6 @@ export class SettingsComponent implements OnInit {
       this.settingsForm.get('branding.themeId')?.setValue(newId);
       this.toastService.success('Nuovo tema salvato!');
     }
-    
     this.refreshThemes();
     this.showThemeDesigner = false;
     this.isEditingTheme = false;
@@ -184,9 +166,6 @@ export class SettingsComponent implements OnInit {
     this.newThemeName = '';
   }
 
-  /**
-   * Elimina un tema personalizzato.
-   */
   deleteTheme(themeId: string, event: Event): void {
     event.stopPropagation();
     this.modalService.confirm('Elimina Tema', 'Sei sicuro?').subscribe(confirmed => {
@@ -229,8 +208,8 @@ export class SettingsComponent implements OnInit {
       appName: formValue.branding.appName,
       logoUrl: formValue.branding.logoUrl,
       language: formValue.branding.language,
-      layoutMode: formValue.branding.layoutMode,
-      themeId: formValue.branding.themeId
+      themeId: formValue.branding.themeId,
+      defaults: formValue.branding.defaults
     });
     this.settingsService.updateSettings(formValue).subscribe(() => {
       this.toastService.success('Configurazioni salvate!');

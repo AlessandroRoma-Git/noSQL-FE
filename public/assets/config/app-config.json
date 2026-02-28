@@ -3,7 +3,13 @@
     "appName": "White Label CMS",
     "logoUrl": "assets/logo.svg",
     "themeId": "coder",
-    "language": "en"
+    "language": "en",
+    "layoutMode": "sidebar",
+    "defaults": {
+      "desktop": "sidebar",
+      "tablet": "navbar",
+      "mobile": "floating"
+    }
   },
   "email": {
     "defaultFrom": "admin@whitelabel.com",
