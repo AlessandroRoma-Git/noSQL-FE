@@ -1,16 +1,16 @@
 import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet, Router, NavigationEnd } from '@angular/router';
-import { AuthService } from './core/services/auth.service';
+import { AuthService } from 'app/common/services/auth.service';
 import { CommonModule } from '@angular/common';
-import { ModalComponent } from './shared/components/modal/modal.component';
-import { ToastComponent } from './shared/components/toast/toast.component';
-import { ThemeService, Theme } from './core/services/theme.service';
-import { MenuService } from './core/services/menu.service';
-import { WhiteLabelService, WhiteLabelConfig } from './core/services/white-label.service';
-import { I18nService } from './core/services/i18n.service';
+import { ModalComponent } from 'app/common/components/modal/modal.component';
+import { ToastComponent } from 'app/common/components/toast/toast.component';
+import { ThemeService, Theme } from 'app/common/services/theme.service';
+import { MenuService } from 'app/configurator/services/menu.service';
+import { WhiteLabelService, WhiteLabelConfig } from 'app/common/services/white-label.service';
+import { I18nService } from 'app/common/services/i18n.service';
 import { Observable, filter } from 'rxjs';
-import { MenuItem } from './core/models/menu-item.model';
+import { MenuItem } from 'app/common/models/menu-item.model';
 import { map } from 'rxjs/operators';
 
 /**
