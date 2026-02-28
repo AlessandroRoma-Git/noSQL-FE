@@ -1,12 +1,10 @@
-
-import { Component, OnInit, inject, OnDestroy, SecurityContext } from '@angular/core';
+import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule } from '@angular/forms';
 import { Subject } from 'rxjs';
 import { takeUntil, debounceTime } from 'rxjs/operators';
 import { EmailTemplateService } from '../../../core/services/email-template.service';
-import { ModalService } from '../../../core/services/modal.service';
 import { EmailTemplate, Attachment } from '../../../core/models/email-template.model';
 import { ToggleSwitchComponent } from '../../../shared/components/toggle-switch/toggle-switch.component';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
@@ -23,7 +21,6 @@ export class EmailTemplateEditorComponent implements OnInit, OnDestroy {
   private router = inject(Router);
   private fb = inject(FormBuilder);
   private emailTemplateService = inject(EmailTemplateService);
-  private modalService = inject(ModalService);
   private sanitizer = inject(DomSanitizer);
 
   public editorForm!: FormGroup;
@@ -149,7 +146,7 @@ export class EmailTemplateEditorComponent implements OnInit, OnDestroy {
     operation.subscribe(() => this.router.navigate(['/email-templates']));
   }
 
-  showInfo(topic: 'details' | 'placeholders' | 'attachments' | 'usage'): void {
+  showInfo(_topic: 'details' | 'placeholders' | 'attachments' | 'usage'): void {
     // ... (implementation for showing info modals)
   }
 }

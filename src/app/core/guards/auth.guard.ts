@@ -1,8 +1,7 @@
-
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
-import { map, take, switchMap } from 'rxjs/operators';
+import { map, take } from 'rxjs/operators';
 import { combineLatest } from 'rxjs';
 
 /**
@@ -14,7 +13,7 @@ import { combineLatest } from 'rxjs';
  * 2. Se è la tua prima volta (firstAccess). In quel caso, ti scorta a forza 
  *    nella pagina di cambio password e non ti fa uscire finché non l'hai cambiata!
  */
-export const authGuard: CanActivateFn = (route, state) => {
+export const authGuard: CanActivateFn = (_route, state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 

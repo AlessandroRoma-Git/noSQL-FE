@@ -22,3 +22,14 @@ export interface PageResponse<T> {
   totalElements: number;
   totalPages: number;
 }
+
+export interface RecordHistoryResponse {
+  id: string;
+  entityKey: string;
+  recordId: string;
+  data: { [key: string]: any };
+  version: number;
+  action: 'CREATE' | 'UPDATE' | 'DELETE';
+  modifiedBy: string;
+  createdAt: string;
+}

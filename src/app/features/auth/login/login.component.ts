@@ -1,8 +1,7 @@
-
 import { Component, inject, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router, RouterLink } from '@angular/router';
+import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/services/auth.service';
 import { LoginRequest } from '../../../core/models/auth.model';
 import { WhiteLabelService, WhiteLabelConfig } from '../../../core/services/white-label.service';
@@ -26,7 +25,6 @@ export class LoginComponent implements OnInit {
   // --- STRUMENTI ---
   private fb = inject(FormBuilder); // Serve per creare il modulo (form) del login
   private authService = inject(AuthService); // Serve per inviare i dati al server
-  private router = inject(Router); // Serve per cambiare pagina dopo il login
   private whiteLabelService = inject(WhiteLabelService); // Serve per sapere il nome del sito e il logo
   public i18nService = inject(I18nService); // Serve per tradurre i testi della pagina
 

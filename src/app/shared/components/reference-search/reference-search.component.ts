@@ -1,4 +1,3 @@
-
 import { Component, Input, forwardRef, OnInit, inject, TemplateRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/forms';
@@ -39,7 +38,7 @@ export class ReferenceSearchComponent implements ControlValueAccessor, OnInit {
   private searchField = new Subject<string>();
   public tempSelectedIds: string[] = [];
 
-  private onChange = (value: string[]) => {};
+  private onChange = (_value: string[]) => {};
   private onTouched = () => {};
 
   /**

@@ -1,7 +1,7 @@
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
-import { BehaviorSubject, Observable } from 'rxjs';
+import { BehaviorSubject } from 'rxjs';
 import { ThemeService } from './theme.service';
 import { I18nService } from './i18n.service';
 
@@ -9,24 +9,25 @@ import { I18nService } from './i18n.service';
  * @interface WhiteLabelConfig
  * @description
  * Immagina questa come la "carta d'identità" visiva del prodotto.
- * Definisce il logo, il nome dell'app, la lingua e il tema.
- * È utile per creare versioni diverse dello stesso prodotto (es. un CMS per l'Azienda A, uno per l'Azienda B).
  */
 export interface WhiteLabelConfig {
   logoUrl: string;
   appName: string;
   language: string;
   themeId: string;
+  // Nuova opzione: decide come deve apparire il menu (es. di lato, in alto, in basso)
+  layoutMode: 'sidebar' | 'navbar' | 'bottom-nav' | 'tabs' | 'floating';
 }
 
 /**
  * Valori di base se non troviamo nulla nei file JSON o nel browser.
  */
 const DEFAULT_CONFIG: WhiteLabelConfig = {
-  logoUrl: '',
+  logoUrl: 'assets/logo.svg',
   appName: 'CMS NoSQL',
   language: 'en',
-  themeId: 'coder'
+  themeId: 'coder',
+  layoutMode: 'sidebar' // Default classico
 };
 
 /**

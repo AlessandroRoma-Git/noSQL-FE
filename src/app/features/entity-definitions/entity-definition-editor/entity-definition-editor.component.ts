@@ -1,4 +1,3 @@
-
 import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -6,7 +5,6 @@ import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, Abs
 import { Subject, forkJoin, Observable } from 'rxjs';
 import { takeUntil, debounceTime } from 'rxjs/operators';
 import { EntityDefinitionService } from '../../../core/services/entity-definition.service';
-import { ModalService } from '../../../core/services/modal.service';
 import { EntityDefinition, Field } from '../../../core/models/entity-definition.model';
 import { Group } from '../../../core/models/group.model';
 import { GroupService } from '../../../core/services/group.service';
@@ -27,7 +25,6 @@ export class EntityDefinitionEditorComponent implements OnInit, OnDestroy {
   private entityDefinitionService = inject(EntityDefinitionService);
   private groupService = inject(GroupService);
   private emailTemplateService = inject(EmailTemplateService);
-  private modalService = inject(ModalService);
 
   public editorForm!: FormGroup;
   public isEditMode = false;

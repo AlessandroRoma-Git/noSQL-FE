@@ -1,7 +1,6 @@
-
 import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Observable, Subscription } from 'rxjs';
 import { RecordService } from '../../core/services/record.service';
 import { Record } from '../../core/models/record.model';
@@ -28,7 +27,6 @@ import { EntityDefinition, Field } from '../../core/models/entity-definition.mod
 export class RecordListComponent implements OnInit, OnDestroy {
   // --- STRUMENTI ---
   private route = inject(ActivatedRoute);
-  private router = inject(Router);
   private recordService = inject(RecordService);
   private entityDefinitionService = inject(EntityDefinitionService);
   private modalService = inject(ModalService);

@@ -1,61 +1,35 @@
+# Architettura del Progetto (Guida Semplice)
 
-# Frontend Architecture
+Benvenuto! Se sei nuovo nel progetto, questa guida ti spiegherà come funziona il nostro CMS in parole povere. Abbiamo costruito tutto per essere **morbido**, **veloce** e **personalizzabile** (White Label).
 
-This document provides an overview of the frontend architecture for the CMS NoSQL Configurator application.
+## 1. Com'è organizzato il codice?
+Immagina il progetto come una grande scatola con tre scomparti principali:
 
-## 1. Core Technologies
+*   **CORE (Il Cuore)**: Qui ci sono gli strumenti che servono a tutto il sito.
+    *   *Servizi*: Sono i nostri "operai" che vanno a parlare con il server (Backend) per prendere o salvare i dati.
+    *   *Modelli*: Sono i moduli che spiegano al codice com'è fatto un Utente, un Prodotto o una Tabella.
+    *   *Guard*: Sono i nostri "buttafuori". Controllano se hai il permesso di entrare in una pagina.
+*   **FEATURES (Le Pagine)**: Qui trovi le pagine vere e proprie che l'utente vede (Dashboard, Utenti, Record, ecc.). Ogni cartella è un pezzetto indipendente del sito.
+*   **SHARED (I Pezzi Riutilizzabili)**: Qui ci sono le cose che usiamo in più punti, come i messaggini Toast (notifiche) o i Popup (Modal).
 
-- **Framework**: Angular (v21+)
-- **Styling**: Tailwind CSS
-- **UI Components**: Standalone Components
-- **State Management**: RxJS with `BehaviorSubject` in services (Service-with-a-Subject pattern)
-- **Build Tool**: Angular CLI (Vite)
+## 2. Come gestiamo i dati? (Il trucco del Canale)
+Non usiamo sistemi complicati. Usiamo dei "canali" (chiamati *BehaviorSubject*). 
+*   Il **Servizio** apre il canale.
+*   La **Pagina** si mette in ascolto sul canale.
+*   Quando il servizio riceve nuovi dati dal server, li butta nel canale e la pagina si aggiorna **automaticamente** come per magia, senza dover ricaricare nulla!
 
-## 2. Project Structure
+## 3. White Label: Come fa il sito a cambiare faccia?
+Abbiamo creato un sistema chiamato "Marca Bianca" (White Label).
+*   **Logo e Nome**: Vengono letti da un file chiamato `app-config.json`.
+*   **Temi (Colori)**: Il `ThemeService` è il nostro "stylist". Applica dei colori speciali (variabili CSS) a tutto il sito. Se cambi tema, il sito cambia vestito istantaneamente.
+*   **Layout Dinamico**: Puoi decidere se vuoi il menu di lato (Sidebar), in alto (Navbar) o in basso (Bottom Nav). Il sito si smonta e si rimonta da solo!
 
-The project follows a standard Angular CLI structure, with key logic organized into three main folders within `src/app/`:
+## 4. Multilingua (i18n)
+Tutte le scritte del sito sono in dei file `.json` (Italiano e Inglese). Non scriviamo mai il testo direttamente nelle pagine, ma usiamo delle "chiavi" (es: `COMMON.SAVE`). Così, se un domani vogliamo aggiungere il Cinese, ci basta aggiungere un nuovo file JSON!
 
-- `core/`: Contains singleton services, models, and guards that are used across the entire application.
-  - `services/`: Houses all the logic for interacting with the backend API and managing application state.
-  - `models/`: Defines the TypeScript interfaces for our data structures (e.g., `EntityDefinition`, `User`).
-  - `guards/`: Contains route guards for authentication and authorization.
-- `features/`: Contains the primary features of the application, with each feature encapsulated in its own module/folder (e.g., `dashboard`, `entity-definitions`, `users`).
-- `shared/`: Contains reusable components, directives, and pipes that are not tied to a specific feature (e.g., `ModalComponent`, `ToggleSwitchComponent`).
+## 5. Sicurezza (Il blocco Password)
+Se un utente entra per la prima volta, il nostro "buttafuori" (`authGuard`) lo chiude a chiave in una stanza speciale: la pagina **Cambia Password**. Non potrà vedere il menu o i dati finché non avrà scelto una password nuova e sicura.
 
-## 3. Key Architectural Decisions
+---
 
-### 3.1. State Management: Service-with-a-Subject
-
-Instead of using a heavy state management library like NgRx, we opted for a lighter, more direct approach using RxJS.
-
-- Each data-managing service (e.g., `EntityDefinitionService`, `UserService`) contains a private `BehaviorSubject`.
-- This subject holds the current state of the data (e.g., the list of entity definitions).
-- The service exposes a public `Observable` (`service.data$`) that components can subscribe to.
-- When a create, update, or delete operation is performed, the service makes the API call and, upon success, re-fetches the updated list and pushes it to the `BehaviorSubject` via `.next()`.
-- All components subscribed to the public observable automatically receive the updated list and re-render, creating a reactive and self-updating UI.
-
-### 3.2. Theming System
-
-The application supports multiple, dynamically switchable themes.
-
-- The `ThemeService` is the single source of truth for all theme information. It contains a list of `Theme` objects, each defining a palette of colors.
-- When a theme is selected, the service dynamically sets CSS variables on the `:root` element of the document (e.g., `--color-primary`, `--color-bg-surface`).
-- Tailwind CSS is configured to use these CSS variables for its color utilities (e.g., `bg-[rgb(var(--color-bg-base))]`).
-- This approach allows the entire application's look and feel to be changed instantly without reloading, as all components reference the same set of global CSS variables. The selected theme is persisted in `localStorage`.
-
-### 3.3. Global Modal System
-
-A `ModalService` provides a global, application-wide mechanism for displaying modal dialogs.
-
-- It can render two types of content:
-  1.  **Dynamic Components**: Any Angular component can be passed to `modalService.open()` to be rendered inside the modal. This is used for complex UIs like the (now-removed) theme editor.
-  2.  **Simple Data**: A `ModalData` object (title and content) can be passed to create simple informational or confirmation dialogs.
-- The `ModalComponent` subscribes to the service's state and uses `ViewContainerRef` to dynamically create and insert components, or `[innerHTML]` to display simple HTML content.
-
-### 3.4. Authentication Flow
-
-- Authentication is managed by the `AuthService` using JWT (JSON Web Tokens).
-- **Route Guards** (`authGuard`, `publicGuard`) protect the application's routes:
-  - `authGuard` prevents unauthenticated users from accessing protected pages, redirecting them to `/login`.
-  - `publicGuard` prevents authenticated users from accessing public pages like `/login`, redirecting them to the dashboard.
-- The user's authentication state (token, roles, etc.) is stored in a `BehaviorSubject` within the `AuthService` and persisted in `localStorage`.
+*Nota per gli sviluppatori: tutto il codice è commentato riga per riga per spiegarti cosa succede. Se hai dubbi, leggi i commenti sopra i metodi!*

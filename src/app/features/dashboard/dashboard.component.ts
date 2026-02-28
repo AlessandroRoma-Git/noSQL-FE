@@ -1,12 +1,9 @@
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { Observable, map, switchMap, forkJoin, of } from 'rxjs';
+import { Observable, map, switchMap } from 'rxjs';
 import { EntityDefinitionService } from '../../core/services/entity-definition.service';
-import { EmailTemplateService } from '../../core/services/email-template.service';
-import { GroupService } from '../../core/services/group.service';
 import { UserService } from '../../core/services/user.service';
-import { MenuService } from '../../core/services/menu.service';
 import { DashboardService, DashboardStat } from '../../core/services/dashboard.service';
 import { User } from '../../core/models/user.model';
 import { EntityDefinition } from '../../core/models/entity-definition.model';

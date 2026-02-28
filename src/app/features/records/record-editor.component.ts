@@ -1,12 +1,11 @@
-
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, ValidatorFn, AbstractControl } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, ValidatorFn } from '@angular/forms';
 import { EntityDefinitionService } from '../../core/services/entity-definition.service';
 import { RecordService } from '../../core/services/record.service';
 import { ToastService } from '../../core/services/toast.service';
-import { EntityDefinition, Field } from '../../core/models/entity-definition.model';
+import { EntityDefinition } from '../../core/models/entity-definition.model';
 import { ReferenceSearchComponent } from '../../shared/components/reference-search/reference-search.component';
 import { RecordHistoryComponent } from './record-history/record-history.component';
 

@@ -1,156 +1,261 @@
-<div class="flex h-screen bg-base overflow-hidden">
+<div class="flex h-screen bg-base overflow-hidden relative text-[rgb(var(--color-text))]">
   
-  <!-- BARRA LATERALE (SIDEBAR) -->
-  <!-- Sparisce del tutto se non sei loggato o se devi ancora cambiare la password (firstAccess) -->
+  <!-- VARIANTI DI LAYOUT DINAMICHE -->
   @if ((authService.isAuthenticated$ | async) && !(authService.isFirstAccess$ | async)) {
-    <aside
-      class="fixed top-0 left-0 h-full w-72 bg-surface flex flex-col transition-all duration-500 ease-in-out z-40 border-r border-base shadow-2xl"
-      [class.translate-x-0]="isSidebarOpen"
-      [class.-translate-x-full]="!isSidebarOpen">
+    
+    @let config = (whiteLabelConfig$ | async);
 
-      <!-- Testata Sidebar: Logo e Nome -->
-      <div class="flex items-center gap-3 h-20 px-6 border-b border-base bg-base/20">
-        <div class="w-10 h-10 rounded-xl bg-[rgb(var(--color-primary)/0.1)] flex items-center justify-center p-1 shadow-inner">
-          @if ((whiteLabelConfig$ | async)?.logoUrl) {
-            <img [src]="(whiteLabelConfig$ | async)?.logoUrl" alt="Logo" class="max-h-full object-contain" />
-          } @else {
-            <span class="text-[rgb(var(--color-primary))] font-black">CMS</span>
-          }
+    <!-- 1. SIDEBAR MODE (Classico) -->
+    @if (config?.layoutMode === 'sidebar' || !config?.layoutMode) {
+      <aside
+        class="fixed top-0 left-0 h-full w-72 bg-surface flex flex-col transition-all duration-500 ease-in-out z-40 border-r border-white/5 shadow-2xl"
+        [class.translate-x-0]="isSidebarOpen"
+        [class.-translate-x-full]="!isSidebarOpen">
+        <ng-container *ngTemplateOutlet="fullSidebarContent"></ng-container>
+      </aside>
+    }
+
+    <!-- 2. NAVBAR MODE (In alto) -->
+    @if (config?.layoutMode === 'navbar') {
+      <header class="fixed top-0 left-0 w-full h-20 bg-surface/80 backdrop-blur-xl border-b border-white/5 z-40 flex items-center px-6 shadow-2xl">
+        <div class="flex items-center gap-3 mr-8 min-w-max">
+          <img *ngIf="config?.logoUrl" [src]="config?.logoUrl" class="h-8 w-auto" alt="Logo">
+          <span class="text-lg font-black text-[rgb(var(--color-primary))] tracking-tighter uppercase leading-none">{{ config?.appName }}</span>
         </div>
-        <div class="flex flex-col overflow-hidden">
-          <span class="text-lg font-black text-[rgb(var(--color-primary))] truncate leading-tight uppercase tracking-tighter">
-            {{ (whiteLabelConfig$ | async)?.appName }}
-          </span>
-          <span class="text-[10px] text-gray-500 font-bold uppercase tracking-widest">Admin Panel</span>
+        <!-- Scroll orizzontale per i link -->
+        <nav class="flex items-center gap-1 overflow-x-auto no-scrollbar flex-grow py-2">
+          <ng-container *ngTemplateOutlet="horizontalLinks"></ng-container>
+        </nav>
+        <div class="flex items-center gap-3 ml-4">
+          <ng-container *ngTemplateOutlet="userActions"></ng-container>
         </div>
-      </div>
+      </header>
+    }
 
-      <!-- Navigazione Principale -->
-      <nav class="flex-grow p-4 space-y-1 overflow-y-auto custom-scrollbar">
-        
-        <!-- DASHBOARD -->
-        <a routerLink="/dashboard" routerLinkActive="active-link" class="nav-link group flex items-center gap-3">
-          <svg class="w-5 h-5 opacity-70 group-hover:opacity-100" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-          </svg>
-          {{ i18nService.translate('SIDEBAR.DASHBOARD') }}
-        </a>
+    <!-- 3. BOTTOM NAV (Stile Mobile App) -->
+    @if (config?.layoutMode === 'bottom-nav') {
+      <nav class="fixed bottom-0 left-0 w-full h-20 bg-surface/90 backdrop-blur-2xl border-t border-white/5 z-40 flex items-center justify-around px-2 shadow-[0_-10px_40px_rgba(0,0,0,0.5)]">
+        <ng-container *ngTemplateOutlet="bottomNavIcons"></ng-container>
+      </nav>
+      <!-- Menu a scomparsa per le voci extra -->
+      <aside class="fixed top-0 left-0 h-full w-72 bg-surface z-50 border-r border-white/5 shadow-2xl transition-transform duration-500"
+             [class.translate-x-0]="isSidebarOpen" [class.-translate-x-full]="!isSidebarOpen">
+        <ng-container *ngTemplateOutlet="fullSidebarContent"></ng-container>
+      </aside>
+    }
 
-        <!-- SEZIONE DINAMICA (Tabelle Dati) -->
-        <div class="pt-6 pb-2">
-          <p class="px-3 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">I Tuoi Dati</p>
-          @for (item of userMenuItems$ | async; track item.id) {
-            @if (item.entityKey) {
-              <a [routerLink]="['/records', item.entityKey]" routerLinkActive="active-link" class="nav-link group flex items-center gap-3">
-                <div class="w-1.5 h-1.5 rounded-full bg-[rgb(var(--color-primary)/0.3)] group-hover:bg-[rgb(var(--color-primary))] transition-all"></div>
-                {{ item.label }}
-              </a>
+    <!-- 4. TABS MODE (Sotto la testata) -->
+    @if (config?.layoutMode === 'tabs') {
+      <header class="fixed top-0 left-0 w-full bg-surface z-40 border-b border-white/5 shadow-lg">
+        <div class="h-16 flex items-center px-6 justify-between border-b border-white/5">
+          <div class="flex items-center gap-3">
+            <img *ngIf="config?.logoUrl" [src]="config?.logoUrl" class="h-8 w-auto" alt="Logo">
+            <span class="font-black text-[rgb(var(--color-primary))] uppercase leading-none">{{ config?.appName }}</span>
+          </div>
+          <ng-container *ngTemplateOutlet="userActions"></ng-container>
+        </div>
+        <nav class="flex gap-1 p-2 overflow-x-auto no-scrollbar bg-black/10">
+          <ng-container *ngTemplateOutlet="horizontalLinks"></ng-container>
+        </nav>
+      </header>
+    }
+
+    <!-- 5. FLOATING MENU (Hamburger Galleggiante) -->
+    @if (config?.layoutMode === 'floating') {
+      <div class="fixed bottom-8 right-8 z-[100] flex flex-col-reverse items-end gap-4">
+        <!-- Bottone Hamburger -->
+        <button (click)="toggleSidebar()" class="w-16 h-16 rounded-full bg-[rgb(var(--color-primary))] text-[rgb(var(--color-bg-base))] shadow-2xl flex items-center justify-center hover:scale-110 transition-transform active:scale-95">
+          <svg class="w-8 h-8 transition-all duration-500" [class.rotate-90]="isSidebarOpen" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            @if (isSidebarOpen) {
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M6 18L18 6M6 6l12 12" />
+            } @else {
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M4 6h16M4 12h16M4 18h16" />
             }
-          }
-        </div>
-
-        <!-- SEZIONE CONFIGURAZIONE (Solo per Admin) -->
-        @if (isAdmin$ | async) {
-          <div class="pt-6 pb-2">
-            <p class="px-3 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2">Configurazione</p>
-            
-            <a routerLink="/entity-definitions" routerLinkActive="active-link" class="nav-link group flex items-center gap-3">
-              <svg class="w-5 h-5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" /></svg>
-              {{ i18nService.translate('SIDEBAR.ENTITIES') }}
-            </a>
-            
-            <a routerLink="/users" routerLinkActive="active-link" class="nav-link group flex items-center gap-3">
-              <svg class="w-5 h-5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-              {{ i18nService.translate('SIDEBAR.USERS') }}
-            </a>
-
-            <a routerLink="/groups" routerLinkActive="active-link" class="nav-link group flex items-center gap-3">
-              <svg class="w-5 h-5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
-              {{ i18nService.translate('SIDEBAR.GROUPS') }}
-            </a>
-
-            <a routerLink="/email-templates" routerLinkActive="active-link" class="nav-link group flex items-center gap-3">
-              <svg class="w-5 h-5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
-              {{ i18nService.translate('SIDEBAR.EMAIL_TEMPLATES') }}
-            </a>
-
-            <a routerLink="/menu" routerLinkActive="active-link" class="nav-link group flex items-center gap-3">
-              <svg class="w-5 h-5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
-              {{ i18nService.translate('SIDEBAR.MENU_SETUP') }}
-            </a>
-
-            <a routerLink="/files" routerLinkActive="active-link" class="nav-link group flex items-center gap-3">
-              <svg class="w-5 h-5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
-              {{ i18nService.translate('SIDEBAR.FILES') }}
-            </a>
+          </svg>
+        </button>
+        <!-- Pannello Menu fluttuante -->
+        @if (isSidebarOpen) {
+          <div class="bg-surface/95 backdrop-blur-2xl p-6 rounded-[3rem] border border-white/10 shadow-2xl min-w-[280px] animate-soft-in">
+            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
+              <img *ngIf="config?.logoUrl" [src]="config?.logoUrl" class="h-6 w-auto" alt="Logo">
+              <span class="font-black text-[rgb(var(--color-primary))] uppercase text-xs tracking-widest">{{ config?.appName }}</span>
+            </div>
+            <nav class="flex flex-col gap-1 max-h-[65vh] overflow-y-auto custom-scrollbar pr-2">
+              <ng-container *ngTemplateOutlet="fullSidebarLinks"></ng-container>
+            </nav>
+            <div class="mt-6 pt-4 border-t border-white/5">
+              <ng-container *ngTemplateOutlet="userActions"></ng-container>
+            </div>
           </div>
         }
-      </nav>
-
-      <!-- Pannello Impostazioni e Lingua -->
-      <div class="p-4 bg-base/30 border-t border-base space-y-4">
-        @if (isAdmin$ | async) {
-          <a routerLink="/settings" routerLinkActive="active-link" class="nav-link group flex items-center gap-3">
-            <svg class="w-5 h-5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
-            {{ i18nService.translate('SIDEBAR.SETTINGS') }}
-          </a>
-        }
-        
-        <div class="grid grid-cols-2 gap-2">
-          <select class="input text-[10px] py-1 bg-base/50" (change)="onThemeChange($event)">
-            @for (theme of themes; track theme.id) {
-              <option [value]="theme.id" [selected]="theme.id === (activeTheme$ | async)">
-                {{ theme.name }}
-              </option>
-            }
-          </select>
-          <select class="input text-[10px] py-1 bg-base/50" (change)="onLangChange($event)">
-            <option value="it" [selected]="(i18nService.currentLang$ | async) === 'it'">Italiano</option>
-            <option value="en" [selected]="(i18nService.currentLang$ | async) === 'en'">English</option>
-          </select>
-        </div>
-
-        <button (click)="logout()" class="w-full px-4 py-2 text-xs font-black text-white bg-red-500/80 hover:bg-red-500 rounded-xl transition-all uppercase tracking-widest">
-          {{ i18nService.translate('COMMON.LOGOUT') }}
-        </button>
       </div>
-    </aside>
+    }
+
   }
 
-  <!-- AREA CONTENUTO -->
+  <!-- AREA CONTENUTO PRINCIPALE -->
   <div class="flex-1 flex flex-col transition-all duration-500 ease-in-out relative overflow-hidden"
-       [class.md:ml-72]="isSidebarOpen && (authService.isAuthenticated$ | async) && !(authService.isFirstAccess$ | async)">
+       [class.md:ml-72]="isSidebarOpen && (whiteLabelConfig$ | async)?.layoutMode === 'sidebar' && (authService.isAuthenticated$ | async) && !(authService.isFirstAccess$ | async)"
+       [class.pt-20]="(whiteLabelConfig$ | async)?.layoutMode === 'navbar'"
+       [class.pt-32]="(whiteLabelConfig$ | async)?.layoutMode === 'tabs'"
+       [class.pb-24]="(whiteLabelConfig$ | async)?.layoutMode === 'bottom-nav'">
 
-    <!-- Tasto Menu Mobile (Floating) -->
-    @if ((authService.isAuthenticated$ | async) && !(authService.isFirstAccess$ | async)) {
-      <button
-        (click)="toggleSidebar()"
-        class="fixed top-6 z-50 p-3 rounded-2xl bg-surface border border-base text-[rgb(var(--color-primary))] shadow-2xl transition-all duration-500"
-        [class.left-72]="isSidebarOpen"
-        [class.-translate-x-1/2]="isSidebarOpen"
-        [class.left-6]="!isSidebarOpen">
-        
-        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          @if (isSidebarOpen) {
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-          } @else {
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-          }
+    <!-- Tasto Toggle (solo per Sidebar) -->
+    @if ((authService.isAuthenticated$ | async) && !(authService.isFirstAccess$ | async) && (whiteLabelConfig$ | async)?.layoutMode === 'sidebar') {
+      <button (click)="toggleSidebar()" class="fixed top-6 z-50 p-3 rounded-2xl bg-surface border border-white/10 text-[rgb(var(--color-primary))] shadow-2xl transition-all duration-500" 
+              [class.left-72]="isSidebarOpen" [class.-translate-x-1/2]="isSidebarOpen" [class.left-6]="!isSidebarOpen">
+        <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path *ngIf="isSidebarOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+          <path *ngIf="!isSidebarOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
         </svg>
       </button>
     }
 
-    <!-- Sfondo con sfumatura dinamica (Effetto Moderno) -->
+    <!-- Sfondo dinamico morbido -->
     <div class="absolute inset-0 bg-gradient-to-br from-[rgb(var(--color-bg-base))] via-[rgb(var(--color-bg-base))] to-[rgb(var(--color-primary)/0.05)] -z-10"></div>
 
-    <!-- Pagina Attiva -->
-    <main class="flex-1 overflow-y-auto pt-4 md:pt-0 scroll-smooth">
-      <div class="min-h-full">
+    <main class="flex-1 overflow-y-auto scroll-smooth animate-soft-in">
+      <div class="container mx-auto p-6 md:p-10 min-h-full">
         <router-outlet></router-outlet>
       </div>
     </main>
   </div>
 </div>
+
+<!-- TEMPLATES CONDIVISI -->
+
+<ng-template #fullSidebarContent>
+  <div class="flex flex-col h-full">
+    <div class="flex items-center gap-3 h-20 px-6 border-b border-white/5 bg-black/10">
+      <img *ngIf="(whiteLabelConfig$ | async)?.logoUrl" [src]="(whiteLabelConfig$ | async)?.logoUrl" class="h-8 w-auto" alt="Logo">
+      <div class="flex flex-col overflow-hidden">
+        <span class="text-lg font-black text-[rgb(var(--color-primary))] truncate uppercase tracking-tighter leading-none">{{ (whiteLabelConfig$ | async)?.appName }}</span>
+        <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">Admin Panel</span>
+      </div>
+    </div>
+    <nav class="flex-grow p-4 space-y-1 overflow-y-auto custom-scrollbar">
+      <ng-container *ngTemplateOutlet="fullSidebarLinks"></ng-container>
+    </nav>
+    <div class="p-4 border-t border-white/5 bg-black/20">
+      <ng-container *ngTemplateOutlet="userActions"></ng-container>
+    </div>
+  </div>
+</ng-template>
+
+<ng-template #fullSidebarLinks>
+  <!-- DASHBOARD -->
+  <a routerLink="/dashboard" routerLinkActive="active-link" class="nav-link">
+    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+    {{ i18nService.translate('SIDEBAR.DASHBOARD') }}
+  </a>
+
+  <!-- SEZIONE DATI -->
+  <div class="pt-6 pb-2">
+    <p class="px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 opacity-50">Gestione Dati</p>
+    @for (item of userMenuItems$ | async; track item.id) {
+      <a [routerLink]="['/records', item.entityKey]" routerLinkActive="active-link" class="nav-link">
+        <div class="w-1.5 h-1.5 rounded-full bg-[rgb(var(--color-primary)/0.3)]"></div>
+        {{ item.label }}
+      </a>
+    }
+  </div>
+
+  <!-- SEZIONE ADMIN -->
+  @if (isAdmin$ | async) {
+    <div class="pt-6 border-t border-white/5">
+      <p class="px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 opacity-50">Configurazione</p>
+      <a routerLink="/entity-definitions" routerLinkActive="active-link" class="nav-link">
+        <svg class="w-5 h-5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" /></svg>
+        {{ i18nService.translate('SIDEBAR.ENTITIES') }}
+      </a>
+      <a routerLink="/email-templates" routerLinkActive="active-link" class="nav-link">
+        <svg class="w-5 h-5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+        {{ i18nService.translate('SIDEBAR.EMAIL_TEMPLATES') }}
+      </a>
+      <a routerLink="/users" routerLinkActive="active-link" class="nav-link">
+        <svg class="w-5 h-5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
+        {{ i18nService.translate('SIDEBAR.USERS') }}
+      </a>
+      <a routerLink="/groups" routerLinkActive="active-link" class="nav-link">
+        <svg class="w-5 h-5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
+        {{ i18nService.translate('SIDEBAR.GROUPS') }}
+      </a>
+      <a routerLink="/menu" routerLinkActive="active-link" class="nav-link">
+        <svg class="w-5 h-5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" /></svg>
+        {{ i18nService.translate('SIDEBAR.MENU_SETUP') }}
+      </a>
+      <a routerLink="/files" routerLinkActive="active-link" class="nav-link">
+        <svg class="w-5 h-5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+        {{ i18nService.translate('SIDEBAR.FILES') }}
+      </a>
+      <a routerLink="/settings" routerLinkActive="active-link" class="nav-link mt-4 border-t border-white/5 pt-4">
+        <svg class="w-5 h-5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+        {{ i18nService.translate('SIDEBAR.SETTINGS') }}
+      </a>
+    </div>
+  }
+</ng-template>
+
+<!-- 3. Link Orizzontali (Navbar/Tabs) -->
+<ng-template #horizontalLinks>
+  <div class="flex items-center gap-1">
+    <a routerLink="/dashboard" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-sm font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all whitespace-nowrap">Home</a>
+    
+    @for (item of userMenuItems$ | async; track item.id) {
+      <a [routerLink]="['/records', item.entityKey]" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-sm font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all whitespace-nowrap">{{ item.label }}</a>
+    }
+
+    @if (isAdmin$ | async) {
+      <div class="h-6 w-px bg-white/10 mx-2"></div>
+      <a routerLink="/entity-definitions" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-xs font-bold text-gray-500 hover:text-white transition-all whitespace-nowrap">Entities</a>
+      <a routerLink="/users" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-xs font-bold text-gray-500 hover:text-white transition-all whitespace-nowrap">Users</a>
+      <a routerLink="/settings" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-xs font-bold text-gray-500 hover:text-white transition-all whitespace-nowrap">Settings</a>
+    }
+  </div>
+</ng-template>
+
+<!-- 4. Icone per Bottom Nav -->
+<ng-template #bottomNavIcons>
+  <a routerLink="/dashboard" routerLinkActive="text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.1)]" class="flex flex-col items-center justify-center gap-1 text-gray-500 transition-all w-16 h-16 rounded-2xl">
+    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+    <span class="text-[9px] font-black uppercase tracking-tighter">Home</span>
+  </a>
+  
+  @for (item of (userMenuItems$ | async)?.slice(0, 3); track item.id) {
+    <a [routerLink]="['/records', item.entityKey]" routerLinkActive="text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.1)]" class="flex flex-col items-center justify-center gap-1 text-gray-500 transition-all w-16 h-16 rounded-2xl">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" /></svg>
+      <span class="text-[9px] font-black uppercase tracking-tighter truncate max-w-[50px]">{{ item.label }}</span>
+    </a>
+  }
+
+  <!-- Tasto "Altro" (Hamburger su Bottom Nav) -->
+  <button (click)="toggleSidebar()" class="flex flex-col items-center justify-center gap-1 transition-all w-16 h-16 rounded-2xl" [class.text-[rgb(var(--color-primary))]]="isSidebarOpen" [class.text-gray-500]="!isSidebarOpen">
+    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+    </svg>
+    <span class="text-[9px] font-black uppercase tracking-tighter">Menu</span>
+  </button>
+</ng-template>
+
+<!-- 5. Azioni Utente -->
+<ng-template #userActions>
+  <div class="flex items-center gap-2">
+    <div class="flex gap-1">
+      <select class="input text-[9px] py-1 bg-white/5 border border-white/5 w-24 h-8" (change)="onThemeChange($event)">
+        @for (theme of themes; track theme.id) {
+          <option [value]="theme.id" [selected]="theme.id === (activeTheme$ | async)">{{ theme.name }}</option>
+        }
+      </select>
+      <select class="input text-[9px] py-1 bg-white/5 border border-white/5 w-14 h-8" (change)="onLangChange($event)">
+        <option value="it" [selected]="(i18nService.currentLang$ | async) === 'it'">IT</option>
+        <option value="en" [selected]="(i18nService.currentLang$ | async) === 'en'">EN</option>
+      </select>
+    </div>
+    <button (click)="logout()" class="p-2 rounded-xl bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all shadow-lg" title="Logout">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" /></svg>
+    </button>
+  </div>
+</ng-template>
 
 <app-modal></app-modal>
 <app-toast></app-toast>

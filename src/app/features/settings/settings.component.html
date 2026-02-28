@@ -1,49 +1,166 @@
-
-<div class="container mx-auto p-4">
-  <div class="flex items-center gap-3 mb-6">
-    <h1 class="text-3xl font-bold text-[rgb(var(--color-primary))]">Configurazioni Globali</h1>
+<div class="container mx-auto p-4 max-w-6xl animate-soft-in">
+  <div class="flex items-center gap-3 mb-8">
+    <h1 class="text-4xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">Impostazioni Globali</h1>
     <button (click)="showHelp()" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Aiuto">
       <span class="font-serif italic font-bold">i</span>
     </button>
   </div>
 
-  <form [formGroup]="settingsForm" (ngSubmit)="onSubmit()" class="space-y-8 max-w-4xl mx-auto">
+  <form [formGroup]="settingsForm" (ngSubmit)="onSubmit()" class="space-y-10">
 
-    <!-- Branding Settings -->
-    <div class="bg-surface p-6 rounded-lg shadow-md">
-      <h2 class="text-xl font-semibold mb-4 border-b border-base pb-2 text-[rgb(var(--color-primary))]">White Label & Branding</h2>
-      <div formGroupName="branding" class="space-y-4">
-        <div>
-          <label for="appName" class="label">Application Name</label>
-          <input id="appName" formControlName="appName" type="text" class="input">
+    <!-- 1. BRANDING & STYLE -->
+    <div class="card-soft p-8">
+      <h2 class="text-xl font-black mb-6 flex items-center gap-2 border-b border-white/5 pb-4 uppercase tracking-widest opacity-80">
+        <svg class="w-6 h-6 text-[rgb(var(--color-primary))]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+        Personalizzazione White Label
+      </h2>
+      
+      <div formGroupName="branding" class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="space-y-4">
+          <div>
+            <label for="appName" class="label">Nome Applicazione</label>
+            <input id="appName" formControlName="appName" type="text" class="input">
+          </div>
+          <div>
+            <label for="logoUrl" class="label">URL Logo (SVG consigliato)</label>
+            <input id="logoUrl" formControlName="logoUrl" type="text" class="input" placeholder="assets/logo.svg">
+          </div>
         </div>
-        <div>
-          <label for="logoUrl" class="label">Logo URL</label>
-          <input id="logoUrl" formControlName="logoUrl" type="text" class="input" placeholder="https://example.com/logo.png">
+
+        <div class="space-y-4">
+          <div>
+            <label for="layoutMode" class="label">Stile Navigazione</label>
+            <select id="layoutMode" formControlName="layoutMode" class="input">
+              <option value="sidebar">Sidebar (Laterale)</option>
+              <option value="navbar">Navbar (In Alto)</option>
+              <option value="bottom-nav">Bottom Nav (Mobile)</option>
+              <option value="tabs">Tabs (Pillole)</option>
+              <option value="floating">Floating (Galleggiante)</option>
+            </select>
+          </div>
+          <div>
+            <label for="themeId" class="label">Scegli un Vestito (Tema)</label>
+            <div class="flex gap-2">
+              <select id="themeId" formControlName="themeId" class="input flex-grow">
+                @for (theme of themes; track theme.id) {
+                  <option [value]="theme.id">{{ theme.name }}</option>
+                }
+              </select>
+              <button type="button" (click)="openThemeDesigner()" class="p-3 bg-white/5 hover:bg-white/10 rounded-2xl text-[rgb(var(--color-primary))]" title="Crea Nuovo Tema">
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+              </button>
+            </div>
+          </div>
         </div>
-        <div>
-          <label for="language" class="label">Default Language</label>
-          <select id="language" formControlName="language" class="input">
-            <option value="it">Italiano</option>
-            <option value="en">English</option>
-          </select>
+      </div>
+
+      <!-- LISTA TEMI CUSTOM CON TASTI MODIFICA ED ELIMINA -->
+      <div class="mt-6 flex flex-wrap gap-2">
+        @for (theme of themes; track theme.id) {
+          @if (theme.isCustom) {
+            <span class="inline-flex items-center gap-3 px-4 py-2 bg-[rgb(var(--color-primary)/0.1)] border border-[rgb(var(--color-primary)/0.2)] rounded-full text-[10px] font-bold text-[rgb(var(--color-primary))] transition-all hover:bg-[rgb(var(--color-primary)/0.2)]">
+              {{ theme.name }}
+              <div class="flex gap-2 border-l border-[rgb(var(--color-primary)/0.3)] pl-2">
+                <button type="button" (click)="editTheme(theme, $event)" class="hover:text-white" title="Modifica Colori">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                </button>
+                <button type="button" (click)="deleteTheme(theme.id, $event)" class="hover:text-red-500" title="Elimina Tema">
+                  <svg class="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+            </span>
+          }
+        }
+      </div>
+
+      <!-- IL DESIGNER DI TEMI -->
+      @if (showThemeDesigner) {
+        <div class="mt-10 p-8 bg-black/30 rounded-[3rem] border-2 border-dashed border-[rgb(var(--color-primary)/0.3)] animate-soft-in shadow-inner">
+          <div class="flex flex-col md:flex-row md:items-end gap-6">
+            <div class="flex-grow space-y-4">
+              <h3 class="text-xl font-black text-white uppercase tracking-tighter">
+                {{ isEditingTheme ? 'Aggiorna il tuo Vestito' : 'Crea il tuo Tema Unico' }}
+              </h3>
+              <div>
+                <label class="label">Nome del Tema</label>
+                <input type="text" [(ngModel)]="newThemeName" [ngModelOptions]="{standalone: true}" class="input" placeholder="Dai un nome al tuo vestito...">
+              </div>
+              <div formGroupName="themeDesigner" class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div>
+                  <label class="label text-[10px]">Primario</label>
+                  <input type="color" formControlName="primary" class="w-full h-12 bg-transparent border-none cursor-pointer rounded-xl shadow-lg">
+                </div>
+                <div>
+                  <label class="label text-[10px]">Accento</label>
+                  <input type="color" formControlName="accent" class="w-full h-12 bg-transparent border-none cursor-pointer rounded-xl shadow-lg">
+                </div>
+                <div>
+                  <label class="label text-[10px]">Testo</label>
+                  <input type="color" formControlName="text" class="w-full h-12 bg-transparent border-none cursor-pointer rounded-xl shadow-lg">
+                </div>
+                <div>
+                  <label class="label text-[10px]">Sfondo Base</label>
+                  <input type="color" formControlName="bgBase" class="w-full h-12 bg-transparent border-none cursor-pointer rounded-xl shadow-lg">
+                </div>
+                <div>
+                  <label class="label text-[10px]">Superficie</label>
+                  <input type="color" formControlName="bgSurface" class="w-full h-12 bg-transparent border-none cursor-pointer rounded-xl shadow-lg">
+                </div>
+              </div>
+            </div>
+            <div class="flex flex-col gap-2 min-w-[150px]">
+              <button type="button" (click)="saveNewTheme()" class="button-primary w-full">
+                {{ isEditingTheme ? 'Applica' : 'Salva' }}
+              </button>
+              <button type="button" (click)="showThemeDesigner = false" class="button-secondary w-full text-xs">Annulla</button>
+            </div>
+          </div>
         </div>
+      }
+    </div>
+
+    <!-- 2. MANUALE PER DUMMIES (Info sui Layout) -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div class="card-soft p-6 bg-blue-500/5 border-blue-500/10">
+        <h3 class="font-black uppercase text-xs text-blue-400 mb-4 tracking-widest flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+          Guida ai Layout
+        </h3>
+        <ul class="space-y-3 text-xs text-gray-400 leading-relaxed">
+          <li><b class="text-white">Sidebar:</b> Il classico menu a sinistra. Perfetto per chi ha tante tabelle.</li>
+          <li><b class="text-white">Navbar:</b> Tutto in alto. Look moderno da sito web.</li>
+          <li><b class="text-white">Bottom Nav:</b> Le icone in basso. Ideale per usare il sito come un'App sul telefono.</li>
+          <li><b class="text-white">Floating:</b> Un bottone Hamburger magico in basso a destra che apre tutto il menu.</li>
+        </ul>
+      </div>
+      <div class="card-soft p-6 bg-purple-500/5 border-purple-500/10">
+        <h3 class="font-black uppercase text-xs text-purple-400 mb-4 tracking-widest flex items-center gap-2">
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.34 0 0012 18.75c-1.03 0-1.9-.4-2.524-.853l-.548-.547z" /></svg>
+          Trucco per i Temi
+        </h3>
+        <p class="text-xs text-gray-400 leading-relaxed">
+          Puoi creare infiniti stili! Quando usi il <b class="text-white">Designer</b>, il sito cambia colore mentre scegli. 
+          Ricorda di dare un <b class="text-white">Nome</b> al tuo tema per non perderlo. Usa la <b class="text-white">Matita</b> per correggere un tema già salvato.
+        </p>
       </div>
     </div>
 
-    <!-- Email Settings -->
-    <div class="bg-surface p-6 rounded-lg shadow-md">
-      <h2 class="text-xl font-semibold mb-4 border-b border-base pb-2 text-[rgb(var(--color-primary))]">Email</h2>
-      <div formGroupName="email" class="space-y-4">
+    <!-- 3. EMAIL & NOTIFICHE -->
+    <div class="card-soft p-8">
+      <h2 class="text-xl font-black mb-6 flex items-center gap-2 border-b border-white/5 pb-4 uppercase tracking-widest opacity-80">
+        <svg class="w-6 h-6 text-[rgb(var(--color-primary))]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
+        Configurazione Email
+      </h2>
+      <div formGroupName="email" class="space-y-6">
         <div>
-          <label for="defaultFrom" class="label">Default "From" Address</label>
-          <input id="defaultFrom" formControlName="defaultFrom" type="email" class="input">
+          <label for="defaultFrom" class="label">Mittente Predefinito</label>
+          <input id="defaultFrom" formControlName="defaultFrom" type="email" class="input" placeholder="noreply@azienda.it">
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label for="passwordTemplateId" class="label">New User / Admin Reset Template</label>
+            <label for="passwordTemplateId" class="label">Template Nuova Password</label>
             <select id="passwordTemplateId" formControlName="passwordTemplateId" class="input">
-              <option [ngValue]="null">-- None --</option>
+              <option [ngValue]="null">-- Nessuno --</option>
               @if (emailTemplates$ | async; as templates) {
                 @for (template of templates; track template.id) {
                   <option [value]="template.id">{{ template.name }}</option>
@@ -52,9 +169,9 @@
             </select>
           </div>
           <div>
-            <label for="recoverPasswordTemplateId" class="label">User Password Recovery Template</label>
+            <label for="recoverPasswordTemplateId" class="label">Template Recupero</label>
             <select id="recoverPasswordTemplateId" formControlName="recoverPasswordTemplateId" class="input">
-              <option [ngValue]="null">-- None --</option>
+              <option [ngValue]="null">-- Nessuno --</option>
               @if (emailTemplates$ | async; as templates) {
                 @for (template of templates; track template.id) {
                   <option [value]="template.id">{{ template.name }}</option>
@@ -66,40 +183,12 @@
       </div>
     </div>
 
-    <!-- Security Settings -->
-    <div class="bg-surface p-6 rounded-lg shadow-md">
-      <h2 class="text-xl font-semibold mb-4 border-b border-base pb-2 text-[rgb(var(--color-primary))]">Security</h2>
-      <div formGroupName="security" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label for="maxLoginAttempts" class="label">Max Login Attempts</label>
-          <input id="maxLoginAttempts" formControlName="maxLoginAttempts" type="number" class="input">
-        </div>
-      </div>
-    </div>
-
-    <!-- Storage Settings -->
-    <div class="bg-surface p-6 rounded-lg shadow-md">
-      <h2 class="text-xl font-semibold mb-4 border-b border-base pb-2 text-[rgb(var(--color-primary))]">File Storage</h2>
-      <div formGroupName="storage" class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <div>
-          <label for="storageType" class="label">Storage Type</label>
-          <select id="storageType" formControlName="type" class="input">
-            <option value="grid-fs">MongoDB GridFS</option>
-            <option value="s3">Amazon S3</option>
-          </select>
-        </div>
-        <div>
-          <label for="maxFileSize" class="label">Max File Size (Bytes)</label>
-          <input id="maxFileSize" formControlName="maxFileSize" type="number" class="input">
-        </div>
-      </div>
-    </div>
-
-    <!-- Form Actions -->
-    <div class="flex justify-end space-x-4 mt-8">
-      <button type="submit" [disabled]="settingsForm.invalid" class="button-primary disabled:opacity-50">
-        Save Settings
+    <!-- BOTTONE SALVA FISSO -->
+    <div class="flex justify-end pt-4 pb-12">
+      <button type="submit" [disabled]="settingsForm.invalid" class="button-primary w-full md:w-auto px-12 py-4 text-lg">
+        Applica Configurazioni Globali
       </button>
     </div>
+
   </form>
 </div>

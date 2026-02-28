@@ -1,22 +1,20 @@
-
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { AuthService } from '../services/auth.service';
 import { map, take } from 'rxjs/operators';
 
-export const publicGuard: CanActivateFn = (route, state) => {
+export const publicGuard: CanActivateFn = (_route, _state) => {
   const authService = inject(AuthService);
   const router = inject(Router);
 
   return authService.isAuthenticated$.pipe(
     take(1),
     map(isAuthenticated => {
-      if (!isAuthenticated) {
-        return true; // User is not authenticated, allow access to public page
-      } else {
-        router.navigate(['/entity-definitions']); // User is authenticated, redirect to a default dashboard page
+      if (isAuthenticated) {
+        router.navigate(['/dashboard']);
         return false;
       }
+      return true;
     })
   );
 };

@@ -1,7 +1,6 @@
-
 import { Component, inject, OnInit, OnDestroy, TemplateRef, Type, ViewContainerRef, ViewChild } from '@angular/core';
 import { CommonModule, NgComponentOutlet } from '@angular/common';
-import { ModalService, ModalState, ModalData, ModalContent } from '../../../core/services/modal.service';
+import { ModalService, ModalState, ModalData } from '../../../core/services/modal.service';
 import { Subscription } from 'rxjs';
 
 @Component({
