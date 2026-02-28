@@ -9,6 +9,7 @@ import { ToastService } from '../../core/services/toast.service';
 import { filter } from 'rxjs/operators';
 import { EntityDefinitionService } from '../../core/services/entity-definition.service';
 import { EntityDefinition, Field } from '../../core/models/entity-definition.model';
+import { I18nService } from '../../core/services/i18n.service';
 
 /**
  * @class RecordListComponent
@@ -31,6 +32,7 @@ export class RecordListComponent implements OnInit, OnDestroy {
   private entityDefinitionService = inject(EntityDefinitionService);
   private modalService = inject(ModalService);
   private toastService = inject(ToastService);
+  private i18nService = inject(I18nService);
 
   // --- DATI ---
   public records$!: Observable<Record[]>; // Il "canale" che ci invia i dati da mostrare
@@ -69,6 +71,15 @@ export class RecordListComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     if (this.routeSub) this.routeSub.unsubscribe();
+  }
+
+  /**
+   * Questo metodo apre una finestrella (Modal) che spiega all'utente
+   * cosa deve fare in questa pagina.
+   */
+  showHelp(): void {
+    const info = this.i18nService.translate('HELP.RECORDS');
+    this.modalService.openInfo('Guida Rapida: Tabella Dati', info);
   }
 
   /**
