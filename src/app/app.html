@@ -100,10 +100,13 @@
        [class.pt-32]="(whiteLabelConfig$ | async)?.layoutMode === 'tabs'"
        [class.pb-24]="(whiteLabelConfig$ | async)?.layoutMode === 'bottom-nav'">
 
-    <!-- Tasto Toggle (solo per Sidebar) -->
-    @if ((authService.isAuthenticated$ | async) && !(authService.isFirstAccess$ | async) && (whiteLabelConfig$ | async)?.layoutMode === 'sidebar') {
-      <button (click)="toggleSidebar()" class="fixed top-6 z-50 p-3 rounded-2xl bg-surface border border-white/10 text-[rgb(var(--color-primary))] shadow-2xl transition-all duration-500" 
-              [class.left-72]="isSidebarOpen" [class.-translate-x-1/2]="isSidebarOpen" [class.left-6]="!isSidebarOpen">
+    <!-- Tasto Toggle Sidebar (Solo Sidebar Mode) -->
+    @if ((authService.isAuthenticated$ | async) && !(authService.isFirstAccess$ | async) && ((whiteLabelConfig$ | async)?.layoutMode === 'sidebar' || !(whiteLabelConfig$ | async)?.layoutMode)) {
+      <button 
+        (click)="toggleSidebar()" 
+        class="fixed top-6 z-50 p-3 rounded-2xl bg-surface border border-white/10 text-[rgb(var(--color-primary))] shadow-2xl transition-all duration-500" 
+        [style.left]="isSidebarOpen ? '18rem' : '1.5rem'"
+        [style.transform]="'translateX(-50%)'">
         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path *ngIf="isSidebarOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
           <path *ngIf="!isSidebarOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -115,7 +118,7 @@
     <div class="absolute inset-0 bg-gradient-to-br from-[rgb(var(--color-bg-base))] via-[rgb(var(--color-bg-base))] to-[rgb(var(--color-primary)/0.05)] -z-10"></div>
 
     <main class="flex-1 overflow-y-auto scroll-smooth animate-soft-in">
-      <div class="container mx-auto p-6 md:p-10 min-h-full">
+      <div class="container mx-auto p-6 md:p-10 min-h-full text-[rgb(var(--color-text))]">
         <router-outlet></router-outlet>
       </div>
     </main>
@@ -143,13 +146,11 @@
 </ng-template>
 
 <ng-template #fullSidebarLinks>
-  <!-- DASHBOARD -->
   <a routerLink="/dashboard" routerLinkActive="active-link" class="nav-link">
     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
     {{ i18nService.translate('SIDEBAR.DASHBOARD') }}
   </a>
 
-  <!-- SEZIONE DATI -->
   <div class="pt-6 pb-2">
     <p class="px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 opacity-50">Gestione Dati</p>
     @for (item of userMenuItems$ | async; track item.id) {
@@ -160,7 +161,6 @@
     }
   </div>
 
-  <!-- SEZIONE ADMIN -->
   @if (isAdmin$ | async) {
     <div class="pt-6 border-t border-white/5">
       <p class="px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 opacity-50">Configurazione</p>
@@ -196,15 +196,12 @@
   }
 </ng-template>
 
-<!-- 3. Link Orizzontali (Navbar/Tabs) -->
 <ng-template #horizontalLinks>
   <div class="flex items-center gap-1">
     <a routerLink="/dashboard" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-sm font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all whitespace-nowrap">Home</a>
-    
     @for (item of userMenuItems$ | async; track item.id) {
       <a [routerLink]="['/records', item.entityKey]" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-sm font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all whitespace-nowrap">{{ item.label }}</a>
     }
-
     @if (isAdmin$ | async) {
       <div class="h-6 w-px bg-white/10 mx-2"></div>
       <a routerLink="/entity-definitions" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-xs font-bold text-gray-500 hover:text-white transition-all whitespace-nowrap">Entities</a>
@@ -214,21 +211,17 @@
   </div>
 </ng-template>
 
-<!-- 4. Icone per Bottom Nav -->
 <ng-template #bottomNavIcons>
   <a routerLink="/dashboard" routerLinkActive="text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.1)]" class="flex flex-col items-center justify-center gap-1 text-gray-500 transition-all w-16 h-16 rounded-2xl">
     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
     <span class="text-[9px] font-black uppercase tracking-tighter">Home</span>
   </a>
-  
   @for (item of (userMenuItems$ | async)?.slice(0, 3); track item.id) {
     <a [routerLink]="['/records', item.entityKey]" routerLinkActive="text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.1)]" class="flex flex-col items-center justify-center gap-1 text-gray-500 transition-all w-16 h-16 rounded-2xl">
       <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" /></svg>
       <span class="text-[9px] font-black uppercase tracking-tighter truncate max-w-[50px]">{{ item.label }}</span>
     </a>
   }
-
-  <!-- Tasto "Altro" (Hamburger su Bottom Nav) -->
   <button (click)="toggleSidebar()" class="flex flex-col items-center justify-center gap-1 transition-all w-16 h-16 rounded-2xl" [class.text-[rgb(var(--color-primary))]]="isSidebarOpen" [class.text-gray-500]="!isSidebarOpen">
     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -237,7 +230,6 @@
   </button>
 </ng-template>
 
-<!-- 5. Azioni Utente -->
 <ng-template #userActions>
   <div class="flex items-center gap-2">
     <div class="flex gap-1">
