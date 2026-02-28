@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { EntityDefinitionListComponent } from './features/entity-definitions/entity-definition-list/entity-definition-list.component';
 import { LoginComponent } from './features/auth/login/login.component';
 import { authGuard } from './core/guards/auth.guard';
+import { roleGuard } from './core/guards/role.guard';
 import { publicGuard } from './core/guards/public.guard';
 import { ChangePasswordComponent } from './features/auth/change-password/change-password.component';
 import { RecoverPasswordComponent } from './features/auth/recover-password/recover-password.component';
@@ -19,6 +20,7 @@ import { DashboardComponent } from './features/dashboard/dashboard.component';
 import { FileListComponent } from './features/files/file-list.component';
 import { RecordListComponent } from './features/records/record-list.component';
 import { RecordEditorComponent } from './features/records/record-editor.component';
+import { SettingsComponent } from './features/settings/settings.component';
 
 export const routes: Routes = [
   // Public routes
@@ -42,14 +44,6 @@ export const routes: Routes = [
       { path: 'files', component: FileListComponent },
       { path: 'change-password', component: ChangePasswordComponent },
       {
-        path: 'entity-definitions',
-        children: [
-          { path: '', component: EntityDefinitionListComponent },
-          { path: 'new', component: EntityDefinitionEditorComponent },
-          { path: 'edit/:key', component: EntityDefinitionEditorComponent }
-        ]
-      },
-      {
         path: 'records/:entityKey',
         children: [
           { path: '', component: RecordListComponent },
@@ -57,8 +51,24 @@ export const routes: Routes = [
           { path: 'edit/:id', component: RecordEditorComponent }
         ]
       },
+      // Admin Routes
+      {
+        path: 'settings',
+        component: SettingsComponent,
+        canActivate: [roleGuard]
+      },
+      {
+        path: 'entity-definitions',
+        canActivate: [roleGuard],
+        children: [
+          { path: '', component: EntityDefinitionListComponent },
+          { path: 'new', component: EntityDefinitionEditorComponent },
+          { path: 'edit/:key', component: EntityDefinitionEditorComponent }
+        ]
+      },
       {
         path: 'email-templates',
+        canActivate: [roleGuard],
         children: [
           { path: '', component: EmailTemplateListComponent },
           { path: 'new', component: EmailTemplateEditorComponent },
@@ -67,6 +77,7 @@ export const routes: Routes = [
       },
       {
         path: 'groups',
+        canActivate: [roleGuard],
         children: [
           { path: '', component: GroupListComponent },
           { path: 'new', component: GroupEditorComponent },
@@ -75,6 +86,7 @@ export const routes: Routes = [
       },
       {
         path: 'users',
+        canActivate: [roleGuard],
         children: [
           { path: '', component: UserListComponent },
           { path: 'new', component: UserEditorComponent },
@@ -83,6 +95,7 @@ export const routes: Routes = [
       },
       {
         path: 'menu',
+        canActivate: [roleGuard],
         children: [
           { path: '', component: MenuListComponent },
           { path: 'new', component: MenuEditorComponent },

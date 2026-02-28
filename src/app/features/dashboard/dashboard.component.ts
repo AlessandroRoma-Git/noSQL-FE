@@ -1,15 +1,25 @@
-
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { Observable, map } from 'rxjs';
+import { Observable, map, switchMap, forkJoin, of } from 'rxjs';
 import { EntityDefinitionService } from '../../core/services/entity-definition.service';
 import { EmailTemplateService } from '../../core/services/email-template.service';
 import { GroupService } from '../../core/services/group.service';
 import { UserService } from '../../core/services/user.service';
 import { MenuService } from '../../core/services/menu.service';
+import { DashboardService, DashboardStat } from '../../core/services/dashboard.service';
 import { User } from '../../core/models/user.model';
+import { EntityDefinition } from '../../core/models/entity-definition.model';
+import { I18nService } from '../../core/services/i18n.service';
+import { ModalService } from '../../core/services/modal.service';
 
+/**
+ * @class DashboardComponent
+ * @description
+ * Questa è la "Home Page" del tuo CMS. 
+ * Qui puoi vedere un riassunto di tutto quello che succede nel sistema.
+ * È configurabile: puoi scegliere quali tabelle tenere d'occhio (es. quanti Clienti, quanti Ordini).
+ */
 @Component({
   selector: 'app-dashboard',
   standalone: true,
@@ -17,35 +27,93 @@ import { User } from '../../core/models/user.model';
   templateUrl: './dashboard.component.html',
 })
 export class DashboardComponent implements OnInit {
+  // --- STRUMENTI ---
   private entityService = inject(EntityDefinitionService);
-  private emailTemplateService = inject(EmailTemplateService);
-  private groupService = inject(GroupService);
   private userService = inject(UserService);
-  private menuService = inject(MenuService);
+  private dashboardService = inject(DashboardService);
+  private i18nService = inject(I18nService);
+  private modalService = inject(ModalService);
 
-  public entityCount$!: Observable<number>;
-  public templateCount$!: Observable<number>;
-  public groupCount$!: Observable<number>;
-  public userCount$!: Observable<number>;
-  public menuCount$!: Observable<number>;
-  public recentUsers$!: Observable<User[]>;
+  // --- DATI DINAMICI ---
+  public allEntities$!: Observable<EntityDefinition[]>; // Tutte le tabelle disponibili
+  public dashboardStats$!: Observable<DashboardStat[]>; // Le statistiche numeriche (totali)
+  public recentUsers$!: Observable<User[]>; // Gli ultimi 5 utenti creati
+  
+  // --- STATO ---
+  public isConfiguring = false; // Siamo in modalità "Scelta tabelle"?
+  public selectedKeys: string[] = []; // Quali tabelle ha scelto l'utente?
 
+  /**
+   * Appena entri nella Dashboard...
+   */
   ngOnInit(): void {
-    this.entityCount$ = this.entityService.definitions$.pipe(map(items => items.length));
-    this.templateCount$ = this.emailTemplateService.templates$.pipe(map(items => items.length));
-    this.groupCount$ = this.groupService.groups$.pipe(map(items => items.length));
-    this.userCount$ = this.userService.users$.pipe(map(items => items.length));
-    this.menuCount$ = this.menuService.menuItems$.pipe(map(items => items.length));
+    // 1. Prendiamo l'elenco di tutte le tabelle (Entity)
+    this.allEntities$ = this.entityService.definitions$;
+    this.entityService.loadEntityDefinitions().subscribe();
 
+    // 2. Prendiamo gli ultimi utenti
+    this.userService.loadUsers().subscribe();
     this.recentUsers$ = this.userService.users$.pipe(
       map(users => users.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()).slice(0, 5))
     );
 
-    // Trigger initial loads
-    this.entityService.loadEntityDefinitions().subscribe();
-    this.emailTemplateService.loadEmailTemplates().subscribe();
-    this.groupService.loadGroups().subscribe();
-    this.userService.loadUsers().subscribe();
-    this.menuService.loadMenuItems().subscribe();
+    // 3. Prepariamo le "Figurine" numeriche basandoci sulla scelta dell'utente
+    this.refreshStats();
+
+    // 4. Leggiamo la configurazione attuale per il pannello di scelta
+    this.dashboardService.config$.subscribe(keys => {
+      this.selectedKeys = [...keys];
+    });
+  }
+
+  /**
+   * Aggiorna i numeri dei totali sulla pagina.
+   */
+  refreshStats(): void {
+    this.dashboardStats$ = this.allEntities$.pipe(
+      switchMap(entities => {
+        const entityList = entities.map(e => ({ key: e.entityKey, label: e.label }));
+        return this.dashboardService.getDashboardStats(entityList);
+      })
+    );
+  }
+
+  /**
+   * Questo metodo apre una finestrella (Modal) che spiega all'utente
+   * cosa deve fare in questa pagina. È utilissimo per chi non ha mai usato un CMS!
+   */
+  showHelp(): void {
+    const info = this.i18nService.translate('HELP.DASHBOARD');
+    this.modalService.openInfo('Guida Rapida: Dashboard', info);
+  }
+
+  /**
+   * Entra o esce dalla modalità di scelta delle tabelle.
+   */
+  toggleConfig(): void {
+    this.isConfiguring = !this.isConfiguring;
+  }
+
+  /**
+   * Aggiunge o toglie una tabella dalla dashboard quando ci clicchi sopra.
+   */
+  onEntityToggle(key: string): void {
+    if (this.selectedKeys.includes(key)) {
+      this.selectedKeys = this.selectedKeys.filter(k => k !== key);
+    } else {
+      // Massimo 4 tabelle per non affollare la pagina
+      if (this.selectedKeys.length < 4) {
+        this.selectedKeys.push(key);
+      }
+    }
+  }
+
+  /**
+   * Salva la scelta dell'utente e aggiorna i numeri.
+   */
+  saveConfig(): void {
+    this.dashboardService.saveConfig(this.selectedKeys);
+    this.isConfiguring = false;
+    this.refreshStats();
   }
 }

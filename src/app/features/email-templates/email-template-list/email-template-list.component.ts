@@ -6,6 +6,7 @@ import { Observable } from 'rxjs';
 import { EmailTemplate } from '../../../core/models/email-template.model';
 import { EmailTemplateService } from '../../../core/services/email-template.service';
 import { ModalService } from '../../../core/services/modal.service';
+import { I18nService } from '../../../core/services/i18n.service';
 import { filter } from 'rxjs/operators';
 import { EmailTestSendComponent } from '../email-test-send/email-test-send.component';
 
@@ -19,11 +20,21 @@ import { EmailTestSendComponent } from '../email-test-send/email-test-send.compo
 export class EmailTemplateListComponent implements OnInit {
   private emailTemplateService = inject(EmailTemplateService);
   private modalService = inject(ModalService);
+  private i18nService = inject(I18nService);
   public templates$!: Observable<EmailTemplate[]>;
 
   ngOnInit(): void {
     this.templates$ = this.emailTemplateService.templates$;
     this.emailTemplateService.loadEmailTemplates().subscribe();
+  }
+
+  /**
+   * Questo metodo apre una finestrella (Modal) che spiega all'utente
+   * cosa deve fare in questa pagina.
+   */
+  showHelp(): void {
+    const info = this.i18nService.translate('HELP.EMAIL_TEMPLATES');
+    this.modalService.openInfo('Guida Rapida: Template Email', info);
   }
 
   onDelete(id: string, name: string): void {

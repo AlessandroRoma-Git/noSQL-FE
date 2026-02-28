@@ -14,23 +14,46 @@ import { MenuItem, CreateMenuItemRequest, UpdateMenuItemRequest } from '../model
   providedIn: 'root'
 })
 export class MenuService {
-  private readonly apiUrl = 'http://localhost:8088/api/v1/menu/manage';
+  private readonly manageApiUrl = 'http://localhost:8088/api/v1/menu/manage';
+  private readonly publicApiUrl = 'http://localhost:8088/api/v1/menu';
   private http = inject(HttpClient);
 
   private menuItemsSubject = new BehaviorSubject<MenuItem[]>([]);
+  private userMenuItemsSubject = new BehaviorSubject<MenuItem[]>([]);
 
   /**
-   * Observable stream of the list of menu items.
+   * Observable stream of the list of menu items for management (ADMIN).
    */
   public menuItems$: Observable<MenuItem[]> = this.menuItemsSubject.asObservable();
+
+  /**
+   * Observable stream of the list of menu items for the current user.
+   */
+  public userMenuItems$: Observable<MenuItem[]> = this.userMenuItemsSubject.asObservable();
+
+  /**
+   * Fetches the list of menu items for the current user and updates `userMenuItems$`.
+   */
+  loadUserMenu(): Observable<MenuItem[]> {
+    return this.http.get<MenuItem[]>(this.publicApiUrl).pipe(
+      tap(items => {
+        // Sort items by position
+        const sorted = items.sort((a, b) => (a.position || 0) - (b.position || 0));
+        this.userMenuItemsSubject.next(sorted);
+      })
+    );
+  }
 
   /**
    * Fetches the list of menu items from the backend and updates the `menuItems$` stream.
    * @returns An observable of the HTTP response.
    */
   loadMenuItems(): Observable<MenuItem[]> {
-    return this.http.get<MenuItem[]>(this.apiUrl).pipe(
-      tap(items => this.menuItemsSubject.next(items))
+    return this.http.get<MenuItem[]>(this.manageApiUrl).pipe(
+      tap(items => {
+        const sorted = items.sort((a, b) => (a.position || 0) - (b.position || 0));
+        this.menuItemsSubject.next(sorted);
+      })
     );
   }
 
@@ -40,7 +63,7 @@ export class MenuService {
    * @returns An observable of the menu item.
    */
   getMenuItem(id: string): Observable<MenuItem> {
-    return this.http.get<MenuItem>(`${this.apiUrl}/${id}`);
+    return this.http.get<MenuItem>(`${this.manageApiUrl}/${id}`);
   }
 
   /**
@@ -50,7 +73,7 @@ export class MenuService {
    * @returns An observable of the created menu item.
    */
   createMenuItem(data: CreateMenuItemRequest): Observable<MenuItem> {
-    return this.http.post<MenuItem>(this.apiUrl, data).pipe(
+    return this.http.post<MenuItem>(this.manageApiUrl, data).pipe(
       tap(() => this.loadMenuItems().subscribe())
     );
   }
@@ -63,7 +86,7 @@ export class MenuService {
    * @returns An observable of the updated menu item.
    */
   updateMenuItem(id: string, data: UpdateMenuItemRequest): Observable<MenuItem> {
-    return this.http.put<MenuItem>(`${this.apiUrl}/${id}`, data).pipe(
+    return this.http.put<MenuItem>(`${this.manageApiUrl}/${id}`, data).pipe(
       tap(() => this.loadMenuItems().subscribe())
     );
   }
@@ -75,7 +98,7 @@ export class MenuService {
    * @returns An observable that completes when the operation is done.
    */
   deleteMenuItem(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
+    return this.http.delete<void>(`${this.manageApiUrl}/${id}`).pipe(
       tap(() => this.loadMenuItems().subscribe())
     );
   }

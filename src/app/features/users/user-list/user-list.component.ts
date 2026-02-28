@@ -1,11 +1,12 @@
-
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, OnDestroy, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { Observable } from 'rxjs';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
 import { User } from '../../../core/models/user.model';
 import { UserService } from '../../../core/services/user.service';
 import { ModalService } from '../../../core/services/modal.service';
+import { I18nService } from '../../../core/services/i18n.service';
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -15,14 +16,36 @@ import { filter } from 'rxjs/operators';
   templateUrl: './user-list.component.html',
   styleUrls: ['./user-list.component.css']
 })
-export class UserListComponent implements OnInit {
+export class UserListComponent implements OnInit, OnDestroy {
   private userService = inject(UserService);
   private modalService = inject(ModalService);
-  public users$!: Observable<User[]>;
+  private i18nService = inject(I18nService);
+  private destroy$ = new Subject<void>();
+
+  public users: User[] = [];
 
   ngOnInit(): void {
-    this.users$ = this.userService.users$;
+    this.userService.users$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(users => {
+      this.users = users;
+    });
+
     this.userService.loadUsers().subscribe();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  /**
+   * Questo metodo apre una finestrella (Modal) che spiega all'utente
+   * cosa deve fare in questa pagina.
+   */
+  showHelp(): void {
+    const info = this.i18nService.translate('HELP.USERS');
+    this.modalService.openInfo('Guida Rapida: Utenti', info);
   }
 
   onDelete(id: string, username: string): void {

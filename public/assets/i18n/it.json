@@ -1,0 +1,51 @@
+{
+  "COMMON": {
+    "WELCOME": "Benvenuto",
+    "LOGIN": "Accedi",
+    "LOGOUT": "Esci",
+    "SAVE": "Salva",
+    "CANCEL": "Annulla",
+    "SUCCESS": "Operazione completata con successo",
+    "ERROR": "Si è verificato un errore",
+    "LOADING": "Caricamento in corso..."
+  },
+  "SIDEBAR": {
+    "DASHBOARD": "Pannello di Controllo",
+    "ENTITIES": "Entità",
+    "EMAIL_TEMPLATES": "Template Email",
+    "GROUPS": "Gruppi",
+    "USERS": "Utenti",
+    "MENU_SETUP": "Gestione Menu",
+    "FILES": "File",
+    "CONFIGURATION": "Configurazione",
+    "SETTINGS": "Impostazioni"
+  },
+  "LOGIN": {
+    "USERNAME": "Nome Utente",
+    "PASSWORD": "Password",
+    "FORGOT_PASSWORD": "Password dimenticata?",
+    "BUTTON": "Accedi al Sistema"
+  },
+  "CHANGE_PASSWORD": {
+    "TITLE": "Cambia Password",
+    "SUBTITLE": "Questo è il tuo primo accesso o la password è scaduta. Imposta una nuova password per continuare.",
+    "OLD_PASSWORD": "Password Attuale",
+    "NEW_PASSWORD": "Nuova Password",
+    "CONFIRM_PASSWORD": "Conferma Nuova Password",
+    "MISMATCH": "Le password non coincidono.",
+    "MIN_LENGTH": "La password deve essere di almeno 6 caratteri.",
+    "BUTTON": "Aggiorna Password e Continua",
+    "SUCCESS": "Password aggiornata con successo!"
+  },
+  "HELP": {
+    "DASHBOARD": "Benvenuto nella tua scrivania virtuale! Qui puoi vedere un riassunto di tutto il sistema. Usa il tasto 'Personalizza' per scegliere quali tabelle vuoi tenere d'occhio. I numeri che vedi indicano quanti elementi sono stati inseriti in totale.",
+    "ENTITIES": "In questa pagina disegni lo 'scheletro' del tuo database. Qui decidi quali dati vuoi raccogliere (es. Nome, Email, Prezzo). Una volta creata un'entità, apparirà nel menu per permetterti di inserire i dati veri e propri.",
+    "USERS": "Gestione dei colleghi: qui crei gli account per chi deve usare il sito. Quando aggiungi un utente, il sistema genera una password sicura e gliela invia via email. Puoi anche bloccare l'accesso a un utente se necessario.",
+    "GROUPS": "I gruppi servono a dare permessi diversi alle persone. Ad esempio, puoi creare un gruppo 'Editori' che può cambiare i dati e un gruppo 'Lettori' che può solo vederli. I gruppi con ruolo 'ADMIN' possono gestire anche queste impostazioni.",
+    "EMAIL_TEMPLATES": "Qui prepari le lettere che il sistema invia in automatico. Puoi usare dei segnaposto come {{nome}} che verranno sostituiti dai dati veri al momento dell'invio. È utile per conferme d'ordine o avvisi di sistema.",
+    "MENU_SETUP": "Organizza i tasti della barra laterale. Puoi decidere quali tabelle mostrare agli utenti e in che ordine. Puoi anche creare dei 'sottogruppi' per tenere tutto ordinato.",
+    "FILES": "Questo è il magazzino dei tuoi file. Qui puoi caricare immagini o documenti che vuoi usare nel sistema. Ogni file ha un indirizzo unico e viene salvato in modo sicuro.",
+    "SETTINGS": "Cambia il look del tuo portale! Qui puoi caricare il logo della tua azienda, cambiare il nome che appare in alto e scegliere la lingua di base. È il cuore della personalizzazione White Label.",
+    "RECORDS": "Questa è la lista dei dati inseriti. Puoi cercare un elemento specifico, ordinarli per data o modificarli. Ricorda che ogni modifica viene tracciata se hai attivato la 'History' nell'entità."
+  }
+}

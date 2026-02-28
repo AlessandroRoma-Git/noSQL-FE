@@ -4,9 +4,9 @@
 
 CMS NoSQL è un backend Spring Boot che permette di definire entità dinamiche a runtime (come form builder) e salvare i dati corrispondenti in MongoDB. Non esistono classi Java per le singole entità: tutto è dinamico e guidato da **Entity Definitions** salvate in database.
 
-Il sistema include autenticazione JWT, gerarchia ruoli (`super_admin > admin > user`), gestione gruppi utente, controllo accessi ACL basato su gruppi configurabile per ogni entità, e un sistema di menu dinamico con visibilità per gruppo. Include inoltre gestione file con backend di storage intercambiabile (MongoDB GridFS o Amazon S3).
+Il sistema include autenticazione JWT, sistema basato su gruppi con ruoli di sistema (`SUPER_ADMIN`, `ADMIN`), gestione gruppi utente, controllo accessi ACL basato su gruppi configurabile per ogni entità, un sistema di menu dinamico con visibilità per gruppo, storicizzazione modifiche ai record e auto-creazione super admin all'avvio. Include inoltre gestione file con backend di storage intercambiabile (MongoDB GridFS o Amazon S3).
 
-**Stack tecnologico:** Java 25, Spring Boot 4.0.2, Spring Data MongoDB, Spring Security + JWT (JJWT 0.12.6), AWS SDK v2 (S3), MongoDB 6+.
+**Stack tecnologico:** Java 25, Spring Boot 4.0.2, Spring Data MongoDB, Spring Security + JWT (JJWT 0.12.6), AWS SDK v2 (S3), MongoDB 6+. **Test:** JUnit 5, Mockito 5 (via `spring-boot-starter-test`), AssertJ.
 
 ```
 ┌──────────────┐     ┌──────────────┐     ┌──────────────┐     ┌──────────────────┐     ┌──────────────┐
@@ -33,7 +33,7 @@ Il sistema include autenticazione JWT, gerarchia ruoli (`super_admin > admin > u
 
 ### `users`
 
-Utenti del sistema con credenziali, ruoli, gruppi e stato di primo accesso.
+Utenti del sistema con credenziali, gruppi e stato di primo accesso.
 
 ```json
 {
@@ -41,17 +41,18 @@ Utenti del sistema con credenziali, ruoli, gruppi e stato di primo accesso.
   "username": "mario",
   "email": "mario@example.com",
   "password": "$2a$10$...",
-  "roles": ["admin"],
   "groupIds": ["abc123", "def456"],
   "enabled": true,
   "firstAccess": true,
   "failedLoginAttempts": 0,
+  "deleted": false,
   "lastAccessAt": "2025-01-15T10:00:00Z",
-  "createdAt": "2025-01-15T09:00:00Z"
+  "createdAt": "2025-01-15T09:00:00Z",
+  "updatedAt": "2025-01-15T09:00:00Z"
 }
 ```
 
-> Il campo `firstAccess` indica se l'utente deve cambiare la password al primo accesso. Quando `true`, tutte le API (tranne autenticazione) vengono bloccate. Il campo `email` ha un indice univoco e viene usato per l'invio della password auto-generata. Il campo `groupIds` contiene gli ID dei gruppi a cui l'utente appartiene.
+> Il campo `firstAccess` indica se l'utente deve cambiare la password al primo accesso. Quando `true`, tutte le API (tranne autenticazione) vengono bloccate. Il campo `email` ha un indice univoco e viene usato per l'invio della password auto-generata. Il campo `groupIds` contiene gli ID dei gruppi a cui l'utente appartiene. I privilegi di sistema sono derivati dal campo `systemRole` dei gruppi associati.
 
 ### `entity_definitions`
 
@@ -66,7 +67,8 @@ Schema dei form. Ogni documento descrive un tipo di entità con i suoi campi, re
     { "name": "first_name", "type": "STRING", "required": true, "maxLen": 100 },
     { "name": "email", "type": "EMAIL", "required": true },
     { "name": "age", "type": "NUMBER", "min": 0, "max": 150 },
-    { "name": "status", "type": "ENUM", "enumValues": ["active", "inactive"] }
+    { "name": "status", "type": "ENUM", "enumValues": ["active", "inactive"] },
+    { "name": "manager", "type": "REFERENCE", "referenceEntityKey": "users" }
   ],
   "acl": {
     "read": ["editors", "viewers"],
@@ -74,12 +76,21 @@ Schema dei form. Ogni documento descrive un tipo di entità con i suoi campi, re
     "delete": ["editors"],
     "search": ["editors", "viewers"]
   },
+  "historyEnabled": true,
+  "notificationConfig": {
+    "to": ["admin@azienda.it", "{{email}}"],
+    "subject": "Nuovo record {{entityKey}}",
+    "createTemplateId": "notifica-creazione",
+    "updateTemplateId": null,
+    "deleteTemplateId": null
+  },
+  "deleted": false,
   "createdAt": "2025-01-15T10:00:00Z",
   "updatedAt": "2025-01-15T10:00:00Z"
 }
 ```
 
-> Le liste ACL contengono nomi di **gruppi**, non di ruoli.
+> Le liste ACL contengono nomi di **gruppi**, non di ruoli. Il campo `notificationConfig` è opzionale: se presente, abilita l'invio automatico di email dopo le operazioni CRUD sui record.
 
 ### `records`
 
@@ -95,8 +106,25 @@ Dati inseriti dagli utenti. Ogni record è collegato a una entity definition tra
     "age": 35,
     "status": "active"
   },
+  "deleted": false,
   "createdAt": "2025-01-15T10:30:00Z",
   "updatedAt": "2025-01-15T10:30:00Z"
+}
+```
+
+### `record_history`
+
+Storico delle modifiche ai record. Ogni aggiornamento a un record il cui entity definition ha `historyEnabled: true` salva uno snapshot dei dati precedenti con versione progressiva.
+
+```json
+{
+  "_id": "ObjectId",
+  "recordId": "678abc...",
+  "entityKey": "customers",
+  "data": { "first_name": "Mario", "email": "mario@example.com" },
+  "version": 1,
+  "modifiedBy": "super_admin",
+  "modifiedAt": "2025-01-15T10:30:00Z"
 }
 ```
 
@@ -113,6 +141,7 @@ Metadati dei file caricati nel sistema. Il contenuto binario è salvato nel back
   "uploadedBy": "mario",
   "storageType": "grid-fs",
   "storageReference": "6789abcdef012345",
+  "deleted": false,
   "createdAt": "2025-01-15T11:00:00Z"
 }
 ```
@@ -136,6 +165,7 @@ Template HTML per l'invio email con placeholder e allegati opzionali. I placehol
       "base64Content": "JVBERi0xLjQKJ..."
     }
   ],
+  "deleted": false,
   "createdBy": "mario",
   "createdAt": "2025-01-15T11:00:00Z",
   "updatedAt": "2025-01-15T11:00:00Z"
@@ -146,13 +176,15 @@ Template HTML per l'invio email con placeholder e allegati opzionali. I placehol
 
 ### `groups`
 
-Gruppi utente per il controllo accessi ACL e la visibilità del menu.
+Gruppi utente per il controllo accessi ACL e la visibilità del menu. Il campo `systemRole` (opzionale) assegna privilegi di sistema al gruppo: `SUPER_ADMIN` ha accesso completo, `ADMIN` gestisce il sistema.
 
 ```json
 {
   "_id": "ObjectId",
   "name": "editors",
   "description": "Gruppo editori contenuti",
+  "systemRole": "ADMIN",
+  "deleted": false,
   "createdAt": "2025-01-15T10:00:00Z",
   "updatedAt": "2025-01-15T10:00:00Z"
 }
@@ -171,6 +203,7 @@ Voci di menu configurabili con visibilità basata sui gruppi utente. Supportano 
   "position": 1,
   "parentId": null,
   "groups": ["editors", "viewers"],
+  "deleted": false,
   "createdAt": "2025-01-15T10:00:00Z",
   "updatedAt": "2025-01-15T10:00:00Z"
 }
@@ -180,41 +213,94 @@ Voci di menu configurabili con visibilità basata sui gruppi utente. Supportano 
 
 Collection gestite automaticamente da MongoDB GridFS quando il backend di storage è `grid-fs`. Contengono rispettivamente i metadati e i chunk binari dei file.
 
+## Soft Delete
+
+Il sistema implementa il soft delete per tutte le entità principali (esclusa `record_history`). Un documento non viene mai cancellato fisicamente da MongoDB, ma marcato con `deleted: true`.
+
+### Modelli con soft delete
+
+Le seguenti collection hanno un campo `deleted` (tipo `boolean`, default `false`):
+
+- `users`
+- `entity_definitions`
+- `groups`
+- `records`
+- `menu_items`
+- `file_metadata`
+- `email_templates`
+
+**Esempio:**
+```json
+{
+  "_id": "ObjectId",
+  "name": "Mario Rossi",
+  "email": "mario@example.com",
+  "deleted": false,
+  "createdAt": "2025-01-15T09:00:00Z"
+}
+```
+
+### RecordHistory
+
+`record_history` **non ha soft delete**. Rimane sempre accessibile come storico completo. Se il record genitore viene soft-deletato, le sue entry in `record_history` diventano indirettamente inaccessibili (non recuperabili tramite le API standard), ma rimangono nel database per audit.
+
+### Comportamento delle query
+
+Tutte le operazioni di lettura (search, get, list) filtrano automaticamente per `deleted = false`. Un documento soft-deletato è invisibile alle query standard senza applicare alcun override esplicito.
+
+### Operazioni di eliminazione
+
+Quando un'operazione DELETE viene richiesta:
+- Il documento non viene rimosso da MongoDB
+- Il campo `deleted` viene impostato a `true`
+- Il documento rimane nel database con all'interno tutte le informazioni storiche
+
+### Gestione file con soft delete
+
+Per i file (`file_metadata`):
+- Il soft delete **riguarda solo i metadati**
+- Il file fisico **non viene rimosso** dallo storage (GridFS o S3)
+- Il documento in `file_metadata` viene marcato con `deleted: true`
+- I download falliscono perché la query di metadati filtra per `deleted = false`
+- Il file rimane nello storage fino a un'eventuale cleanup manuale
+
 ## Layer applicativi
 
 ### Controller
 
 | Classe | Base path | Responsabilità |
 |--------|-----------|----------------|
-| `AuthController` | `/api/v1/auth` | Registrazione, login, recupero password e cambio password |
+| `AuthController` | `/api/v1/auth` | Login, recupero password e cambio password |
 | `EntityDefinitionController` | `/api/v1/entity-definitions` | CRUD definizioni entità (admin) |
 | `GroupController` | `/api/v1/groups` | CRUD gruppi (admin) |
 | `UserController` | `/api/v1/users` | CRUD utenti e reset password (admin) |
 | `MenuController` | `/api/v1/menu` | Menu filtrato per utente + CRUD gestione menu (admin) |
-| `RecordController` | `/api/v1/records/{entityKey}` | CRUD record + ricerca (ACL per entità) |
+| `RecordController` | `/api/v1/records/{entityKey}` | CRUD record + ricerca + storico modifiche (ACL per entità) |
 | `FileController` | `/api/v1/files` | Upload, download e eliminazione file (autenticato) |
-| `EmailController` | `/api/v1/email` | Invio email e CRUD template email (solo ruolo `sender`) |
+| `EmailController` | `/api/v1/email` | Invio email e CRUD template email (solo ruolo di sistema `ADMIN`) |
 
 ### Service
 
 | Classe | Responsabilità |
 |--------|----------------|
-| `AuthService` | Registrazione utenti (con auto-generazione password), login, recupero password, cambio password e generazione JWT |
+| `AuthService` | Login, recupero password, cambio password e generazione JWT |
 | `JwtService` | Generazione, parsing e validazione token JWT |
 | `AclService` | Verifica permessi ACL per **gruppo** sull'entità |
-| `GroupService` | CRUD gruppi, risoluzione nomi gruppi da ID |
+| `GroupService` | CRUD gruppi, risoluzione nomi gruppi da ID, risoluzione ruoli di sistema |
 | `UserManagementService` | CRUD utenti, reset password, risoluzione gruppi |
 | `MenuService` | CRUD voci di menu, filtraggio menu per gruppi utente |
 | `EntityDefinitionService` | CRUD definizioni, validazione entityKey, protezione eliminazione |
 | `RecordService` | Orchestrazione CRUD record e ricerca paginata (con check ACL) |
 | `RecordValidationService` | Validazione runtime dei dati contro la definizione |
+| `RecordHistoryService` | Storicizzazione modifiche ai record, consultazione versioni precedenti |
 | `QueryBuilderService` | Traduzione filtri DSL in `Criteria` MongoDB |
 | `FileManagementService` | Orchestrazione upload/download/delete file, validazione e metadati |
 | `FileStorageService` | Interfaccia per il backend di storage (strategy pattern) |
 | `GridFsStorageService` | Implementazione storage su MongoDB GridFS (attiva con `cms.storage.type=grid-fs`) |
 | `S3StorageService` | Implementazione storage su Amazon S3/MinIO (attiva con `cms.storage.type=s3`) |
-| `EmailService` | Invio email HTML con allegati inline (CID), classici, da storage CMS e da template via JavaMailSender; generazione eventi calendario iCal (RFC 5545) |
-| `EmailTemplateService` | CRUD template email con allegati embedded, risoluzione placeholder con HTML-escape anti-injection |
+| `EmailService` | Invio email HTML via `send()` (template MongoDB, allegati inline CID, classici, da storage CMS, iCal); `sendWithFallback()` per email di sistema con fallback automatico su template HTML dal classpath quando nessun template MongoDB è configurato |
+| `EmailTemplateService` | CRUD template email con allegati embedded, risoluzione placeholder con HTML-escape anti-injection; `getTemplateEntity()` supporta fallback automatico su file HTML classpath `template/{id}.html` con caricamento completo del contenuto HTML |
+| `RecordNotificationService` | Invia notifiche email automatiche dopo create/update/delete di un record, se l'entity definition ha `notificationConfig` configurato; risoluzione leniente dei placeholder (usa solo i valori disponibili); supporta template da DB e da classpath tramite `getTemplateEntity()` |
 
 ### Security e Filtri
 
@@ -222,7 +308,8 @@ Collection gestite automaticamente da MongoDB GridFS quando il backend di storag
 |--------|----------------|
 | `TraceIdFilter` | Genera Trace ID per richiesta e gestisce Session ID (MDC + header HTTP) |
 | `JwtAuthenticationFilter` | Estrae JWT dal header `Authorization`, popola `SecurityContext`, blocca richieste se primo accesso |
-| `SecurityConfig` | Configura Spring Security: stateless, filtro JWT, regole accesso, RoleHierarchy (`super_admin > admin > user`) |
+| `SecurityConfig` | Configura Spring Security: stateless, filtro JWT, regole accesso basate su systemRole |
+| `SuperAdminInitializer` | All'avvio del sistema, crea automaticamente il gruppo `SUPER_ADMIN` e l'utente super admin se non esistono, leggendo le credenziali dalla configurazione YAML (`cms.super-admin.*`). Garantisce che il sistema abbia sempre almeno un utente con accesso completo. |
 
 ### Repository
 
@@ -233,6 +320,7 @@ Collection gestite automaticamente da MongoDB GridFS quando il backend di storag
 | `GroupRepository` | `MongoRepository` (interface) | Operazioni su `groups` |
 | `MenuItemRepository` | `MongoRepository` (interface) | Operazioni su `menu_items` |
 | `RecordRepository` | Classe custom con `MongoTemplate` | Query dinamiche e paginazione su `records` |
+| `RecordHistoryRepository` | `MongoRepository` (interface) | Operazioni su `record_history` |
 | `FileMetadataRepository` | `MongoRepository` (interface) | Operazioni su `file_metadata` |
 | `EmailTemplateRepository` | `MongoRepository` (interface) | Operazioni su `email_templates` |
 
@@ -244,20 +332,20 @@ Collection gestite automaticamente da MongoDB GridFS quando il backend di storag
 Client                        Server
   │                              │
   ├── POST /api/v1/auth/login ──▶│  AuthService verifica credenziali
-  │◀── { token, username, roles,  │  JwtService genera token
-  │     groups, firstAccess }     │
+  │◀── { token, username,        │  JwtService genera token
+  │     groups, firstAccess }    │
   │                              │
   ├── GET /api/v1/records/...  ──▶│  JwtAuthenticationFilter:
   │   Authorization: Bearer xxx   │    1. Estrae token dal header
   │                              │    2. Valida firma e scadenza
-  │                              │    3. Popola SecurityContext con username + roles + groups
+  │                              │    3. Popola SecurityContext con username + systemRoles + groups
   │                              │    4. Se firstAccess=true e path non e auth → 403
   │◀── 200 OK (o 403 se first)   │
 ```
 
 Il token contiene:
 - `sub`: username
-- `roles`: lista ruoli (`["admin", "user"]`)
+- `systemRoles`: lista ruoli di sistema derivati dai gruppi (`["SUPER_ADMIN"]`, `["ADMIN"]`, ecc.)
 - `groups`: lista nomi gruppi (`["editors", "viewers"]`)
 - `firstAccess`: `true` se l'utente deve cambiare password
 - `iat` / `exp`: timestamp emissione e scadenza
@@ -289,7 +377,7 @@ Ogni entity definition può avere un campo `acl` che definisce quali **gruppi** 
 | `search` | POST search |
 
 **Logica di enforcement (`AclService`):**
-1. I ruoli `super_admin` e `admin` bypassano sempre l'ACL
+1. I gruppi con systemRole `SUPER_ADMIN` o `ADMIN` bypassano sempre l'ACL
 2. Se `acl` è `null` → accesso aperto a tutti gli utenti autenticati
 3. Se la lista per un permesso è `null` o vuota → accesso aperto
 4. Altrimenti, almeno uno dei **gruppi** dell'utente deve essere nella lista
@@ -300,15 +388,15 @@ Ogni entity definition può avere un campo `acl` che definisce quali **gruppi** 
 
 | Endpoint | Accesso |
 |----------|---------|
-| `/api/v1/auth/**` | Pubblico |
-| `/api/v1/entity-definitions/**` | Solo ruolo `admin` (super_admin via gerarchia) |
-| `/api/v1/groups/**` | Solo ruolo `admin` (super_admin via gerarchia) |
-| `/api/v1/users/**` | Solo ruolo `admin` (super_admin via gerarchia) |
-| `/api/v1/menu/manage/**` | Solo ruolo `admin` (super_admin via gerarchia) |
+| `/api/v1/auth/**` | Login e recupero password sono pubblici, cambio password richiede autenticazione |
+| `/api/v1/entity-definitions/**` | Solo ruolo di sistema `ADMIN` |
+| `/api/v1/groups/**` | Solo ruolo di sistema `ADMIN` |
+| `/api/v1/users/**` | Solo ruolo di sistema `ADMIN` |
+| `/api/v1/menu/manage/**` | Solo ruolo di sistema `ADMIN` |
 | `/api/v1/menu` | Utente autenticato (menu filtrato per gruppi) |
 | `/api/v1/records/**` | Utente autenticato + check ACL per entità |
 | `/api/v1/files/**` | Utente autenticato |
-| `/api/v1/email/**` | Solo ruolo `sender` |
+| `/api/v1/email/**` | Solo ruolo di sistema `ADMIN` |
 
 ## Flusso dati
 
@@ -367,6 +455,7 @@ RecordService.search()
 | `DATE` | `String` (ISO-8601) | Parsing con `DateTimeFormatter.ISO_DATE_TIME` |
 | `EMAIL` | `String` | Regex email standard |
 | `ENUM` | `String` | Valore deve essere in `enumValues` |
+| `REFERENCE` | `List<String>` (lista di record ID) | `referenceEntityKey` (verifica esistenza di tutti gli ID nella lista nell'entità target) |
 
 ## Gestione file
 
@@ -440,12 +529,12 @@ FileManagementService.download()
 
 ```
 Client POST /api/v1/email/send { to, subject, templateId, placeholders, attachments, storageAttachments, calendarEvent }
-  │  Authorization: Bearer <token> (ruolo sender richiesto)
+  │  Authorization: Bearer <token> (ruolo di sistema ADMIN richiesto)
   ▼
 JwtAuthenticationFilter  →  valida token, popola SecurityContext
   │
   ▼
-Spring Security  →  verifica ruolo 'sender' (403 se assente)
+Spring Security  →  verifica ruolo di sistema 'ADMIN' (403 se assente)
   │
   ▼
 EmailController.send()
@@ -478,6 +567,65 @@ EmailService.send()
   │     └── helper.addAttachment("invite.ics", calendarDataSource)  (text/calendar)
   └── JavaMailSender.send(message)  →  invia via SMTP
 ```
+
+### Notifiche email post-CRUD (RecordNotificationService)
+
+Dopo il completamento di ogni operazione CRUD su un record, `RecordService` invoca `RecordNotificationService` se l'entity definition ha `notificationConfig` configurato. Le notifiche sono **non bloccanti**: qualsiasi errore (SMTP, template non trovato, nessun destinatario valido) viene catturato e loggato a WARN senza influenzare la risposta HTTP dell'operazione.
+
+```
+RecordService.create() / update() / delete()
+  └── (operazione CRUD completata con successo)
+  └── RecordNotificationService.notifyAfterCreate/Update/Delete(definition, id, data)
+        ├── notificationConfig null o templateId null? → return (nessuna email)
+        ├── buildPlaceholders()  →  { entityKey, id } + tutti i campi del record (no null)
+        ├── resolveRecipients()  →  espande {{placeholder}}, scarta stringhe senza '@', deduplicazione
+        ├── lista destinatari vuota? → log WARN + return
+        ├── EmailTemplateService.getTemplateEntity(templateId)
+        │     ├── Trovato in DB → usa htmlContent del documento MongoDB
+        │     └── Non trovato   → carica template/{templateId}.html dal classpath
+        ├── resolveLenient(htmlContent, placeholders)
+        │     └── {{chiave}} → valore, placeholder senza corrispondenza → "" (mai errore)
+        ├── resolveLenient(subject, placeholders)
+        └── Per ogni destinatario: MimeMessage → MimeMessageHelper → JavaMailSender.send()
+```
+
+**Placeholder disponibili per evento:**
+
+| Evento | Garantiti | Aggiuntivi |
+|--------|-----------|------------|
+| `create` | `{{entityKey}}`, `{{id}}` | tutti i campi del record (valori non-null) |
+| `update` | `{{entityKey}}`, `{{id}}` | tutti i campi aggiornati (valori non-null) |
+| `delete` | `{{entityKey}}`, `{{id}}` | nessuno (il record e gia soft-deleted) |
+
+**Template ID — strategie supportate:**
+
+| Strategia | Descrizione |
+|-----------|-------------|
+| ID MongoDB | Il `templateId` corrisponde al campo `_id` di un documento `email_templates` nel DB |
+| Nome file classpath | Se non trovato in DB, cerca `template/{templateId}.html`; es. `"prenotazione-confermata"` → `template/prenotazione-confermata.html` |
+
+> Vedi [notifiche-email.md](notifiche-email.md) per la guida operativa completa.
+
+### Email di sistema (credenziali e recupero password)
+
+Le email inviate automaticamente dal sistema (creazione utente, reset password admin, recupero password) usano `EmailService.sendWithFallback()` che implementa un meccanismo di fallback a due livelli:
+
+```
+sendWithFallback(to, subject, templateId, fallbackClasspathHtml, values)
+  ├── templateId valorizzato → EmailTemplateService.resolveTemplate()  (template MongoDB con validazione placeholder)
+  └── templateId vuoto/null → risoluzione diretta del file HTML dal classpath
+        ├── ClassPathResource.getInputStream()  →  carica il file HTML
+        ├── String.replace("{{chiave}}", htmlEscapeValue(valore))  →  per ogni placeholder
+        └── Invia come corpo HTML (MimeMessageHelper, multipart=true, UTF-8)
+```
+
+| Evento | Service | Template configurabile | Fallback classpath |
+|--------|---------|------------------------|--------------------|
+| Creazione utente | `UserManagementService` | `cms.email.password-template-id` | `template/email-password.html` |
+| Reset password (admin) | `UserManagementService` | `cms.email.password-template-id` | `template/email-password.html` |
+| Recupero password autonomo | `AuthService` | `cms.email.recover-password-template-id` | `template/email-recover-password.html` |
+
+I placeholder usati in tutti i casi sono `{{username}}` e `{{password}}`.
 
 ### Sorgenti allegati
 
@@ -517,6 +665,7 @@ Se presente il campo `calendarEvent`, viene generato un file `.ics` conforme a R
 |-----------|-------------|
 | `EntityDefinitionNotFoundException` | 404 Not Found |
 | `RecordNotFoundException` | 404 Not Found |
+| `RecordHistoryNotFoundException` | 404 Not Found |
 | `FileNotFoundException` | 404 Not Found |
 | `GroupNotFoundException` | 404 Not Found |
 | `UserNotFoundException` | 404 Not Found |
@@ -531,7 +680,8 @@ Se presente il campo `calendarEvent`, viene generato un file `.ics` conforme a R
 | `FileStorageException` | 500 Internal Server Error |
 | `EmailSendException` | 500 Internal Server Error |
 | `EmailTemplateNotFoundException` | 404 Not Found |
-| `IllegalArgumentException` (credenziali) | 401 Unauthorized |
+| `InvalidCredentialsException` | 401 Unauthorized |
+| `EmailTemplateValidationException` | 400 Bad Request |
 | `DuplicateKeyException` | 409 Conflict |
 | `IllegalStateException` (delete con record) | 409 Conflict |
 | `MethodArgumentNotValidException` | 400 Bad Request |
@@ -597,7 +747,11 @@ Vedi [CONFIGURAZIONE.md](CONFIGURAZIONE.md) per i dettagli completi.
 
 | Collection | Campo | Tipo |
 |------------|-------|------|
+| `users` | `username` | Unique |
 | `users` | `email` | Unique |
+| `entity_definitions` | `entityKey` | Unique |
+| `records` | `entityKey` | Non-unique |
+| `record_history` | `recordId` + `version` | Compound |
 | `email_templates` | `name` | Unique |
 | `groups` | `name` | Unique |
 
@@ -640,11 +794,11 @@ Il progetto include:
 
 6. **Delete protetto** — Non è possibile eliminare una entity definition se esistono record associati (risposta 409 Conflict).
 
-7. **JWT stateless** — Nessuna sessione server. Il token contiene tutto il necessario (username + roles + groups). Spring Security è configurato `STATELESS`.
+7. **JWT stateless** — Nessuna sessione server. Il token contiene tutto il necessario (username + systemRoles + groups). Spring Security è configurato `STATELESS`.
 
-8. **ACL a livello entità basata su gruppi** — I permessi sono definiti nella entity definition tramite nomi di **gruppi**, non di ruoli. I ruoli `super_admin` e `admin` bypassano sempre l'ACL. Se l'ACL è assente, l'accesso è aperto a tutti gli autenticati.
+8. **ACL a livello entità basata su gruppi** — I permessi sono definiti nella entity definition tramite nomi di **gruppi**, non di ruoli. I gruppi con systemRole `SUPER_ADMIN` o `ADMIN` bypassano sempre l'ACL. Se l'ACL è assente, l'accesso è aperto a tutti gli autenticati.
 
-9. **Entity definitions solo per admin** — La gestione delle definizioni (e quindi delle ACL) è riservata al ruolo `admin`. Il ruolo `super_admin` vi accede tramite la gerarchia ruoli di Spring Security.
+9. **Entity definitions solo per admin** — La gestione delle definizioni (e quindi delle ACL) è riservata al ruolo di sistema `ADMIN`. Il ruolo `SUPER_ADMIN` ha automaticamente accesso completo.
 
 10. **Storage intercambiabile** — Il backend di storage dei file è definito da un'interfaccia (`FileStorageService`) con implementazioni per GridFS e S3, selezionate a runtime dalla proprietà `cms.storage.type`. Questo permette di cambiare backend senza modificare il codice.
 
@@ -654,7 +808,7 @@ Il progetto include:
 
 13. **Email con allegati inline (CID)** — Gli allegati immagine vengono incorporati nel messaggio MIME come risorse inline con Content-ID, non come URL esterni. Questo garantisce la visualizzazione corretta in tutti i client email (Outlook, Gmail, Apple Mail, ecc.).
 
-14. **Ruolo `sender` per email** — L'invio email e protetto dal ruolo `sender`, gestito a livello Spring Security (`SecurityConfig`). L'utente deve avere `"sender"` nella lista `roles` della collection `users`.
+14. **Ruolo di sistema `ADMIN` per email** — L'invio email e protetto dal ruolo di sistema `ADMIN`, verificato tramite il campo `systemRole` dei gruppi dell'utente in `SecurityConfig`.
 
 15. **Template email con anti-injection** — I template usano placeholder nel formato `{{nome}}` con sostituzione puramente testuale (`String.replace()`). I valori vengono HTML-escaped prima della sostituzione per prevenire XSS. La validazione e bidirezionale: tutti i placeholder del template devono avere un valore e non sono ammessi placeholder extra. I nomi devono rispettare `[a-zA-Z0-9_]+`. Nessun template engine esterno viene utilizzato.
 
@@ -666,14 +820,22 @@ Il progetto include:
 
 19. **Javadoc HTML** — Il plugin `maven-javadoc-plugin` genera documentazione HTML da tutti i commenti Javadoc. Eseguire con `mvn javadoc:javadoc` (output in `target/reports/apidocs/`).
 
-20. **Auto-generazione password** — La password non viene mai inserita dall'utente durante la registrazione. Viene generata automaticamente (12 caratteri alfanumerici con `SecureRandom`) e inviata via email tramite un template configurabile (`cms.email.password-template-id`). Lo stesso meccanismo si applica al recupero password.
+20. **Auto-generazione password** — La password non viene mai inserita dall'utente durante la registrazione. Viene generata automaticamente (12 caratteri alfanumerici con `SecureRandom`) e inviata via email. Il sistema usa due template distinti configurabili: `cms.email.password-template-id` per la creazione utente e il reset admin (da `UserManagementService`), e `cms.email.recover-password-template-id` per il recupero password autonomo (da `AuthService`). Se un template non è configurato, `EmailService.sendWithFallback()` usa automaticamente il template HTML di fallback dal classpath (`template/email-password.html` o `template/email-recover-password.html`).
 
 21. **First Access** — Il flag `firstAccess` nel JWT permette di bloccare tutte le API (tranne autenticazione) senza query al database su ogni richiesta. Il `JwtAuthenticationFilter` controlla il claim `firstAccess` nel token e, se `true`, restituisce immediatamente 403 per i path non sotto `/api/v1/auth/`. Dopo il cambio password, viene emesso un nuovo JWT con `firstAccess = false`.
 
 22. **Cambio password con nuovo token** — L'endpoint di cambio password restituisce un nuovo JWT aggiornato con `firstAccess = false`, eliminando la necessita di un nuovo login dopo il cambio password.
 
-23. **Sistema gruppi** — Gli utenti appartengono a gruppi (`groupIds` nella collection `users`). Le ACL nelle entity definitions e la visibilità delle voci di menu fanno riferimento ai nomi dei gruppi, non ai ruoli. Questo separa il controllo accessi granulare (gruppi) dalla gerarchia di privilegi amministrativi (ruoli).
+23. **Sistema gruppi con systemRole** — Gli utenti appartengono a gruppi (`groupIds` nella collection `users`). Le ACL nelle entity definitions e la visibilità delle voci di menu fanno riferimento ai nomi dei gruppi. Il campo `systemRole` nei gruppi (`SUPER_ADMIN`, `ADMIN`) sostituisce il precedente sistema di ruoli assegnati direttamente agli utenti, centralizzando la gestione dei privilegi di sistema a livello di gruppo.
 
-24. **Gerarchia ruoli** — La gerarchia `super_admin > admin > user` è configurata tramite `RoleHierarchy` di Spring Security. Un `super_admin` eredita automaticamente tutti i permessi di `admin` e `user` senza bisogno di assegnare esplicitamente i ruoli inferiori.
+24. **Auto-creazione super admin** — All'avvio dell'applicazione, `SuperAdminInitializer` verifica la presenza di un gruppo con `systemRole: SUPER_ADMIN` e di un utente associato. Se non esistono, vengono creati automaticamente leggendo le credenziali dalla configurazione YAML (`cms.super-admin.username`, `cms.super-admin.password`, `cms.super-admin.email`). Questo garantisce che il sistema sia sempre accessibile anche al primo avvio.
 
-25. **Sistema menu** — Il menu è configurabile tramite la collection `menu_items` con supporto per struttura gerarchica (`parentId`), ordinamento (`position`), e visibilità basata sui gruppi dell'utente. L'endpoint pubblico `/api/v1/menu` restituisce solo le voci visibili all'utente in base ai suoi gruppi, mentre gli endpoint di gestione sotto `/api/v1/menu/manage/` sono riservati al ruolo `admin`.
+25. **Storicizzazione record (record history)** — Quando un record appartenente a un'entità con `historyEnabled: true` viene aggiornato, il sistema salva automaticamente uno snapshot dei dati precedenti nella collection `record_history` con versione progressiva. Questo permette di consultare le versioni precedenti di un record e tracciare le modifiche nel tempo.
+
+26. **Sistema menu** — Il menu è configurabile tramite la collection `menu_items` con supporto per struttura gerarchica (`parentId`), ordinamento (`position`), e visibilità basata sui gruppi dell'utente. L'endpoint pubblico `/api/v1/menu` restituisce solo le voci visibili all'utente in base ai suoi gruppi, mentre gli endpoint di gestione sotto `/api/v1/menu/manage/` sono riservati al ruolo di sistema `ADMIN`.
+
+27. **Sistema plugin con tutti i metodi default** — L'interfaccia `RecordPlugin` espone sei hook (`beforeCreate`, `beforeUpdate`, `beforeDelete`, `afterCreate`, `afterUpdate`, `afterDelete`) tutti con implementazione di default che logga `"<nomeMetodo> not implemented"` a livello DEBUG. L'unico metodo obbligatorio è `supports(String entityKey)`. Per ogni entity key può essere registrato al massimo un plugin: `RecordService` utilizza un metodo privato `pluginFor(entityKey)` che lancia `IllegalStateException` se due plugin dichiarano supporto per la stessa entity.
+
+29. **Notifiche email per entity definition** — Il campo opzionale `notificationConfig` nella `EntityDefinition` abilita l'invio automatico di email dopo il completamento di operazioni CRUD sui record. La configurazione specifica i destinatari (`to`, lista mista di indirizzi fissi e placeholder dinamici come `{{email}}`), l'oggetto, e i template email da usare per ciascun evento (create/update/delete). I `templateId` possono essere un ID MongoDB oppure il nome di un file HTML nel classpath `template/{id}.html` (senza estensione). Le notifiche vengono inviate da `RecordNotificationService` con risoluzione leniente dei placeholder: i placeholder senza valore corrispondente nel record vengono sostituiti con stringa vuota, senza errori. Le eccezioni durante l'invio sono catturate e loggano solo un WARN, senza influenzare l'operazione CRUD già completata. Il `DataInitializer` supporta la dichiarazione di `notificationConfig` direttamente nel file `template/entity-definitions.yaml`.
+
+30. **Unit test puri senza Spring context** — La suite di test copre i service principali (`JwtService`, `RecordValidationService`, `QueryBuilderService`, `AclService`, `AuthService`) con JUnit 5 + Mockito 5 via `spring-boot-starter-test`. Nessun `@SpringBootTest`, nessun MongoDB embedded: le classi vengono istanziate direttamente con le dipendenze mock. I record Java (`SecurityLimitsProperties`, `JwtProperties`) sono istanziabili nel costruttore senza Spring. Il `SecurityContextHolder` viene manipolato direttamente in `AclServiceTest` e pulito nell'`@AfterEach`. I test si avviano in meno di un secondo.

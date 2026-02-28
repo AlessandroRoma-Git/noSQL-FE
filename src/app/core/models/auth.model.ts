@@ -7,7 +7,7 @@ export interface LoginRequest {
 export interface AuthResponse {
   token: string;
   username: string;
-  roles: string[];
+  groups: string[];
   lastAccessAt: string | null;
   firstAccess: boolean;
 }

@@ -1,66 +1,153 @@
-
-<div class="container mx-auto p-4">
-  <h1 class="text-3xl font-bold text-primary mb-6">Dashboard</h1>
-
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
-
-    <!-- Entity Definitions Card -->
-    <a routerLink="/entity-definitions" class="block p-6 bg-surface rounded-lg shadow-lg hover:bg-base transition-colors">
-      <h2 class="text-xl font-semibold text-primary">Entities</h2>
-      <p class="text-4xl font-bold mt-2">{{ entityCount$ | async }}</p>
-      <p class="text-sm text-main-text/70">Total Definitions</p>
-    </a>
-
-    <!-- Email Templates Card -->
-    <a routerLink="/email-templates" class="block p-6 bg-surface rounded-lg shadow-lg hover:bg-base transition-colors">
-      <h2 class="text-xl font-semibold text-primary">Email Templates</h2>
-      <p class="text-4xl font-bold mt-2">{{ templateCount$ | async }}</p>
-      <p class="text-sm text-main-text/70">Total Templates</p>
-    </a>
-
-    <!-- Groups Card -->
-    <a routerLink="/groups" class="block p-6 bg-surface rounded-lg shadow-lg hover:bg-base transition-colors">
-      <h2 class="text-xl font-semibold text-primary">Groups</h2>
-      <p class="text-4xl font-bold mt-2">{{ groupCount$ | async }}</p>
-      <p class="text-sm text-main-text/70">Total Groups</p>
-    </a>
-
-    <!-- Users Card -->
-    <a routerLink="/users" class="block p-6 bg-surface rounded-lg shadow-lg hover:bg-base transition-colors">
-      <h2 class="text-xl font-semibold text-primary">Users</h2>
-      <p class="text-4xl font-bold mt-2">{{ userCount$ | async }}</p>
-      <p class="text-sm text-main-text/70">Total Users</p>
-    </a>
-
-    <!-- Menu Card -->
-    <a routerLink="/menu" class="block p-6 bg-surface rounded-lg shadow-lg hover:bg-base transition-colors">
-      <h2 class="text-xl font-semibold text-primary">Menu Items</h2>
-      <p class="text-4xl font-bold mt-2">{{ menuCount$ | async }}</p>
-      <p class="text-sm text-main-text/70">Total Menu Items</p>
-    </a>
+<div class="container mx-auto p-4 max-w-7xl">
+  
+  <!-- INTESTAZIONE DASHBOARD -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+    <div>
+      <div class="flex items-center gap-3">
+        <h1 class="text-4xl font-extrabold text-[rgb(var(--color-primary))] tracking-tight">Dashboard</h1>
+        <button (click)="showHelp()" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Aiuto">
+          <span class="font-serif italic font-bold">i</span>
+        </button>
+      </div>
+      <p class="text-gray-500 mt-1">Bentornato! Ecco cosa sta succedendo nel tuo CMS.</p>
+    </div>
+    
+    <button (click)="toggleConfig()" class="button-secondary flex items-center gap-2 self-start">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+      </svg>
+      Personalizza Dashboard
+    </button>
   </div>
 
-  <!-- Recent Users Section -->
-  <div class="mt-12">
-    <h2 class="text-2xl font-bold text-primary mb-4">Recent Users</h2>
-    <div class="bg-surface shadow-md rounded-lg">
-      @if (recentUsers$ | async; as users) {
-        @if (users.length > 0) {
-          <ul class="divide-y divide-base">
-            @for (user of users; track user.id) {
-              <li class="p-4 flex justify-between items-center">
-                <div>
-                  <p class="font-medium">{{ user.username }}</p>
-                  <p class="text-sm text-main-text/70">{{ user.email }}</p>
-                </div>
-                <span class="text-sm text-main-text/70">{{ user.createdAt | date:'short' }}</span>
-              </li>
-            }
-          </ul>
-        } @else {
-          <p class="p-4 text-main-text/70">No users found.</p>
+  <!-- PANNELLO DI CONFIGURAZIONE (Si apre solo se clicchi il bottone sopra) -->
+  @if (isConfiguring) {
+    <div class="bg-surface p-6 rounded-2xl shadow-xl border-2 border-[rgb(var(--color-primary))] mb-8 animate-in fade-in zoom-in duration-300">
+      <h3 class="text-xl font-bold mb-4 text-[rgb(var(--color-text))]">Scegli quali tabelle monitorare</h3>
+      <p class="text-sm text-gray-400 mb-6">Seleziona fino a 4 tabelle per vedere il totale dei record in tempo reale.</p>
+      
+      <div class="flex flex-wrap gap-3 mb-8">
+        @for (entity of allEntities$ | async; track entity.entityKey) {
+          <button 
+            (click)="onEntityToggle(entity.entityKey)"
+            class="px-4 py-2 rounded-full border transition-all text-sm font-medium"
+            [class.bg-[rgb(var(--color-primary))]]="selectedKeys.includes(entity.entityKey)"
+            [class.text-white]="selectedKeys.includes(entity.entityKey)"
+            [class.border-[rgb(var(--color-primary))]]="selectedKeys.includes(entity.entityKey)"
+            [class.border-base]="!selectedKeys.includes(entity.entityKey)"
+            [class.text-gray-400]="!selectedKeys.includes(entity.entityKey)"
+            [class.hover:border-[rgb(var(--color-primary))]]="!selectedKeys.includes(entity.entityKey)">
+            {{ entity.label }}
+          </button>
         }
-      }
+      </div>
+
+      <div class="flex justify-end gap-3">
+        <button (click)="toggleConfig()" class="button-secondary">Annulla</button>
+        <button (click)="saveConfig()" class="button-primary">Salva Configurazione</button>
+      </div>
+    </div>
+  }
+
+  <!-- SEZIONE NUMERICHE (FIGURINE) -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
+    @for (stat of dashboardStats$ | async; track stat.entityKey) {
+      <div class="bg-surface p-6 rounded-2xl shadow-lg border border-base flex flex-col items-center justify-center group hover:scale-105 transition-transform cursor-pointer"
+           [routerLink]="['/records', stat.entityKey]">
+        <div class="text-gray-400 text-sm font-bold uppercase tracking-widest mb-2 group-hover:text-[rgb(var(--color-primary))] transition-colors">
+          Totale {{ stat.label }}
+        </div>
+        <div class="text-5xl font-black text-[rgb(var(--color-text))]">
+          {{ stat.count }}
+        </div>
+        <div class="mt-4 text-xs text-[rgb(var(--color-primary))] font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
+          VAI ALLA LISTA &rarr;
+        </div>
+      </div>
+    } @empty {
+      <!-- Messaggio se la dashboard è vuota -->
+      <div class="col-span-full py-12 text-center bg-base rounded-2xl border-2 border-dashed border-base">
+        <p class="text-gray-500">Non hai ancora scelto quali tabelle monitorare.</p>
+        <button (click)="toggleConfig()" class="text-[rgb(var(--color-primary))] font-bold hover:underline mt-2">
+          Configura ora la tua dashboard
+        </button>
+      </div>
+    }
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+    <!-- COLONNA: ULTIMI UTENTI -->
+    <div class="lg:col-span-2 bg-surface p-6 rounded-2xl shadow-lg border border-base">
+      <div class="flex items-center justify-between mb-6">
+        <h3 class="text-xl font-bold text-[rgb(var(--color-text))]">Ultimi Utenti Registrati</h3>
+        <a routerLink="/users" class="text-sm text-[rgb(var(--color-primary))] hover:underline">Vedi tutti</a>
+      </div>
+      
+      <div class="overflow-x-auto">
+        <table class="w-full text-left">
+          <thead>
+            <tr class="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-base">
+              <th class="py-3 px-2">Username</th>
+              <th class="py-3 px-2">Email</th>
+              <th class="py-3 px-2 hidden sm:table-cell">Data</th>
+              <th class="py-3 px-2 text-right">Stato</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-base">
+            @for (user of recentUsers$ | async; track user.id) {
+              <tr class="hover:bg-base transition-colors">
+                <td class="py-4 px-2 font-medium">{{ user.username }}</td>
+                <td class="py-4 px-2 text-gray-400 text-sm">{{ user.email }}</td>
+                <td class="py-4 px-2 text-gray-400 text-xs hidden sm:table-cell">{{ user.createdAt | date:'dd/MM/yyyy' }}</td>
+                <td class="py-4 px-2 text-right">
+                  <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase"
+                        [class.bg-green-500/20.text-green-500]="user.enabled"
+                        [class.bg-red-500/20.text-red-500]="!user.enabled">
+                    {{ user.enabled ? 'Attivo' : 'Bloccato' }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- COLONNA: AZIONI RAPIDE (Solo per Admin) -->
+    <div class="bg-surface p-6 rounded-2xl shadow-lg border border-base">
+      <h3 class="text-xl font-bold mb-6 text-[rgb(var(--color-text))]">Azioni Rapide</h3>
+      <div class="flex flex-col gap-3">
+        <a routerLink="/entity-definitions/new" class="flex items-center p-4 bg-base rounded-xl hover:bg-[rgb(var(--color-primary))] hover:text-white transition-all group">
+          <div class="w-10 h-10 rounded-full bg-surface flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6 text-[rgb(var(--color-primary))]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+          </div>
+          <div>
+            <div class="font-bold">Nuova Entità</div>
+            <div class="text-xs opacity-60">Crea una nuova tabella</div>
+          </div>
+        </a>
+        
+        <a routerLink="/users/new" class="flex items-center p-4 bg-base rounded-xl hover:bg-[rgb(var(--color-primary))] hover:text-white transition-all group">
+          <div class="w-10 h-10 rounded-full bg-surface flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6 text-[rgb(var(--color-primary))]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
+          </div>
+          <div>
+            <div class="font-bold">Aggiungi Utente</div>
+            <div class="text-xs opacity-60">Registra un nuovo collega</div>
+          </div>
+        </a>
+
+        <a routerLink="/settings" class="flex items-center p-4 bg-base rounded-xl hover:bg-[rgb(var(--color-primary))] hover:text-white transition-all group">
+          <div class="w-10 h-10 rounded-full bg-surface flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
+            <svg class="w-6 h-6 text-[rgb(var(--color-primary))]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
+          </div>
+          <div>
+            <div class="font-bold">Tema & Logo</div>
+            <div class="text-xs opacity-60">Cambia stile al sito</div>
+          </div>
+        </a>
+      </div>
     </div>
   </div>
 </div>

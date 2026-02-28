@@ -27,31 +27,16 @@
       </div>
     }
 
-    <!-- Roles & Groups -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <!-- Roles -->
-      <div formGroupName="roles">
-        <h3 class="font-medium mb-2 text-primary">Roles</h3>
-        <div class="space-y-1">
-          @for (role of allRoles; track role) {
-            <div class="flex items-center">
-              <input [formControlName]="role" [id]="'role-' + role" type="checkbox" class="h-4 w-4 rounded border-surface text-primary focus:ring-primary">
-              <label [for]="'role-' + role" class="ml-2 text-sm text-main-text">{{ role }}</label>
-            </div>
-          }
-        </div>
-      </div>
-      <!-- Groups -->
-      <div formGroupName="groups">
-        <h3 class="font-medium mb-2 text-primary">Groups</h3>
-        <div class="space-y-1">
-          @for (group of allGroups; track group.id) {
-            <div class="flex items-center">
-              <input [formControlName]="group.id" [id]="'group-' + group.id" type="checkbox" class="h-4 w-4 rounded border-surface text-primary focus:ring-primary">
-              <label [for]="'group-' + group.id" class="ml-2 text-sm text-main-text">{{ group.name }}</label>
-            </div>
-          }
-        </div>
+    <!-- Groups -->
+    <div formGroupName="groups">
+      <h3 class="font-medium mb-2 text-primary">Groups</h3>
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-2">
+        @for (group of allGroups; track group.id) {
+          <div class="flex items-center">
+            <input [formControlName]="group.id" [id]="'group-' + group.id" type="checkbox" class="h-4 w-4 rounded border-surface text-primary focus:ring-primary">
+            <label [for]="'group-' + group.id" class="ml-2 text-sm text-main-text">{{ group.name }}</label>
+          </div>
+        }
       </div>
     </div>
 

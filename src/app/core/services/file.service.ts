@@ -11,14 +11,8 @@ export class FileService {
   private readonly apiUrl = 'http://localhost:8088/api/v1/files';
   private http = inject(HttpClient);
 
-  private filesSubject = new BehaviorSubject<FileMetadata[]>([]);
-  public files$: Observable<FileMetadata[]> = this.filesSubject.asObservable();
-
-  loadFiles(): Observable<FileMetadata[]> {
-    return this.http.get<FileMetadata[]>(this.apiUrl).pipe(
-      tap(files => this.filesSubject.next(files))
-    );
-  }
+  // The files list is removed as there is no endpoint to fetch it.
+  // public files$: Observable<FileMetadata[]> = of([]);
 
   uploadFile(file: File): Observable<number | FileMetadata> {
     const formData = new FormData();
@@ -33,7 +27,7 @@ export class FileService {
           case HttpEventType.UploadProgress:
             return Math.round(100 * event.loaded / (event.total || 1));
           case HttpEventType.Response:
-            this.loadFiles().subscribe();
+            // Do not reload the list anymore
             return event.body as FileMetadata;
           default:
             return 0; // Should not happen
@@ -43,8 +37,7 @@ export class FileService {
   }
 
   deleteFile(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.apiUrl}/${id}`).pipe(
-      tap(() => this.loadFiles().subscribe())
-    );
+    // Do not reload the list anymore
+    return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }
 }

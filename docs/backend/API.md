@@ -6,69 +6,16 @@ Base URL: `http://localhost:8088`
 
 Tutti gli endpoint (eccetto Auth) richiedono un header `Authorization: Bearer <token>`.
 
-> **First Access:** Dopo la registrazione o il recupero password, il token JWT contiene `firstAccess: true`. Tutte le API (eccetto `/api/v1/auth/**`) rispondono con `403 Forbidden` finche l'utente non cambia la password tramite l'endpoint di cambio password.
+> **First Access:** Dopo la creazione dell'account o il recupero password, il token JWT contiene `firstAccess: true`. Tutte le API (eccetto `/api/v1/auth/**`) rispondono con `403 Forbidden` finche l'utente non cambia la password tramite l'endpoint di cambio password.
 
-> **Gerarchia ruoli:** Il sistema supporta tre ruoli di sistema: `super_admin` > `admin` > `user`.
-> - `super_admin` ha accesso completo e bypassa tutti i controlli ACL
-> - `admin` gestisce entity definitions, utenti, gruppi e menu. Bypassa i controlli ACL
-> - `user` accede alle entity solo tramite le ACL dei gruppi a cui appartiene
->
-> Le ACL nelle entity definition referenziano **nomi di gruppi**, non nomi di ruoli. Gli utenti appartengono a uno o più gruppi.
+> **Sistema di autorizzazione:** Il sistema si basa su **gruppi** e **ruoli di sistema** (`systemRole`).
+> - Ogni utente appartiene a uno o più **gruppi**. Le ACL nelle entity definition referenziano **nomi di gruppi** per controllare l'accesso ai record.
+> - Un utente può avere un `systemRole` opzionale: `SUPER_ADMIN` o `ADMIN`.
+> - `SUPER_ADMIN` ha accesso completo e bypassa tutti i controlli ACL
+> - `ADMIN` gestisce entity definitions, utenti, gruppi e menu. Bypassa i controlli ACL
+> - Gli utenti senza `systemRole` accedono alle entity solo tramite le ACL dei gruppi a cui appartengono
 
 ## Autenticazione
-
-### Registra utente
-
-```
-POST /api/v1/auth/register
-```
-
-La password viene **auto-generata** dal sistema e inviata via email all'indirizzo fornito. L'utente dovra cambiare la password al primo accesso.
-
-**Request body:**
-
-```json
-{
-  "username": "mario",
-  "email": "mario@example.com",
-  "roles": ["admin"],
-  "groupIds": ["abc123"]
-}
-```
-
-> Se `roles` è omesso, viene assegnato il ruolo `["user"]` di default.
-
-| Campo | Tipo | Obbligatorio | Descrizione |
-|-------|------|-------------|-------------|
-| `username` | `string` | Si | Nome utente (3-50 caratteri) |
-| `email` | `string` | Si | Indirizzo email valido (per ricevere la password generata) |
-| `roles` | `string[]` | No | Lista dei ruoli (default: `["user"]`) |
-| `groupIds` | `string[]` | No | Lista degli ID dei gruppi a cui assegnare l'utente |
-
-**Risposta: `201 Created`**
-
-```json
-{
-  "token": "eyJhbGciOiJIUzI1NiJ9...",
-  "username": "mario",
-  "roles": ["admin"],
-  "groups": ["editors"],
-  "lastAccessAt": null,
-  "firstAccess": true
-}
-```
-
-> Il campo `firstAccess: true` indica che l'utente deve cambiare la password prima di poter usare le altre API.
-
-**curl:**
-
-```bash
-curl -X POST http://localhost:8088/api/v1/auth/register \
-  -H "Content-Type: application/json" \
-  -d '{ "username": "mario", "email": "mario@example.com", "roles": ["admin"], "groupIds": ["abc123"] }'
-```
-
----
 
 ### Login
 
@@ -91,7 +38,6 @@ POST /api/v1/auth/login
 {
   "token": "eyJhbGciOiJIUzI1NiJ9...",
   "username": "mario",
-  "roles": ["admin"],
   "groups": ["editors"],
   "lastAccessAt": "2025-01-15T10:00:00Z",
   "firstAccess": false
@@ -101,6 +47,8 @@ POST /api/v1/auth/login
 > Se `firstAccess` e `true`, l'utente deve cambiare la password prima di accedere alle altre API.
 
 **Errore credenziali: `401 Unauthorized`**
+
+**Errore account disabilitato: `403 Forbidden`**
 
 ```bash
 curl -X POST http://localhost:8088/api/v1/auth/login \
@@ -123,7 +71,7 @@ curl -X POST http://localhost:8088/api/v1/auth/login \
 POST /api/v1/auth/recover-password
 ```
 
-Genera una nuova password casuale e la invia via email all'indirizzo registrato dell'utente. Il flag `firstAccess` viene reimpostato a `true`: l'utente dovra cambiare la password al prossimo accesso.
+Genera una nuova password casuale (12 caratteri alfanumerici) e la invia via email all'indirizzo registrato dell'utente tramite il template configurato in `cms.email.recover-password-template-id`. Se non configurato, usa automaticamente il template di fallback (`template/email-recover-password.html`). Il flag `firstAccess` viene reimpostato a `true`: l'utente dovrà cambiare la password al prossimo accesso.
 
 **Request body:**
 
@@ -143,6 +91,8 @@ Genera una nuova password casuale e la invia via email all'indirizzo registrato 
 ```
 
 **Errore utente non trovato: `401 Unauthorized`**
+
+**Errore account disabilitato: `403 Forbidden`**
 
 **curl:**
 
@@ -182,7 +132,6 @@ Richiede un token JWT valido nell'header `Authorization`. Verifica la password c
 {
   "token": "eyJhbGciOiJIUzI1NiJ9...",
   "username": "mario",
-  "roles": ["admin"],
   "groups": ["editors"],
   "lastAccessAt": "2025-01-15T10:00:00Z",
   "firstAccess": false
@@ -206,7 +155,7 @@ curl -X POST http://localhost:8088/api/v1/auth/change-password \
 
 ## Entity Definitions
 
-> Richiede ruolo **admin** (o **super_admin** tramite gerarchia ruoli).
+> Richiede ruolo di sistema **ADMIN** (o **SUPER_ADMIN**).
 
 ### Crea definizione entità
 
@@ -220,22 +169,47 @@ POST /api/v1/entity-definitions
 {
   "entityKey": "customers",
   "label": "Clienti",
+  "historyEnabled": true,
   "fields": [
     { "name": "first_name", "type": "STRING", "required": true, "maxLen": 100 },
     { "name": "email", "type": "EMAIL", "required": true },
     { "name": "age", "type": "NUMBER", "min": 0, "max": 150 },
-    { "name": "role", "type": "ENUM", "required": true, "enumValues": ["admin", "user", "guest"] }
+    { "name": "role", "type": "ENUM", "required": true, "enumValues": ["admin", "user", "guest"] },
+    { "name": "referenti", "type": "REFERENCE", "required": false, "referenceEntityKey": "users" }
   ],
   "acl": {
     "read": ["editors", "viewers"],
     "write": ["editors"],
     "delete": ["editors"],
     "search": ["editors", "viewers"]
+  },
+  "notificationConfig": {
+    "to": ["admin@azienda.it", "{{email}}"],
+    "subject": "Nuovo cliente: {{first_name}}",
+    "createTemplateId": "notifica-nuovo-cliente",
+    "updateTemplateId": null,
+    "deleteTemplateId": null
   }
 }
 ```
 
-> Il campo `acl` definisce quali **gruppi** possono eseguire quali operazioni sui record di questa entità. Se omesso, l'accesso è aperto a tutti gli utenti autenticati. Il ruolo `admin` e `super_admin` bypassano sempre l'ACL.
+> Il campo `acl` definisce quali **gruppi** possono eseguire quali operazioni sui record di questa entità. Se omesso, l'accesso è aperto a tutti gli utenti autenticati. I ruoli di sistema `ADMIN` e `SUPER_ADMIN` bypassano sempre l'ACL.
+
+> Per i campi di tipo `REFERENCE`, la proprietà `referenceEntityKey` indica l'entityKey dell'entità referenziata. Il valore del campo è **sempre una lista di ID** (es. `["id1", "id2"]`), anche se contiene un solo elemento. In fase di creazione o aggiornamento di un record, il sistema verifica che **ogni ID nella lista** esista effettivamente nell'entità target. Questo permette relazioni molti-a-molti (ad esempio, un asset assegnato a più clienti).
+
+> Se `historyEnabled` è `true`, ogni modifica ai record di questa entità viene storicizzata.
+
+> Il campo `notificationConfig` è **opzionale**. Se presente, abilita l'invio automatico di email dopo le operazioni CRUD sui record. Vedi [notifiche-email.md](notifiche-email.md) per i dettagli.
+
+**Campi `notificationConfig`:**
+
+| Campo | Tipo | Obbligatorio | Descrizione |
+|-------|------|-------------|-------------|
+| `to` | `string[]` | Si (se notificationConfig presente) | Lista destinatari: indirizzi fissi e/o placeholder (`{{email}}`) risolti dai dati del record |
+| `subject` | `string` | No | Oggetto dell'email; supporta placeholder. Default: `[CMS] Notifica <entityKey>` |
+| `createTemplateId` | `string` | No | ID template per notifica su create; `null` = nessuna notifica. Può essere un `_id` MongoDB o il nome di un file HTML classpath (`template/{id}.html`) |
+| `updateTemplateId` | `string` | No | ID template per notifica su update; `null` = nessuna notifica. Stessa logica di `createTemplateId` |
+| `deleteTemplateId` | `string` | No | ID template per notifica su delete; `null` = nessuna notifica. Stessa logica di `createTemplateId` |
 
 **Risposta: `201 Created`**
 
@@ -244,12 +218,20 @@ POST /api/v1/entity-definitions
   "id": "6789abc...",
   "entityKey": "customers",
   "label": "Clienti",
+  "historyEnabled": true,
   "fields": [  ],
   "acl": {
     "read": ["editors", "viewers"],
     "write": ["editors"],
     "delete": ["editors"],
     "search": ["editors", "viewers"]
+  },
+  "notificationConfig": {
+    "to": ["admin@azienda.it", "{{email}}"],
+    "subject": "Nuovo cliente: {{first_name}}",
+    "createTemplateId": "notifica-nuovo-cliente",
+    "updateTemplateId": null,
+    "deleteTemplateId": null
   },
   "createdAt": "2025-01-15T10:00:00Z",
   "updatedAt": "2025-01-15T10:00:00Z"
@@ -265,11 +247,13 @@ curl -X POST http://localhost:8088/api/v1/entity-definitions \
   -d '{
     "entityKey": "customers",
     "label": "Clienti",
+    "historyEnabled": true,
     "fields": [
       { "name": "first_name", "type": "STRING", "required": true, "maxLen": 100 },
       { "name": "email", "type": "EMAIL", "required": true },
       { "name": "age", "type": "NUMBER", "min": 0, "max": 150 },
-      { "name": "role", "type": "ENUM", "required": true, "enumValues": ["admin", "user", "guest"] }
+      { "name": "role", "type": "ENUM", "required": true, "enumValues": ["admin", "user", "guest"] },
+      { "name": "referenti", "type": "REFERENCE", "referenceEntityKey": "users" }
     ],
     "acl": {
       "read": ["editors", "viewers"],
@@ -317,6 +301,7 @@ PUT /api/v1/entity-definitions/{key}
 ```json
 {
   "label": "Clienti Premium",
+  "historyEnabled": true,
   "fields": [
     { "name": "first_name", "type": "STRING", "required": true, "maxLen": 200 },
     { "name": "email", "type": "EMAIL", "required": true }
@@ -336,6 +321,7 @@ curl -X PUT http://localhost:8088/api/v1/entity-definitions/customers \
   -H "Authorization: Bearer $TOKEN" \
   -d '{
     "label": "Clienti Premium",
+    "historyEnabled": true,
     "fields": [
       { "name": "first_name", "type": "STRING", "required": true, "maxLen": 200 },
       { "name": "email", "type": "EMAIL", "required": true }
@@ -352,6 +338,8 @@ curl -X PUT http://localhost:8088/api/v1/entity-definitions/customers \
 DELETE /api/v1/entity-definitions/{key}
 ```
 
+Esegue un'**eliminazione logica** (soft delete): marchia la definizione come eliminata senza rimuovere i dati dal database.
+
 **Risposta: `204 No Content`**
 
 **Errore se esistono record: `409 Conflict`**
@@ -365,7 +353,7 @@ curl -X DELETE -H "Authorization: Bearer $TOKEN" \
 
 ## Gruppi
 
-> Richiede ruolo **admin** (o **super_admin** tramite gerarchia ruoli).
+> Richiede ruolo di sistema **ADMIN** (o **SUPER_ADMIN**).
 
 ### Crea gruppo
 
@@ -378,7 +366,8 @@ POST /api/v1/groups
 ```json
 {
   "name": "editors",
-  "description": "Gruppo editori"
+  "description": "Gruppo editori",
+  "systemRole": null
 }
 ```
 
@@ -386,6 +375,7 @@ POST /api/v1/groups
 |-------|------|-------------|-------------|
 | `name` | `string` | Si | Nome del gruppo (unico) |
 | `description` | `string` | No | Descrizione del gruppo |
+| `systemRole` | `string` | No | Ruolo di sistema: `SUPER_ADMIN`, `ADMIN` oppure `null` |
 
 **Risposta: `201 Created`**
 
@@ -394,6 +384,7 @@ POST /api/v1/groups
   "id": "6789abc...",
   "name": "editors",
   "description": "Gruppo editori",
+  "systemRole": null,
   "createdAt": "2025-01-15T10:00:00Z",
   "updatedAt": "2025-01-15T10:00:00Z"
 }
@@ -405,7 +396,7 @@ POST /api/v1/groups
 curl -X POST http://localhost:8088/api/v1/groups \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
-  -d '{ "name": "editors", "description": "Gruppo editori" }'
+  -d '{ "name": "editors", "description": "Gruppo editori", "systemRole": null }'
 ```
 
 **Errore nome duplicato: `409 Conflict`**
@@ -449,7 +440,8 @@ PUT /api/v1/groups/{id}
 ```json
 {
   "name": "editors",
-  "description": "Nuova descrizione"
+  "description": "Nuova descrizione",
+  "systemRole": "ADMIN"
 }
 ```
 
@@ -459,7 +451,7 @@ PUT /api/v1/groups/{id}
 curl -X PUT http://localhost:8088/api/v1/groups/6789abc123 \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
-  -d '{ "name": "editors", "description": "Nuova descrizione" }'
+  -d '{ "name": "editors", "description": "Nuova descrizione", "systemRole": "ADMIN" }'
 ```
 
 ---
@@ -469,6 +461,8 @@ curl -X PUT http://localhost:8088/api/v1/groups/6789abc123 \
 ```
 DELETE /api/v1/groups/{id}
 ```
+
+Esegue un'**eliminazione logica** (soft delete): marchia il gruppo come eliminato senza rimuoverlo dal database.
 
 **Risposta: `204 No Content`**
 
@@ -483,7 +477,7 @@ curl -X DELETE -H "Authorization: Bearer $TOKEN" \
 
 ## Gestione Utenti
 
-> Richiede ruolo **admin** (o **super_admin** tramite gerarchia ruoli).
+> Richiede ruolo di sistema **ADMIN** (o **SUPER_ADMIN**).
 
 ### Crea utente
 
@@ -497,7 +491,6 @@ POST /api/v1/users
 {
   "username": "luigi",
   "email": "luigi@example.com",
-  "roles": ["user"],
   "groupIds": ["abc123"]
 }
 ```
@@ -506,8 +499,9 @@ POST /api/v1/users
 |-------|------|-------------|-------------|
 | `username` | `string` | Si | Nome utente (3-50 caratteri) |
 | `email` | `string` | Si | Indirizzo email valido |
-| `roles` | `string[]` | No | Lista dei ruoli (default: `["user"]`) |
 | `groupIds` | `string[]` | No | Lista degli ID dei gruppi a cui assegnare l'utente |
+
+> Al momento della creazione, una password temporanea viene auto-generata e inviata via email all'indirizzo specificato (template: `cms.email.password-template-id`, fallback: `template/email-password.html`). I placeholder usati sono `{{username}}` e `{{password}}`.
 
 **Risposta: `201 Created`**
 
@@ -516,7 +510,6 @@ POST /api/v1/users
   "id": "6789abc...",
   "username": "luigi",
   "email": "luigi@example.com",
-  "roles": ["user"],
   "groupIds": ["abc123"],
   "groupNames": ["editors"],
   "enabled": true,
@@ -532,7 +525,7 @@ POST /api/v1/users
 curl -X POST http://localhost:8088/api/v1/users \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
-  -d '{ "username": "luigi", "email": "luigi@example.com", "roles": ["user"], "groupIds": ["abc123"] }'
+  -d '{ "username": "luigi", "email": "luigi@example.com", "groupIds": ["abc123"] }'
 ```
 
 **Errore username duplicato: `409 Conflict`**
@@ -576,7 +569,6 @@ PUT /api/v1/users/{id}
 ```json
 {
   "email": "luigi.new@example.com",
-  "roles": ["user"],
   "groupIds": ["abc123", "def456"],
   "enabled": true
 }
@@ -588,7 +580,7 @@ PUT /api/v1/users/{id}
 curl -X PUT http://localhost:8088/api/v1/users/6789abc123 \
   -H "Content-Type: application/json" \
   -H "Authorization: Bearer $TOKEN" \
-  -d '{ "email": "luigi.new@example.com", "roles": ["user"], "groupIds": ["abc123", "def456"], "enabled": true }'
+  -d '{ "email": "luigi.new@example.com", "groupIds": ["abc123", "def456"], "enabled": true }'
 ```
 
 ---
@@ -598,6 +590,8 @@ curl -X PUT http://localhost:8088/api/v1/users/6789abc123 \
 ```
 DELETE /api/v1/users/{id}
 ```
+
+Esegue un'**eliminazione logica** (soft delete): marchia l'utente come eliminato senza rimuoverlo dal database.
 
 **Risposta: `204 No Content`**
 
@@ -616,7 +610,7 @@ curl -X DELETE -H "Authorization: Bearer $TOKEN" \
 POST /api/v1/users/{id}/reset-password
 ```
 
-Genera una nuova password casuale e la invia via email all'utente. Il flag `firstAccess` viene reimpostato a `true`.
+Genera una nuova password casuale e la invia via email all'utente tramite il template configurato in `cms.email.password-template-id` (fallback: `template/email-password.html`). Il flag `firstAccess` viene reimpostato a `true`.
 
 **Risposta: `204 No Content`**
 
@@ -639,7 +633,7 @@ curl -X POST -H "Authorization: Bearer $TOKEN" \
 GET /api/v1/menu
 ```
 
-> Richiede autenticazione. Restituisce le voci di menu filtrate per i gruppi dell'utente. Admin e super_admin vedono tutto.
+> Richiede autenticazione. Restituisce le voci di menu filtrate per i gruppi dell'utente. ADMIN e SUPER_ADMIN vedono tutto.
 
 **Risposta: `200 OK`**
 
@@ -667,9 +661,9 @@ curl -H "Authorization: Bearer $TOKEN" http://localhost:8088/api/v1/menu
 
 ---
 
-### Gestione menu (admin)
+### Gestione menu (ADMIN)
 
-> Richiede ruolo **admin** (o **super_admin** tramite gerarchia ruoli).
+> Richiede ruolo di sistema **ADMIN** (o **SUPER_ADMIN**).
 
 #### Crea voce di menu
 
@@ -773,6 +767,8 @@ curl -X PUT http://localhost:8088/api/v1/menu/manage/6789abc123 \
 DELETE /api/v1/menu/manage/{id}
 ```
 
+Esegue un'**eliminazione logica** (soft delete): marchia la voce di menu come eliminata senza rimuoverla dal database.
+
 **Risposta: `204 No Content`**
 
 ```bash
@@ -787,6 +783,16 @@ curl -X DELETE -H "Authorization: Bearer $TOKEN" \
 ## Records
 
 > Richiede autenticazione + permessi ACL definiti nell'entità.
+
+### Eliminazione logica (Soft Delete)
+
+> Tutte le operazioni DELETE del CMS implementano l'**eliminazione logica** (soft delete), non l'eliminazione fisica.
+>
+> **Comportamento:**
+> - Tutti gli endpoint DELETE impostano il flag `deleted = true` sul record, senza rimuovere i dati dal database
+> - I record marcati come eliminati sono automaticamente esclusi da tutte le operazioni di ricerca e visualizzazione
+> - I dati fisici rimangono nel database per motivi di audit e conformità normativa
+> - Per i file: il soft delete marchia solo i metadati come eliminati; il file fisico nello storage (MongoDB GridFS o S3) NON viene rimosso
 
 ### Crea record
 
@@ -891,12 +897,82 @@ curl -X PUT http://localhost:8088/api/v1/records/customers/678abc123 \
 DELETE /api/v1/records/{entityKey}/{id}
 ```
 
-Richiede permesso ACL **delete**.
+Richiede permesso ACL **delete**. Esegue un'**eliminazione logica**: imposta `deleted = true` sul record senza rimuoverlo dal database.
 
 ```bash
 curl -X DELETE -H "Authorization: Bearer $TOKEN" \
   http://localhost:8088/api/v1/records/customers/678abc123
 ```
+
+---
+
+### Storico record
+
+> Disponibile solo per le entità con `historyEnabled: true`.
+
+#### Lista storico modifiche
+
+```
+GET /api/v1/records/{entityKey}/{id}/history
+```
+
+Richiede permesso ACL **read**. Restituisce l'elenco delle versioni storiche di un record.
+
+**Risposta: `200 OK`**
+
+```json
+[
+  {
+    "id": "...",
+    "recordId": "678abc...",
+    "entityKey": "customers",
+    "data": { "first_name": "Mario", "email": "mario@example.com" },
+    "version": 1,
+    "modifiedBy": "super_admin",
+    "modifiedAt": "2025-01-15T10:30:00Z"
+  }
+]
+```
+
+**curl:**
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8088/api/v1/records/customers/678abc123/history
+```
+
+---
+
+#### Dettaglio versione specifica
+
+```
+GET /api/v1/records/{entityKey}/{id}/history/{version}
+```
+
+Richiede permesso ACL **read**. Restituisce una versione specifica dello storico di un record.
+
+**Risposta: `200 OK`**
+
+```json
+{
+  "id": "...",
+  "recordId": "678abc...",
+  "entityKey": "customers",
+  "data": { "first_name": "Mario", "email": "mario@example.com" },
+  "version": 1,
+  "modifiedBy": "super_admin",
+  "modifiedAt": "2025-01-15T10:30:00Z"
+}
+```
+
+**curl:**
+
+```bash
+curl -H "Authorization: Bearer $TOKEN" \
+  http://localhost:8088/api/v1/records/customers/678abc123/history/1
+```
+
+**Errore versione non trovata: `404 Not Found`**
 
 ---
 
@@ -1099,7 +1175,7 @@ curl -H "Authorization: Bearer $TOKEN" \
 DELETE /api/v1/files/{id}
 ```
 
-Elimina il file dal backend di storage e i relativi metadati da MongoDB.
+Esegue un'**eliminazione logica** (soft delete): marchia i metadati del file come eliminati (`deleted = true`) senza rimuovere il file fisico dal backend di storage (MongoDB GridFS o S3).
 
 **Risposta: `204 No Content`**
 
@@ -1116,7 +1192,7 @@ curl -X DELETE -H "Authorization: Bearer $TOKEN" \
 
 ## Email
 
-> Richiede ruolo **sender**. L'utente deve avere `"sender"` nella lista `roles` della collection `users`.
+> Richiede ruolo di sistema **ADMIN**. L'utente deve avere il ruolo di sistema `ADMIN` o `SUPER_ADMIN`.
 
 ### Invia email
 
@@ -1125,6 +1201,8 @@ POST /api/v1/email/send
 ```
 
 Invia una email con corpo HTML risolto da un template e allegati opzionali. Il corpo HTML viene determinato dal template indicato tramite `templateId`, con i placeholder sostituiti dai valori forniti nella mappa `placeholders`.
+
+> **Fallback template:** Se il `templateId` fornito non viene trovato nel database, il sistema cerca automaticamente un file HTML corrispondente nel classpath: `template/{templateId}.html`. Se presente, lo usa come template (senza validazione bidirezionale dei placeholder). Se non esiste neanche nel classpath, risponde `404 Not Found`.
 
 Gli allegati possono provenire da tre sorgenti:
 - **`attachments`**: allegati codificati in Base64, inline (CID embedding) o classici
@@ -1303,7 +1381,7 @@ curl -X POST http://localhost:8088/api/v1/email/send \
   }'
 ```
 
-**Errore ruolo mancante: `403 Forbidden`** (l'utente non ha il ruolo `sender`)
+**Errore ruolo mancante: `403 Forbidden`** (l'utente non ha il ruolo di sistema richiesto)
 
 **Errore validazione input: `400 Bad Request`**
 
@@ -1335,7 +1413,7 @@ curl -X POST http://localhost:8088/api/v1/email/send \
 
 ## Email Templates
 
-> Richiede ruolo **sender**. Gestione CRUD dei template email HTML con placeholder e allegati opzionali.
+> Richiede ruolo di sistema **ADMIN**. Gestione CRUD dei template email HTML con placeholder e allegati opzionali.
 
 ### Crea template
 
@@ -1422,7 +1500,7 @@ curl -X POST http://localhost:8088/api/v1/email/templates \
 
 **Errore nome duplicato: `409 Conflict`**
 
-**Errore placeholder non valido: `401 Unauthorized`** (nome non conforme o non presente nell'HTML)
+**Errore placeholder non valido: `400 Bad Request`** (nome non conforme o non presente nell'HTML)
 
 ---
 
@@ -1458,6 +1536,8 @@ curl -H "Authorization: Bearer $TOKEN" http://localhost:8088/api/v1/email/templa
 DELETE /api/v1/email/templates/{id}
 ```
 
+Esegue un'**eliminazione logica** (soft delete): marchia il template come eliminato senza rimuoverlo dal database.
+
 **Risposta: `204 No Content`**
 
 ```bash
@@ -1475,8 +1555,8 @@ curl -X DELETE -H "Authorization: Bearer $TOKEN" \
 |--------|-------------|--------|
 | `400` | Bad Request | Validazione input, campo non definito, troppi filtri, file vuoto/troppo grande/tipo non consentito |
 | `401` | Unauthorized | Credenziali errate, token mancante/scaduto |
-| `403` | Forbidden | Ruolo utente non ha il permesso ACL richiesto, account disabilitato, ruolo `sender` mancante per email, primo accesso con password da cambiare |
-| `404` | Not Found | Entity definition, record, file, template email, group, user o menu item non trovato |
+| `403` | Forbidden | Ruolo utente non ha il permesso ACL richiesto, account disabilitato, ruolo di sistema mancante per email, primo accesso con password da cambiare |
+| `404` | Not Found | Entity definition, record, record history (`RecordHistoryNotFoundException`), file, template email, group, user o menu item non trovato |
 | `409` | Conflict | Duplicato entityKey, delete entity con record esistenti, group name duplicato, username duplicato |
 | `422` | Unprocessable Entity | Dati record non validi rispetto alla definizione |
 | `500` | Internal Server Error | Errore di storage file, errore invio email, errore interno non previsto |

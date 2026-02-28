@@ -18,6 +18,7 @@
 | `jjwt-api` / `jjwt-impl` / `jjwt-jackson` | Generazione e parsing JWT |
 | `software.amazon.awssdk:s3` | Client AWS S3 per storage file (opzionale, solo con backend S3) |
 | `spring-boot-starter-mail` | Invio email SMTP con allegati |
+| `spring-boot-starter-test` (scope `test`) | JUnit 5, Mockito, AssertJ per unit test |
 
 ## Avvio rapido
 
@@ -119,10 +120,17 @@ server:
 # Configurazione applicativa CMS
 cms:
 
+  # Super admin (auto-creato all'avvio se non esiste)
+  super-admin:
+    username: "super_admin"
+    email: "admin@example.com"
+    password: "changeme123"
+
   # Email
   email:
-    default-from: "noreply@cms-nosql.local"  # Mittente di default
-    password-template-id: ""                  # ID template per invio password
+    default-from: "noreply-wolfcoding@wolfgroups.it"  # Mittente di default
+    password-template-id: ""                          # ID template DB per credenziali (creazione utente e reset admin)
+    recover-password-template-id: ""                  # ID template DB per recupero password autonomo
 
   # Limiti di sicurezza per le query
   security:
@@ -205,7 +213,7 @@ cms:
   jwt:
     secret: ${CMS_JWT_SECRET}       # OBBLIGATORIO via env var
   email:
-    default-from: ${CMS_EMAIL_FROM:noreply@cms-nosql.local}
+    default-from: ${CMS_EMAIL_FROM:noreply-wolfcoding@wolfgroups.it}
 
 logging:
   level:
@@ -234,6 +242,16 @@ logging:
 | `secret` | (base64) | Chiave HMAC-SHA256 in Base64. **Cambiare in produzione.** |
 | `expiration-ms` | `86400000` | Durata token in millisecondi (default 24 ore) |
 
+### Super Admin (`cms.super-admin.*`)
+
+| Proprietà | Default | Descrizione |
+|-----------|---------|-------------|
+| `username` | `super_admin` | Username dell'utente super admin |
+| `email` | `admin@example.com` | Indirizzo email del super admin |
+| `password` | `changeme123` | Password iniziale (cambiare al primo accesso) |
+
+> **Nota:** All'avvio dell'applicazione, se non esiste un gruppo con `systemRole = SUPER_ADMIN`, viene creato automaticamente il gruppo `super_admins`. Se non esiste un utente in quel gruppo, viene creato con le credenziali configurate e `firstAccess = true`.
+
 ### SMTP (`spring.mail.*`)
 
 | Proprietà | Default (dev) | Descrizione |
@@ -249,12 +267,17 @@ logging:
 
 | Proprietà | Default | Descrizione |
 |-----------|---------|-------------|
-| `default-from` | `noreply@cms-nosql.local` | Indirizzo mittente di default se non specificato nella richiesta |
-| `password-template-id` | `""` (vuoto) | ID del template email per invio password (registrazione e recupero) |
+| `default-from` | `noreply-wolfcoding@wolfgroups.it` | Indirizzo mittente di default se non specificato nella richiesta |
+| `password-template-id` | `""` (vuoto) | ID template MongoDB per credenziali (creazione utente + reset admin da `UserManagementService`). Se vuoto, usa il template HTML di fallback dal classpath (`template/email-password.html`) |
+| `recover-password-template-id` | `""` (vuoto) | ID template MongoDB per recupero password autonomo (endpoint `/auth/recover-password`). Se vuoto, usa il template HTML di fallback dal classpath (`template/email-recover-password.html`) |
 
-> **Nota:** La proprieta `password-template-id` deve essere configurata con l'ID di un template email creato nella collection `email_templates`. Il template deve contenere i placeholder `{{username}}` e `{{password}}`.
+> **Template di default (fallback):** il sistema include due template HTML predefiniti nel classpath, usati automaticamente quando i rispettivi ID non sono configurati:
+> - `template/email-password.html` — usato per la creazione utente e il reset password admin; placeholder: `{{username}}`, `{{password}}`
+> - `template/email-recover-password.html` — usato per il recupero password autonomo; placeholder: `{{username}}`, `{{password}}`
 >
-> La generazione degli eventi calendario iCal (RFC 5545), gli allegati da storage e gli allegati dei template non richiedono configurazione aggiuntiva. Queste funzionalita usano le dipendenze gia presenti nel progetto (`spring-boot-starter-mail`, storage service).
+> Per personalizzare i template, creare un `EmailTemplate` tramite `POST /api/v1/email/templates` con il contenuto HTML desiderato e i placeholder `username` e `password`, poi configurare l'ID restituito nella proprietà corrispondente.
+>
+> La generazione degli eventi calendario iCal (RFC 5545), gli allegati da storage e gli allegati dei template non richiedono configurazione aggiuntiva.
 
 ### Multipart (upload file)
 
@@ -273,6 +296,20 @@ logging:
 | `regex-max-length` | `100` | Lunghezza massima del valore nell'operatore `like` |
 | `entity-key-pattern` | `^[a-z][a-z0-9_]{1,48}[a-z0-9]$` | Pattern regex che le entity key devono rispettare |
 | `max-login-attempts` | `3` | Tentativi massimi di login falliti prima del blocco account |
+
+### Tipi di campo supportati
+
+I campi delle entity definition supportano i seguenti tipi:
+
+| Tipo | Valore atteso | Proprietà specifiche |
+|------|---------------|----------------------|
+| `STRING` | Stringa | `maxLen`, `pattern` (regex) |
+| `NUMBER` | Numero | `min`, `max` |
+| `BOOLEAN` | Booleano | -- |
+| `DATE` | Stringa ISO-8601 | -- |
+| `EMAIL` | Stringa (email) | -- |
+| `ENUM` | Stringa | `enumValues` (lista valori ammessi) |
+| `REFERENCE` | Lista di stringhe (lista di record ID) | `referenceEntityKey` (entityKey dell'entità referenziata). Il valore è **sempre una lista di ID** (es. `["id1", "id2"]`). In fase di creazione/aggiornamento, verifica che **tutti gli ID nella lista** esistano nell'entità target. Permette relazioni molti-a-molti. |
 
 ### Storage file (`cms.storage.*`)
 
@@ -299,6 +336,9 @@ logging:
 | `SPRING_PROFILES_ACTIVE` | Si | Impostare a `prod` |
 | `CMS_JWT_SECRET` | Si | Chiave segreta JWT in Base64 (almeno 256 bit) |
 | `MONGODB_URI` | No | Connection string MongoDB (default: `mongodb://mongo:27017/cms_nosql`) |
+| `CMS_SUPER_ADMIN_USERNAME` | No | Username super admin (default: super_admin) |
+| `CMS_SUPER_ADMIN_EMAIL` | No | Email super admin |
+| `CMS_SUPER_ADMIN_PASSWORD` | Si (in prod) | Password iniziale super admin |
 | `CMS_STORAGE_TYPE` | No | Backend storage file: `grid-fs` o `s3` (default: `grid-fs`) |
 | `CMS_STORAGE_S3_ENDPOINT` | Solo se S3 | URL endpoint S3 (per MinIO o S3-compatibili) |
 | `CMS_STORAGE_S3_REGION` | Solo se S3 | Regione AWS |
@@ -309,8 +349,9 @@ logging:
 | `SMTP_PORT` | No | Porta SMTP (default: `587`) |
 | `SMTP_USERNAME` | Si | Username per autenticazione SMTP |
 | `SMTP_PASSWORD` | Si | Password per autenticazione SMTP |
-| `CMS_EMAIL_FROM` | No | Indirizzo mittente di default (default: `noreply@cms-nosql.local`) |
-| `CMS_EMAIL_PASSWORD_TEMPLATE_ID` | Si | ID del template email per l'invio della password (registrazione e recupero) |
+| `CMS_EMAIL_FROM` | No | Indirizzo mittente di default (default: `noreply-wolfcoding@wolfgroups.it`) |
+| `CMS_EMAIL_PASSWORD_TEMPLATE_ID` | No | ID template email per credenziali (creazione utente e reset admin). Se vuoto usa il template HTML di fallback |
+| `CMS_EMAIL_RECOVER_PASSWORD_TEMPLATE_ID` | No | ID template email per recupero password autonomo. Se vuoto usa il template HTML di fallback |
 
 ### Esempio di avvio in produzione
 
@@ -388,7 +429,7 @@ TIMESTAMP [THREAD] [TRACE-ID] [SESSION-ID] LIVELLO LOGGER - MESSAGGIO
 
 Esempio:
 ```
-2026-02-07 14:30:00.123 [http-nio-8088-exec-1] [a1b2c3d4e5f6] [f6e5d4c3b2a1] INFO  c.w.c.service.AuthService - Login riuscito per utente='mario', ruoli=[admin]
+2026-02-07 14:30:00.123 [http-nio-8088-exec-1] [a1b2c3d4e5f6] [f6e5d4c3b2a1] INFO  c.w.c.service.AuthService - Login riuscito per utente='mario'
 ```
 
 ### Trace ID e Session ID
@@ -428,9 +469,9 @@ curl -H "Authorization: Bearer $TOKEN" \
 
 Il sistema usa JWT (JSON Web Token) stateless per l'autenticazione.
 
-### Flusso
+### Flusso JWT
 
-1. Il client chiama `POST /api/v1/auth/register` o `POST /api/v1/auth/login`
+1. Il client chiama `POST /api/v1/auth/login` con le credenziali
 2. Il server risponde con un token JWT
 3. Il client include il token in ogni richiesta successiva:
    ```
@@ -443,7 +484,7 @@ Il sistema usa JWT (JSON Web Token) stateless per l'autenticazione.
 | Claim | Descrizione |
 |-------|-------------|
 | `sub` | Username |
-| `roles` | Lista ruoli (es. `["admin", "user"]`) |
+| `systemRoles` | Lista ruoli di sistema derivati dai gruppi dell'utente (es. `["SUPER_ADMIN", "ADMIN"]`) |
 | `groups` | Lista nomi gruppi dell'utente (es. `["editors", "viewers"]`) |
 | `firstAccess` | `true` se l'utente deve cambiare la password al primo accesso |
 | `iat` | Timestamp emissione |
@@ -453,19 +494,21 @@ Il sistema usa JWT (JSON Web Token) stateless per l'autenticazione.
 
 | Endpoint | Chi può accedere |
 |----------|------------------|
-| `POST /api/v1/auth/**` | Tutti (pubblico) |
-| `/api/v1/entity-definitions/**` | Solo utenti con ruolo `admin` (o `super_admin` tramite gerarchia) |
-| `/api/v1/groups/**` | Solo utenti con ruolo `admin` (o `super_admin` tramite gerarchia) |
-| `/api/v1/users/**` | Solo utenti con ruolo `admin` (o `super_admin` tramite gerarchia) |
-| `/api/v1/menu/manage/**` | Solo utenti con ruolo `admin` (o `super_admin` tramite gerarchia) |
+| `POST /api/v1/auth/login` | Tutti (pubblico) |
+| `POST /api/v1/auth/recover-password` | Tutti (pubblico) |
+| `POST /api/v1/auth/change-password` | Utenti autenticati |
+| `/api/v1/entity-definitions/**` | Solo utenti con ruolo di sistema `ADMIN` o `SUPER_ADMIN` |
+| `/api/v1/groups/**` | Solo utenti con ruolo di sistema `ADMIN` o `SUPER_ADMIN` |
+| `/api/v1/users/**` | Solo utenti con ruolo di sistema `ADMIN` o `SUPER_ADMIN` |
+| `/api/v1/menu/manage/**` | Solo utenti con ruolo di sistema `ADMIN` o `SUPER_ADMIN` |
 | `/api/v1/menu` | Utenti autenticati (menu filtrato per gruppi) |
 | `/api/v1/records/**` | Utenti autenticati (+ check ACL per entità) |
 | `/api/v1/files/**` | Utenti autenticati |
-| `/api/v1/email/**` | Solo utenti con ruolo `sender` |
+| `/api/v1/email/**` | Solo utenti con ruolo di sistema `ADMIN` o `SUPER_ADMIN` |
 
 ## ACL (Access Control List)
 
-Ogni entity definition può avere un campo `acl` che controlla quali **gruppi** possono eseguire operazioni sui record di quella entità.
+Ogni entity definition può avere un campo `acl` che controlla quali **gruppi** possono eseguire operazioni sui record di quella entità. La entity definition può anche specificare `historyEnabled: true` per abilitare il tracciamento della cronologia delle modifiche ai record.
 
 ### Struttura
 
@@ -476,7 +519,8 @@ Ogni entity definition può avere un campo `acl` che controlla quali **gruppi** 
     "write":  ["editors"],
     "delete": ["editors"],
     "search": ["editors", "viewers"]
-  }
+  },
+  "historyEnabled": true
 }
 ```
 
@@ -491,7 +535,7 @@ Ogni entity definition può avere un campo `acl` che controlla quali **gruppi** 
 
 ### Regole di valutazione
 
-1. **Ruoli `super_admin` e `admin`** bypassano sempre l'ACL — hanno accesso completo a tutto
+1. **Ruoli di sistema `SUPER_ADMIN` e `ADMIN`** bypassano sempre l'ACL — hanno accesso completo a tutto
 2. **ACL `null`** (non definita) — accesso aperto a tutti gli utenti autenticati
 3. **Lista permesso vuota o `null`** — nessuna restrizione per quel permesso specifico
 4. **Lista con gruppi** — almeno uno dei **gruppi** dell'utente deve essere presente nella lista
@@ -508,39 +552,37 @@ Con questa ACL:
 }
 ```
 
-| Ruolo/Gruppo utente | read | write | delete | search |
-|---------------------|------|-------|--------|--------|
-| ruolo `super_admin` | OK (bypass) | OK (bypass) | OK (bypass) | OK (bypass) |
-| ruolo `admin` | OK (bypass) | OK (bypass) | OK (bypass) | OK (bypass) |
+| Ruolo di sistema / Gruppo utente | read | write | delete | search |
+|----------------------------------|------|-------|--------|--------|
+| ruolo di sistema `SUPER_ADMIN` | OK (bypass) | OK (bypass) | OK (bypass) | OK (bypass) |
+| ruolo di sistema `ADMIN` | OK (bypass) | OK (bypass) | OK (bypass) | OK (bypass) |
 | gruppo `editors` | OK | OK | OK | OK |
 | gruppo `viewers` | OK | NO | NO | OK |
 | nessun gruppo | NO | NO | NO | NO |
 
-## Gerarchia ruoli
+## Ruoli di sistema (systemRole)
 
-Il sistema implementa una gerarchia di ruoli tramite Spring Security `RoleHierarchy`:
+I ruoli di sistema sono attributi a livello di **gruppo**, non di utente. Ogni gruppo può avere un campo `systemRole` che conferisce permessi speciali a tutti i membri del gruppo.
 
-```
-super_admin > admin > user
-```
+| systemRole | Descrizione |
+|------------|-------------|
+| `SUPER_ADMIN` | Accesso completo a tutto. Bypassa tutti i controlli ACL. Può gestire entity definitions, utenti, gruppi e menu. |
+| `ADMIN` | Gestisce entity definitions, utenti, gruppi e menu. Bypassa i controlli ACL sulle entity. |
+| (nessuno) | Gruppo senza ruolo di sistema. I membri accedono alle entity solo tramite le ACL. |
 
-| Ruolo | Permessi |
-|-------|----------|
-| `super_admin` | Accesso completo a tutto. Eredita tutti i permessi di `admin`. Bypassa tutti i controlli ACL. |
-| `admin` | Gestisce entity definitions, utenti, gruppi e menu. Bypassa i controlli ACL sulle entity. |
-| `user` | Ruolo base. Accede alle entity solo tramite le ACL dei gruppi a cui appartiene. |
+Un utente eredita i ruoli di sistema da tutti i gruppi a cui appartiene. Se un utente appartiene a un gruppo con `systemRole = ADMIN` e a un altro gruppo senza ruolo di sistema, l'utente avrà il ruolo di sistema `ADMIN`.
 
-I ruoli sono salvati nel campo `roles` della collection `users`. Un utente puo avere piu ruoli.
+I ruoli di sistema vengono inclusi nel token JWT nel claim `systemRoles`.
 
 ## Gruppi
 
 Gli utenti possono appartenere a uno o più gruppi. I gruppi sono referenziati nelle ACL delle entity definition per controllare l'accesso ai record.
 
 ### Struttura
-- Ogni gruppo ha un `name` univoco e una `description`
+- Ogni gruppo ha un `name` univoco, una `description` e un campo opzionale `systemRole`
 - Gli utenti referenziano i gruppi tramite `groupIds` nella collection `users`
 - Le ACL nelle entity definition usano i **nomi dei gruppi** (non gli ID)
-- Il token JWT include un claim `groups` con i nomi dei gruppi dell'utente
+- Il token JWT include un claim `groups` con i nomi dei gruppi dell'utente e un claim `systemRoles` con i ruoli di sistema ereditati dai gruppi
 
 ### Esempio
 Un utente con `groupIds: ["abc123", "def456"]` che corrispondono ai gruppi "editors" e "viewers"
@@ -561,6 +603,10 @@ L'`entityKey` identifica univocamente un tipo di entità. Deve rispettare il pat
 **Esempi validi:** `customers`, `order_items`, `blog_posts`, `user_v2`
 
 **Esempi invalidi:** `Customers` (maiuscola), `_items` (inizia con underscore), `a` (troppo corto), `123abc` (inizia con numero)
+
+### historyEnabled
+
+Le entity definition possono specificare il campo `historyEnabled` (booleano, default `false`). Quando abilitato, ogni modifica a un record di quell'entità viene tracciata nella collection `record_history`, mantenendo una cronologia completa delle versioni precedenti.
 
 ## Sicurezza delle query
 
@@ -593,14 +639,6 @@ CORS è configurato per permettere tutte le origini su `/api/**`:
 
 Per ambienti di produzione, modificare `WebConfig.java` per restringere le origini consentite.
 
-### SecurityConfig
-
-La classe `SecurityConfig` configura Spring Security e include:
-
-- Il bean `RoleHierarchy` che definisce la gerarchia `super_admin > admin > user`
-- Le regole di autorizzazione per tutti gli endpoint (vedi tabella "Regole di accesso")
-- Il filtro `JwtAuthenticationFilter` per la validazione dei token JWT
-
 ## Indici MongoDB
 
 L'applicazione crea automaticamente i seguenti indici:
@@ -614,6 +652,8 @@ L'applicazione crea automaticamente i seguenti indici:
 | `file_metadata` | `_id` | Primary (default MongoDB) |
 | `email_templates` | `name` | Unique |
 | `groups` | `name` | Unique |
+| `record_history` | `recordId + entityKey` | Compound |
+| `record_history` | `recordId + version` | Compound Unique |
 
 ## Generazione Javadoc
 
@@ -640,6 +680,38 @@ Il plugin è configurato nel `pom.xml` root con encoding UTF-8:
     </configuration>
 </plugin>
 ```
+
+## Unit Test
+
+Il progetto include una suite di unit test puri (nessun contesto Spring, nessun MongoDB) che verificano la logica dei service principali.
+
+### Esecuzione
+
+```bash
+# Eseguire tutti gli unit test
+mvn test -pl cms-nosql
+
+# Oppure dalla directory cms-nosql/cms-nosql
+./mvnw test
+```
+
+### Classi di test
+
+| Classe | Service testato | Test |
+|--------|----------------|------|
+| `JwtServiceTest` | `JwtService` | Generazione token con username/gruppi/systemRoles/firstAccess, validità token, token scaduto, token malformato |
+| `RecordValidationServiceTest` | `RecordValidationService` | Tutti i 7 tipi di campo (STRING, NUMBER, BOOLEAN, DATE, EMAIL, ENUM, REFERENCE), vincoli required/maxLen/pattern/min/max/enumValues, lookup DB per REFERENCE, raccolta errori multipli |
+| `QueryBuilderServiceTest` | `QueryBuilderService` | Costruzione query MongoDB, paginazione, limiti di sicurezza (maxFilters, maxPageSize), operatori eq/ne/gt/lte/in/like, sort asc/desc |
+| `AclServiceTest` | `AclService` | Bypass SUPER_ADMIN/ADMIN, ACL null, lista vuota, match gruppi, nessun match, autenticazione assente |
+| `AuthServiceTest` | `AuthService` | Login OK, reset tentativi falliti, utente non trovato, account disabilitato, password errata, incremento tentativi, blocco account, firstAccess, recoverPassword, changePassword |
+
+### Caratteristiche
+
+- **Nessun contesto Spring** — le classi vengono istanziate direttamente nel `@BeforeEach`, senza `@SpringBootTest`. I test si avviano in meno di un secondo.
+- **Mockito strict stubs** — tramite `@ExtendWith(MockitoExtension.class)`. Gli stub non utilizzati fanno fallire il test.
+- **`anyBoolean()`** per parametri `boolean` primitivi — `any()` restituirebbe null causando NPE sull'unboxing.
+- **`SecurityContextHolder`** usato direttamente in `AclServiceTest` per simulare l'utente autenticato; pulito nell'`@AfterEach`.
+- **Record Java** — `SecurityLimitsProperties` e `JwtProperties` sono record istanziabili direttamente senza Spring.
 
 ## Auditing
 

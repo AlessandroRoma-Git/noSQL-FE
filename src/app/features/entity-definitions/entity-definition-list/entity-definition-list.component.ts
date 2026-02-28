@@ -6,6 +6,7 @@ import { EntityDefinition } from '../../../core/models/entity-definition.model';
 import { Observable } from 'rxjs';
 import { RouterLink } from '@angular/router';
 import { ModalService } from '../../../core/services/modal.service';
+import { I18nService } from '../../../core/services/i18n.service';
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -18,11 +19,21 @@ import { filter } from 'rxjs/operators';
 export class EntityDefinitionListComponent implements OnInit {
   private entityDefinitionService = inject(EntityDefinitionService);
   private modalService = inject(ModalService);
+  private i18nService = inject(I18nService);
   public definitions$!: Observable<EntityDefinition[]>;
 
   ngOnInit(): void {
     this.definitions$ = this.entityDefinitionService.definitions$;
     this.entityDefinitionService.loadEntityDefinitions().subscribe();
+  }
+
+  /**
+   * Questo metodo apre una finestrella (Modal) che spiega all'utente
+   * cosa deve fare in questa pagina.
+   */
+  showHelp(): void {
+    const info = this.i18nService.translate('HELP.ENTITIES');
+    this.modalService.openInfo('Guida Rapida: Entità', info);
   }
 
   onDelete(key: string): void {

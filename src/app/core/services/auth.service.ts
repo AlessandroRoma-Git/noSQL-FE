@@ -13,7 +13,8 @@ import { AuthResponse, ChangePasswordRequest, LoginRequest, RecoverPasswordReque
 interface UserState {
   token: string | null;
   username: string | null;
-  roles: string[];
+  groups: string[];
+  systemRoles: string[];
   firstAccess: boolean;
 }
 
@@ -50,12 +51,39 @@ export class AuthService {
    */
   public isFirstAccess$: Observable<boolean>;
 
+  /**
+   * Observable stream of the user's system roles.
+   */
+  public systemRoles$: Observable<string[]>;
+
   constructor() {
     const initialState = this.loadUserState();
     this.userStateSubject = new BehaviorSubject<UserState | null>(initialState);
     this.userState$ = this.userStateSubject.asObservable();
-    this.isAuthenticated$ = this.userState$.pipe(map(state => !!state?.token));
+    this.isAuthenticated$ = this.userState$.pipe(map(state => !!state?.token && !this.isTokenExpired(state.token)));
     this.isFirstAccess$ = this.userState$.pipe(map(state => state?.firstAccess ?? false));
+    this.systemRoles$ = this.userState$.pipe(map(state => state?.systemRoles ?? []));
+  }
+
+  private decodeJwt(token: string): any {
+    try {
+      const base64Url = token.split('.')[1];
+      if (!base64Url) return null;
+      const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+      const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      }).join(''));
+      return JSON.parse(jsonPayload);
+    } catch (e) {
+      return null;
+    }
+  }
+
+  private isTokenExpired(token: string | null): boolean {
+    if (!token) return true;
+    const decoded = this.decodeJwt(token);
+    if (!decoded || !decoded.exp) return true;
+    return (decoded.exp * 1000) < Date.now();
   }
 
   /**
@@ -67,10 +95,12 @@ export class AuthService {
   login(credentials: LoginRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/login`, credentials).pipe(
       tap(response => {
+        const decoded = this.decodeJwt(response.token) || {};
         const userState: UserState = {
           token: response.token,
           username: response.username,
-          roles: response.roles,
+          groups: response.groups,
+          systemRoles: decoded.systemRoles || [],
           firstAccess: response.firstAccess
         };
         this.saveUserState(userState);
@@ -79,7 +109,7 @@ export class AuthService {
         if (response.firstAccess) {
           this.router.navigate(['/change-password']);
         } else {
-          this.router.navigate(['/']);
+          this.router.navigate(['/dashboard']);
         }
       })
     );
@@ -94,10 +124,12 @@ export class AuthService {
   changePassword(request: ChangePasswordRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.apiUrl}/change-password`, request).pipe(
       tap(response => {
+        const decoded = this.decodeJwt(response.token) || {};
         const userState: UserState = {
           token: response.token,
           username: response.username,
-          roles: response.roles,
+          groups: response.groups,
+          systemRoles: decoded.systemRoles || [],
           firstAccess: false // Password has been changed
         };
         this.saveUserState(userState);

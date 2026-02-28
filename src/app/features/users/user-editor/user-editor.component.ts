@@ -27,7 +27,6 @@ export class UserEditorComponent implements OnInit {
   public isEditMode = false;
   private userId: string | null = null;
 
-  public allRoles = ['admin', 'user', 'sender'];
   public allGroups: Group[] = [];
 
   ngOnInit(): void {
@@ -42,7 +41,6 @@ export class UserEditorComponent implements OnInit {
       username: ['', Validators.required],
       email: ['', [Validators.required, Validators.email]],
       enabled: [true],
-      roles: this.fb.group({}),
       groups: this.fb.group({})
     });
   }
@@ -51,8 +49,6 @@ export class UserEditorComponent implements OnInit {
     this.groupService.loadGroups().pipe(
       tap((groups: Group[]) => {
         this.allGroups = groups;
-        const roleControls = this.editorForm.get('roles') as FormGroup;
-        this.allRoles.forEach(role => roleControls.addControl(role, this.fb.control(false)));
         const groupControls = this.editorForm.get('groups') as FormGroup;
         groups.forEach((group: Group) => groupControls.addControl(group.id, this.fb.control(false)));
       }),
@@ -65,13 +61,6 @@ export class UserEditorComponent implements OnInit {
     ).subscribe((user: User | null) => {
       if (user) {
         this.editorForm.patchValue(user);
-        const roleControls = this.editorForm.get('roles') as FormGroup;
-        roleControls.patchValue(
-          this.allRoles.reduce((acc, role) => {
-            acc[role] = user.roles?.includes(role) || false;
-            return acc;
-          }, {} as Record<string, boolean>)
-        );
         const groupControls = this.editorForm.get('groups') as FormGroup;
         groupControls.patchValue(
           this.allGroups.reduce((acc, group) => {
@@ -87,9 +76,8 @@ export class UserEditorComponent implements OnInit {
     if (this.editorForm.invalid) return;
 
     const formValue = this.editorForm.value;
-    const selectedRoles = Object.keys(formValue.roles).filter(key => formValue.roles[key]);
     const selectedGroups = Object.keys(formValue.groups).filter(key => formValue.groups[key]);
-    const payload = { ...formValue, roles: selectedRoles, groupIds: selectedGroups };
+    const payload = { ...formValue, groupIds: selectedGroups };
 
     const operation = this.isEditMode && this.userId
       ? this.userService.updateUser(this.userId, payload)

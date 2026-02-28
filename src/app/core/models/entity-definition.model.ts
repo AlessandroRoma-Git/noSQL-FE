@@ -8,13 +8,21 @@ export interface Field {
   min?: number;
   max?: number;
   enumValues?: string[];
-  referenceEntityKey?: string; // For REFERENCE type
+  referenceEntityKey?: string;
+}
+
+export interface NotificationConfig {
+  to: string[];
+  subject: string;
+  createTemplateId: string | null;
+  updateTemplateId: string | null;
+  deleteTemplateId: string | null;
 }
 
 export interface EntityDefinition {
   entityKey: string;
   label: string;
-  historyEnabled: boolean; // For record history
+  historyEnabled: boolean;
   acl: {
     read: { [groupName: string]: boolean };
     write: { [groupName: string]: boolean };
@@ -22,6 +30,7 @@ export interface EntityDefinition {
     search: { [groupName: string]: boolean };
   };
   fields: Field[];
+  notificationConfig?: NotificationConfig; // Optional
   createdAt: string;
   updatedAt: string;
 }

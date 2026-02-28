@@ -1,56 +1,35 @@
 
 <div class="container mx-auto p-4">
   <div class="flex justify-between items-center mb-4">
-    <h1 class="text-2xl font-bold text-primary">File Storage</h1>
-    <label class="button-primary cursor-pointer">
-      <span>Upload File</span>
-      <input type="file" class="hidden" (change)="onFileSelected($event)">
-    </label>
+    <h1 class="text-2xl font-bold text-primary">File Upload</h1>
   </div>
 
-  @if (uploadProgress !== null) {
-    <div class="w-full bg-base rounded-full h-2.5 mb-4">
-      <div class="bg-primary h-2.5 rounded-full" [style.width.%]="uploadProgress"></div>
-    </div>
-  }
+  <div class="bg-surface p-6 rounded-lg shadow-md max-w-lg mx-auto">
+    <p class="text-sm text-main-text/70 mb-4">
+      Select a file to upload. The backend does not currently support listing files,
+      so you will only see a confirmation message upon successful upload.
+    </p>
 
-  @if (files$ | async; as files) {
-    <div class="bg-surface shadow-md rounded-lg">
-      @if (files.length > 0) {
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-base">
-            <thead class="bg-base">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-main-text/70 uppercase tracking-wider">Filename</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-main-text/70 uppercase tracking-wider">Content Type</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-main-text/70 uppercase tracking-wider">Size</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-main-text/70 uppercase tracking-wider">Uploaded By</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-main-text/70 uppercase tracking-wider">Date</th>
-                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody class="bg-surface divide-y divide-base">
-              @for (file of files; track file.id) {
-                <tr class="hover:bg-base">
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">{{ file.filename }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-main-text/70">{{ file.contentType }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-main-text/70">{{ formatBytes(file.size) }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-main-text/70">{{ file.uploadedBy }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-main-text/70">{{ file.createdAt | date:'short' }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
-                    <a [href]="'http://localhost:8088/api/v1/files/' + file.id" target="_blank" class="text-accent hover:underline">Download</a>
-                    <button (click)="onDelete(file.id, file.filename)" class="text-red-500 hover:underline">Delete</button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
+    <label class="button-primary cursor-pointer w-full text-center block">
+      <span>Choose File</span>
+      <input type="file" class="hidden" (change)="onFileSelected($event)">
+    </label>
+
+    @if (uploadProgress !== null) {
+      <div class="w-full bg-base rounded-full h-4 mt-4">
+        <div class="bg-primary h-4 rounded-full text-xs font-medium text-blue-100 text-center p-0.5 leading-none"
+             [style.width.%]="uploadProgress">
+          {{ uploadProgress }}%
         </div>
-      } @else {
-        <p class="p-4 text-main-text/70">No files found. Click "Upload File" to get started.</p>
-      }
-    </div>
-  } @else {
-    <p>Loading...</p>
-  }
+      </div>
+    }
+
+    @if (lastUploadedFile) {
+      <div class="mt-4 p-4 bg-base rounded-md text-sm">
+        <p><strong>Upload Complete!</strong></p>
+        <p class="text-main-text/80">File: {{ lastUploadedFile.filename }}</p>
+        <p class="text-main-text/80">ID: <code>{{ lastUploadedFile.id }}</code></p>
+      </div>
+    }
+  </div>
 </div>

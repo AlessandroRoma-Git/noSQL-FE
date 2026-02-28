@@ -1,53 +1,157 @@
+<div class="container mx-auto p-4 max-w-7xl">
+  @if (entityDefinition) {
+    <!-- INTESTAZIONE: Titolo, Ricerca e Bottone Crea -->
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+      <div>
+        <h1 class="text-3xl font-bold text-[rgb(var(--color-primary))]">
+          {{ entityDefinition.label }}
+        </h1>
+        <p class="text-gray-500 text-sm">Lista dei record per l'entità {{ entityKey }}</p>
+      </div>
 
-<div class="container mx-auto p-4">
-  <div class="flex justify-between items-center mb-4">
-    <h1 class="text-2xl font-bold text-[rgb(var(--color-primary))]">Records for: {{ entityKey }}</h1>
-    <div class="flex space-x-2">
-      <button (click)="openSearchModal()" class="button-secondary">Advanced Search</button>
-      <a [routerLink]="['/records', entityKey, 'new']" class="button-primary">
-        Create New Record
-      </a>
-    </div>
-  </div>
-
-  @if (records$ | async; as records) {
-    <div class="bg-surface shadow-md rounded-lg">
-      @if (records.length > 0) {
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-base">
-            <thead class="bg-base">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[rgb(var(--color-text))] opacity-70 uppercase tracking-wider">ID</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[rgb(var(--color-text))] opacity-70 uppercase tracking-wider">Data</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-[rgb(var(--color-text))] opacity-70 uppercase tracking-wider">Created At</th>
-                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
-              </tr>
-            </thead>
-            <tbody class="bg-surface divide-y divide-base">
-              @for (record of records; track record.id) {
-                <tr class="hover:bg-base">
-                  <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-[rgb(var(--color-text))] opacity-70">{{ record.id }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-[rgb(var(--color-text))]">
-                    <pre class="max-w-lg truncate"><code>{{ getJsonData(record.data) }}</code></pre>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-[rgb(var(--color-text))] opacity-70">{{ record.createdAt | date:'short' }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
-                    @if (entityDefinition.historyEnabled) {
-                      <button (click)="onShowHistory(record.id)" class="text-[rgb(var(--color-accent))] hover:underline">History</button>
-                    }
-                    <a [routerLink]="['/records', entityKey, 'edit', record.id]" class="text-[rgb(var(--color-accent))] hover:underline">Edit</a>
-                    <button (click)="onDelete(record.id)" class="text-red-500 hover:underline">Delete</button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
+      <div class="flex flex-col sm:flex-row gap-3">
+        <!-- Barra di Ricerca Veloce -->
+        <div class="relative">
+          <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+          </span>
+          <input 
+            type="text" 
+            (input)="onSearch($event)"
+            placeholder="Cerca record..." 
+            class="input pl-10 w-full sm:w-64">
         </div>
-      } @else {
-        <p class="p-4 text-[rgb(var(--color-text))] opacity-70">No records found. Click "Create New Record" to get started.</p>
+
+        <a [routerLink]="['/records', entityKey, 'new']" class="button-primary flex items-center justify-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+          </svg>
+          Nuovo Record
+        </a>
+      </div>
+    </div>
+
+    <!-- TABELLA (Visibile su schermi medi e grandi) -->
+    <div class="hidden md:block bg-surface rounded-xl shadow-lg border border-base overflow-hidden">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="bg-[rgb(var(--color-bg-base))] border-b border-base">
+            @for (field of entityDefinition.fields; track field.name) {
+              <th 
+                (click)="toggleSort(field.name)"
+                class="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider cursor-pointer hover:text-[rgb(var(--color-primary))] transition-colors">
+                <div class="flex items-center gap-2">
+                  {{ field.name }}
+                  <!-- Icona freccetta per l'ordinamento -->
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                  </svg>
+                </div>
+              </th>
+            }
+            <th class="px-6 py-4 text-xs font-semibold text-gray-400 uppercase tracking-wider text-right">Azioni</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-base">
+          @for (record of records$ | async; track record.id) {
+            <tr class="hover:bg-[rgb(var(--color-bg-base))] transition-colors group">
+              @for (field of entityDefinition.fields; track field.name) {
+                <td class="px-6 py-4 text-sm text-[rgb(var(--color-text))]">
+                  {{ formatCellData(record.data[field.name], field) }}
+                </td>
+              }
+              <td class="px-6 py-4 text-right space-x-2">
+                <a [routerLink]="['/records', entityKey, 'edit', record.id]" 
+                   class="text-blue-500 hover:text-blue-700 transition-colors p-1" title="Modifica">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                  </svg>
+                </a>
+                <button (click)="onDelete(record.id)" class="text-red-500 hover:text-red-700 transition-colors p-1" title="Elimina">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                  </svg>
+                </button>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td [attr.colspan]="(entityDefinition.fields.length) + 1" class="px-6 py-12 text-center text-gray-500">
+                Nessun record trovato. Prova a cambiare i filtri o crea un nuovo dato.
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- VISTA A SCHEDE (Mobile First - Visibile su schermi piccoli) -->
+    <div class="grid grid-cols-1 gap-4 md:hidden">
+      @for (record of records$ | async; track record.id) {
+        <div class="bg-surface p-5 rounded-xl border border-base shadow-sm">
+          @for (field of entityDefinition.fields; track field.name; let first = $first) {
+            <div class="flex justify-between py-1 border-b border-base last:border-0">
+              <span class="text-xs font-semibold text-gray-400 uppercase">{{ field.name }}</span>
+              <span class="text-sm" [class.font-bold]="first">{{ formatCellData(record.data[field.name], field) }}</span>
+            </div>
+          }
+          <div class="flex justify-end mt-4 gap-4">
+            <a [routerLink]="['/records', entityKey, 'edit', record.id]" class="text-blue-500 font-medium text-sm">Modifica</a>
+            <button (click)="onDelete(record.id)" class="text-red-500 font-medium text-sm">Elimina</button>
+          </div>
+        </div>
+      } @empty {
+        <div class="bg-surface p-12 text-center rounded-xl border border-base text-gray-500">
+          Nessun record trovato.
+        </div>
       }
     </div>
+
+    <!-- PAGINAZIONE (In fondo alla pagina) -->
+    @if (pageInfo$ | async; as info) {
+      <div class="flex flex-col sm:flex-row items-center justify-between mt-8 gap-4">
+        <div class="text-sm text-gray-500">
+          Mostrando record da {{ info.page * info.size + 1 }} a {{ (info.page + 1) * info.size > info.totalElements ? info.totalElements : (info.page + 1) * info.size }} di {{ info.totalElements }}
+        </div>
+        
+        <div class="flex gap-2">
+          <button 
+            (click)="loadRecords(info.page - 1)" 
+            [disabled]="info.page === 0"
+            class="button-secondary px-3 py-1 disabled:opacity-30">
+            Precedente
+          </button>
+          
+          <div class="flex items-center gap-1">
+            @for (p of [].constructor(info.totalPages); track $index) {
+              @if ($index < 5 || $index > info.totalPages - 2) {
+                <button 
+                  (click)="loadRecords($index)"
+                  class="w-8 h-8 rounded-md text-sm transition-colors"
+                  [class.bg-[rgb(var(--color-primary))]]="info.page === $index"
+                  [class.text-white]="info.page === $index"
+                  [class.hover:bg-base]="$index !== info.page">
+                  {{ $index + 1 }}
+                </button>
+              }
+            }
+          </div>
+
+          <button 
+            (click)="loadRecords(info.page + 1)" 
+            [disabled]="info.page >= info.totalPages - 1"
+            class="button-secondary px-3 py-1 disabled:opacity-30">
+            Successivo
+          </button>
+        </div>
+      </div>
+    }
   } @else {
-    <p>Loading...</p>
+    <div class="flex flex-col items-center justify-center p-12 bg-surface rounded-xl border border-base animate-pulse">
+      <div class="w-12 h-12 rounded-full border-4 border-base border-t-[rgb(var(--color-primary))] animate-spin mb-4"></div>
+      <p class="text-gray-400">Caricamento definizione...</p>
+    </div>
   }
 </div>

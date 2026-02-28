@@ -3,7 +3,7 @@ import { Component, OnInit, inject, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, FormArray, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
-import { Subject, forkJoin } from 'rxjs';
+import { Subject, forkJoin, Observable } from 'rxjs';
 import { takeUntil, debounceTime } from 'rxjs/operators';
 import { EntityDefinitionService } from '../../../core/services/entity-definition.service';
 import { ModalService } from '../../../core/services/modal.service';
@@ -11,6 +11,8 @@ import { EntityDefinition, Field } from '../../../core/models/entity-definition.
 import { Group } from '../../../core/models/group.model';
 import { GroupService } from '../../../core/services/group.service';
 import { ToggleSwitchComponent } from '../../../shared/components/toggle-switch/toggle-switch.component';
+import { EmailTemplate } from '../../../core/models/email-template.model';
+import { EmailTemplateService } from '../../../core/services/email-template.service';
 
 @Component({
   selector: 'app-entity-definition-editor',
@@ -24,6 +26,7 @@ export class EntityDefinitionEditorComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private entityDefinitionService = inject(EntityDefinitionService);
   private groupService = inject(GroupService);
+  private emailTemplateService = inject(EmailTemplateService);
   private modalService = inject(ModalService);
 
   public editorForm!: FormGroup;
@@ -37,6 +40,7 @@ export class EntityDefinitionEditorComponent implements OnInit, OnDestroy {
 
   public allGroups: Group[] = [];
   public allEntities: EntityDefinition[] = [];
+  public emailTemplates$!: Observable<EmailTemplate[]>;
   public fieldTypes = ['STRING', 'NUMBER', 'BOOLEAN', 'DATE', 'EMAIL', 'ENUM', 'REFERENCE'];
 
   get fields(): FormArray {
@@ -51,8 +55,12 @@ export class EntityDefinitionEditorComponent implements OnInit, OnDestroy {
 
     if (this.isEditMode && this.entityKey) {
       this.entityDefinitionService.getEntityDefinition(this.entityKey).subscribe(def => {
-        this.fields.clear(); // Clear fields before patching
+        this.fields.clear();
         this.editorForm.patchValue(def);
+        // Handle array-to-string conversion for 'to' field
+        if (def.notificationConfig?.to) {
+          this.editorForm.get('notificationConfig.to')?.setValue(def.notificationConfig.to.join(', '));
+        }
         this.jsonContentControl.setValue(JSON.stringify(def, null, 2));
         def.fields.forEach(field => this.addField(field));
         this.setAclControls(def.acl);
@@ -89,11 +97,21 @@ export class EntityDefinitionEditorComponent implements OnInit, OnDestroy {
         delete: this.fb.group({}),
         search: this.fb.group({})
       }),
-      fields: this.fb.array([])
+      fields: this.fb.array([]),
+      notificationConfig: this.fb.group({
+        to: [''],
+        subject: [''],
+        createTemplateId: [null],
+        updateTemplateId: [null],
+        deleteTemplateId: [null]
+      })
     });
   }
 
   private loadDependencies(): void {
+    this.emailTemplates$ = this.emailTemplateService.templates$;
+    this.emailTemplateService.loadEmailTemplates().subscribe();
+
     forkJoin({
       groups: this.groupService.loadGroups(),
       entities: this.entityDefinitionService.loadEntityDefinitions()
@@ -156,7 +174,14 @@ export class EntityDefinitionEditorComponent implements OnInit, OnDestroy {
 
   onSubmit(): void {
     if (this.editorForm.invalid) return;
+
     const formValue = this.activeTab === 'UI' ? this.editorForm.value : JSON.parse(this.jsonContentControl.value || '{}');
+
+    // Convert 'to' string back to array
+    if (formValue.notificationConfig?.to) {
+      formValue.notificationConfig.to = (formValue.notificationConfig.to as string).split(',').map(s => s.trim()).filter(s => s);
+    }
+
     const operation = this.isEditMode && this.entityKey
       ? this.entityDefinitionService.updateEntityDefinition(this.entityKey, formValue)
       : this.entityDefinitionService.createEntityDefinition(formValue);

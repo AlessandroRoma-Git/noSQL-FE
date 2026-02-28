@@ -1,55 +1,55 @@
 
 <div class="container mx-auto p-4">
   <div class="flex justify-between items-center mb-4">
-    <h1 class="text-2xl font-bold">Users</h1>
-    <a routerLink="/users/new" class="px-4 py-2 text-sm font-medium text-white bg-primary rounded-md hover:opacity-80">
-      Create New User
+    <div class="flex items-center gap-3">
+      <h1 class="text-2xl font-bold text-primary">Users</h1>
+      <button (click)="showHelp()" class="w-6 h-6 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Aiuto">
+        <span class="font-serif italic font-bold text-xs">i</span>
+      </button>
+    </div>
+    <a routerLink="new" class="button-primary">
+      Create New
     </a>
   </div>
-  @if (users$ | async; as users) {
-    <div class="bg-bg-surface shadow-md rounded-lg">
-      @if (users.length > 0) {
-        <div class="overflow-x-auto">
-          <table class="min-w-full divide-y divide-bg-base">
-            <thead class="bg-bg-base">
-              <tr>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-main/70 uppercase tracking-wider">User</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-main/70 uppercase tracking-wider">Status</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-main/70 uppercase tracking-wider">Groups</th>
-                <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-text-main/70 uppercase tracking-wider">Roles</th>
-                <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
+
+  <div class="bg-surface shadow-md rounded-lg">
+    @if (users.length > 0) {
+      <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-base">
+          <thead class="bg-base">
+            <tr>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-main-text/70 uppercase tracking-wider">Username</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-main-text/70 uppercase tracking-wider">Email</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-main-text/70 uppercase tracking-wider">Groups</th>
+              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-main-text/70 uppercase tracking-wider">Status</th>
+              <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
+            </tr>
+          </thead>
+          <tbody class="bg-surface divide-y divide-base">
+            @for (user of users; track user.id) {
+              <tr class="hover:bg-base">
+                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">{{ user.username }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-main-text/70">{{ user.email }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm text-main-text/70">{{ user.groupNames?.join(', ') || 'None' }}</td>
+                <td class="px-6 py-4 whitespace-nowrap text-sm">
+                  @if (user.enabled) {
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Enabled</span>
+                  } @else {
+                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Disabled</span>
+                  }
+                </td>
+                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
+                  <button (click)="onResetPassword(user.id, user.username)" class="text-cyan-400 hover:underline">Reset Password</button>
+                  <a [routerLink]="['/users/edit', user.id]" class="text-accent hover:underline">Edit</a>
+                  <button (click)="onDelete(user.id, user.username)" class="text-red-500 hover:underline">Delete</button>
+                </td>
               </tr>
-            </thead>
-            <tbody class="bg-bg-surface divide-y divide-bg-base">
-              @for (user of users; track user.id) {
-                <tr class="hover:bg-bg-base">
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <div class="text-sm font-medium text-text-main">{{ user.username }}</div>
-                    <div class="text-sm text-text-main/70">{{ user.email }}</div>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap">
-                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full"
-                          [ngClass]="user.enabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'">
-                      {{ user.enabled ? 'Enabled' : 'Disabled' }}
-                    </span>
-                  </td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-text-main/70">{{ user.groupNames?.join(', ') || 'None' }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-sm text-text-main/70">{{ user.roles.join(', ') || 'None' }}</td>
-                  <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
-                    <a [routerLink]="['/users/edit', user.id]" class="text-accent hover:underline">Edit</a>
-                    <button (click)="onResetPassword(user.id, user.username)" class="text-yellow-600 hover:text-yellow-900">Reset Pass</button>
-                    <button (click)="onDelete(user.id, user.username)" class="text-red-600 hover:underline">Delete</button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      } @else {
-        <p class="p-4 text-text-main/70">No users found. Click "Create New User" to get started.</p>
-      }
-    </div>
-  } @else {
-    <p>Loading...</p>
-  }
+            }
+          </tbody>
+        </table>
+      </div>
+    } @else {
+      <p class="p-4 text-main-text/70">No users found. Click "Create New User" to get started.</p>
+    }
+  </div>
 </div>

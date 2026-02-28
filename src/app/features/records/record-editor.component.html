@@ -1,56 +1,143 @@
+<div class="container mx-auto p-4 max-w-6xl">
+  <!-- Titolo della Pagina -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+    <div>
+      <h1 class="text-3xl font-bold text-[rgb(var(--color-primary))]">
+        {{ isEditMode ? 'Modifica' : 'Crea' }} {{ entityDefinition.label }}
+      </h1>
+      <p class="text-gray-500 text-sm mt-1">Gestisci i dati della tabella {{ entityKey }}</p>
+    </div>
+    
+    <a [routerLink]="['/records', entityKey]" class="button-secondary self-start">
+      &larr; Torna alla Lista
+    </a>
+  </div>
 
-<div class="container mx-auto p-4">
-  @if (entityDefinition) {
-    <h1 class="text-3xl font-bold mb-6 text-[rgb(var(--color-primary))]">
-      {{ isEditMode ? 'Edit' : 'Create' }} {{ entityDefinition.label }} Record
-    </h1>
+  <!-- Menu a Schede (Tabs) - Visibile solo se stiamo modificando e la cronologia è attiva -->
+  @if (isEditMode && entityDefinition.historyEnabled) {
+    <div class="flex border-b border-base mb-6">
+      <button 
+        (click)="setTab('data')"
+        class="px-6 py-3 font-medium text-sm transition-colors border-b-2"
+        [class.border-[rgb(var(--color-primary))]]="activeTab === 'data'"
+        [class.text-[rgb(var(--color-primary))]]="activeTab === 'data'"
+        [class.border-transparent]="activeTab !== 'data'"
+        [class.text-gray-400]="activeTab !== 'data'">
+        Dati Attuali
+      </button>
+      <button 
+        (click)="setTab('history')"
+        class="px-6 py-3 font-medium text-sm transition-colors border-b-2"
+        [class.border-[rgb(var(--color-primary))]]="activeTab === 'history'"
+        [class.text-[rgb(var(--color-primary))]]="activeTab === 'history'"
+        [class.border-transparent]="activeTab !== 'history'"
+        [class.text-gray-400]="activeTab !== 'history'">
+        Cronologia Modifiche
+      </button>
+    </div>
+  }
 
-    <form [formGroup]="editorForm" (ngSubmit)="onSubmit()" class="space-y-8 bg-surface p-6 rounded-lg shadow-md max-w-4xl mx-auto">
+  <!-- CONTENUTO SCHEDA: DATI -->
+  @if (activeTab === 'data') {
+    @if (entityDefinition) {
+      <form [formGroup]="editorForm" (ngSubmit)="onSubmit()" class="bg-surface p-6 rounded-xl shadow-lg border border-base">
+        
+        <!-- Griglia dei Campi: 1 colonna su cellulare, 2 su tablet/PC -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          @for (field of entityDefinition.fields; track field.name) {
+            <div class="flex flex-col">
+              <label [for]="field.name" class="label flex items-center gap-1">
+                {{ field.name }}
+                @if (field.required) { <span class="text-red-500">*</span> }
+              </label>
 
-      @for (field of entityDefinition.fields; track field.name) {
-        <div class="grid grid-cols-1">
-          <label [for]="field.name" class="label">{{ field.name }}</label>
-
-          @switch (field.type) {
-            @case ('STRING') {
-              <input [id]="field.name" [formControlName]="field.name" type="text" class="input">
-            }
-            @case ('EMAIL') {
-              <input [id]="field.name" [formControlName]="field.name" type="email" class="input">
-            }
-            @case ('NUMBER') {
-              <input [id]="field.name" [formControlName]="field.name" type="number" class="input">
-            }
-            @case ('BOOLEAN') {
-              <input [id]="field.name" [formControlName]="field.name" type="checkbox" class="h-6 w-6 rounded border-surface text-[rgb(var(--color-primary))] focus:ring-[rgb(var(--color-primary))]">
-            }
-            @case ('DATE') {
-              <input [id]="field.name" [formControlName]="field.name" type="datetime-local" class="input">
-            }
-            @case ('ENUM') {
-              <select [id]="field.name" [formControlName]="field.name" class="input">
-                <option [ngValue]="null">-- Select Value --</option>
-                @for (enumValue of field.enumValues; track enumValue) {
-                  <option [value]="enumValue">{{ enumValue }}</option>
+              @switch (field.type) {
+                @case ('STRING') {
+                  <input [id]="field.name" [formControlName]="field.name" type="text" class="input" 
+                         [placeholder]="'Inserisci ' + field.name"
+                         [class.border-red-500]="editorForm.get(field.name)?.invalid && editorForm.get(field.name)?.touched">
                 }
-              </select>
-            }
-            @case ('REFERENCE') {
-              <app-reference-search [formControlName]="field.name" [entityKey]="field.referenceEntityKey!"></app-reference-search>
-            }
+                @case ('EMAIL') {
+                  <input [id]="field.name" [formControlName]="field.name" type="email" class="input" 
+                         placeholder="esempio@mail.com"
+                         [class.border-red-500]="editorForm.get(field.name)?.invalid && editorForm.get(field.name)?.touched">
+                }
+                @case ('NUMBER') {
+                  <input [id]="field.name" [formControlName]="field.name" type="number" class="input"
+                         [class.border-red-500]="editorForm.get(field.name)?.invalid && editorForm.get(field.name)?.touched">
+                }
+                @case ('BOOLEAN') {
+                  <div class="flex items-center h-10 mt-1">
+                    <input [id]="field.name" [formControlName]="field.name" type="checkbox" 
+                           class="h-6 w-6 rounded border-surface text-[rgb(var(--color-primary))] focus:ring-[rgb(var(--color-primary))] cursor-pointer">
+                    <span class="ml-2 text-sm text-gray-400">Attivo / Vero</span>
+                  </div>
+                }
+                @case ('DATE') {
+                  <input [id]="field.name" [formControlName]="field.name" type="datetime-local" class="input"
+                         [class.border-red-500]="editorForm.get(field.name)?.invalid && editorForm.get(field.name)?.touched">
+                }
+                @case ('ENUM') {
+                  <select [id]="field.name" [formControlName]="field.name" class="input"
+                          [class.border-red-500]="editorForm.get(field.name)?.invalid && editorForm.get(field.name)?.touched">
+                    <option [ngValue]="null">-- Scegli un valore --</option>
+                    @for (enumValue of field.enumValues; track enumValue) {
+                      <option [value]="enumValue">{{ enumValue }}</option>
+                    }
+                  </select>
+                }
+                @case ('REFERENCE') {
+                  <app-reference-search [formControlName]="field.name" [entityKey]="field.referenceEntityKey!"></app-reference-search>
+                }
+              }
+
+              <!-- Messaggi di Errore (si vedono solo se sbagli a scrivere) -->
+              <div class="h-5 mt-1">
+                @if (hasError(field.name, 'required')) {
+                  <span class="text-xs text-red-500">Questo campo è obbligatorio.</span>
+                }
+                @if (hasError(field.name, 'email')) {
+                  <span class="text-xs text-red-500">Inserisci un indirizzo email valido.</span>
+                }
+                @if (hasError(field.name, 'maxlength')) {
+                  <span class="text-xs text-red-500">Troppo lungo! Massimo {{ field.maxLen }} caratteri.</span>
+                }
+                @if (hasError(field.name, 'min')) {
+                  <span class="text-xs text-red-500">Il valore deve essere almeno {{ field.min }}.</span>
+                }
+                @if (hasError(field.name, 'max')) {
+                  <span class="text-xs text-red-500">Il valore non può superare {{ field.max }}.</span>
+                }
+                @if (hasError(field.name, 'pattern')) {
+                  <span class="text-xs text-red-500">Il formato non è corretto.</span>
+                }
+              </div>
+            </div>
           }
         </div>
-      }
 
-      <!-- Form Actions -->
-      <div class="flex justify-end space-x-4 border-t border-base pt-6 mt-8">
-        <a [routerLink]="['/records', entityKey]" class="button-secondary">Cancel</a>
-        <button type="submit" [disabled]="editorForm.invalid" class="button-primary disabled:opacity-50">
-          {{ isEditMode ? 'Update Record' : 'Create Record' }}
-        </button>
+        <!-- Bottoni in fondo -->
+        <div class="flex justify-end space-x-4 border-t border-base pt-6 mt-6">
+          <a [routerLink]="['/records', entityKey]" class="button-secondary">Annulla</a>
+          <button type="submit" [disabled]="editorForm.invalid" class="button-primary disabled:opacity-50 min-w-[120px]">
+            {{ isEditMode ? 'Salva Modifiche' : 'Crea Record' }}
+          </button>
+        </div>
+      </form>
+    } @else {
+      <!-- Scheletro di caricamento -->
+      <div class="flex flex-col items-center justify-center p-12 bg-surface rounded-xl border border-base animate-pulse">
+        <div class="w-12 h-12 rounded-full border-4 border-base border-t-[rgb(var(--color-primary))] animate-spin mb-4"></div>
+        <p class="text-gray-400">Caricamento campi in corso...</p>
       </div>
-    </form>
-  } @else {
-    <p>Loading definition...</p>
+    }
+  }
+
+  <!-- CONTENUTO SCHEDA: CRONOLOGIA -->
+  @if (activeTab === 'history') {
+    <div class="bg-surface p-6 rounded-xl shadow-lg border border-base">
+      <app-record-history [entityKey]="entityKey" [recordId]="recordId!"></app-record-history>
+    </div>
   }
 </div>

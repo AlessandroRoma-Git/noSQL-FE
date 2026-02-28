@@ -1,0 +1,105 @@
+
+<div class="container mx-auto p-4">
+  <div class="flex items-center gap-3 mb-6">
+    <h1 class="text-3xl font-bold text-[rgb(var(--color-primary))]">Configurazioni Globali</h1>
+    <button (click)="showHelp()" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Aiuto">
+      <span class="font-serif italic font-bold">i</span>
+    </button>
+  </div>
+
+  <form [formGroup]="settingsForm" (ngSubmit)="onSubmit()" class="space-y-8 max-w-4xl mx-auto">
+
+    <!-- Branding Settings -->
+    <div class="bg-surface p-6 rounded-lg shadow-md">
+      <h2 class="text-xl font-semibold mb-4 border-b border-base pb-2 text-[rgb(var(--color-primary))]">White Label & Branding</h2>
+      <div formGroupName="branding" class="space-y-4">
+        <div>
+          <label for="appName" class="label">Application Name</label>
+          <input id="appName" formControlName="appName" type="text" class="input">
+        </div>
+        <div>
+          <label for="logoUrl" class="label">Logo URL</label>
+          <input id="logoUrl" formControlName="logoUrl" type="text" class="input" placeholder="https://example.com/logo.png">
+        </div>
+        <div>
+          <label for="language" class="label">Default Language</label>
+          <select id="language" formControlName="language" class="input">
+            <option value="it">Italiano</option>
+            <option value="en">English</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Email Settings -->
+    <div class="bg-surface p-6 rounded-lg shadow-md">
+      <h2 class="text-xl font-semibold mb-4 border-b border-base pb-2 text-[rgb(var(--color-primary))]">Email</h2>
+      <div formGroupName="email" class="space-y-4">
+        <div>
+          <label for="defaultFrom" class="label">Default "From" Address</label>
+          <input id="defaultFrom" formControlName="defaultFrom" type="email" class="input">
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <label for="passwordTemplateId" class="label">New User / Admin Reset Template</label>
+            <select id="passwordTemplateId" formControlName="passwordTemplateId" class="input">
+              <option [ngValue]="null">-- None --</option>
+              @if (emailTemplates$ | async; as templates) {
+                @for (template of templates; track template.id) {
+                  <option [value]="template.id">{{ template.name }}</option>
+                }
+              }
+            </select>
+          </div>
+          <div>
+            <label for="recoverPasswordTemplateId" class="label">User Password Recovery Template</label>
+            <select id="recoverPasswordTemplateId" formControlName="recoverPasswordTemplateId" class="input">
+              <option [ngValue]="null">-- None --</option>
+              @if (emailTemplates$ | async; as templates) {
+                @for (template of templates; track template.id) {
+                  <option [value]="template.id">{{ template.name }}</option>
+                }
+              }
+            </select>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Security Settings -->
+    <div class="bg-surface p-6 rounded-lg shadow-md">
+      <h2 class="text-xl font-semibold mb-4 border-b border-base pb-2 text-[rgb(var(--color-primary))]">Security</h2>
+      <div formGroupName="security" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="maxLoginAttempts" class="label">Max Login Attempts</label>
+          <input id="maxLoginAttempts" formControlName="maxLoginAttempts" type="number" class="input">
+        </div>
+      </div>
+    </div>
+
+    <!-- Storage Settings -->
+    <div class="bg-surface p-6 rounded-lg shadow-md">
+      <h2 class="text-xl font-semibold mb-4 border-b border-base pb-2 text-[rgb(var(--color-primary))]">File Storage</h2>
+      <div formGroupName="storage" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <label for="storageType" class="label">Storage Type</label>
+          <select id="storageType" formControlName="type" class="input">
+            <option value="grid-fs">MongoDB GridFS</option>
+            <option value="s3">Amazon S3</option>
+          </select>
+        </div>
+        <div>
+          <label for="maxFileSize" class="label">Max File Size (Bytes)</label>
+          <input id="maxFileSize" formControlName="maxFileSize" type="number" class="input">
+        </div>
+      </div>
+    </div>
+
+    <!-- Form Actions -->
+    <div class="flex justify-end space-x-4 mt-8">
+      <button type="submit" [disabled]="settingsForm.invalid" class="button-primary disabled:opacity-50">
+        Save Settings
+      </button>
+    </div>
+  </form>
+</div>

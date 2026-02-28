@@ -1,0 +1,25 @@
+{
+  "branding": {
+    "appName": "White Label CMS",
+    "logoUrl": "assets/logo.svg",
+    "themeId": "coder",
+    "language": "en"
+  },
+  "email": {
+    "defaultFrom": "admin@whitelabel.com",
+    "passwordTemplateId": null,
+    "recoverPasswordTemplateId": null
+  },
+  "security": {
+    "maxLoginAttempts": 5,
+    "maxFilters": 10,
+    "maxPageSize": 100,
+    "defaultPageSize": 20,
+    "regexMaxLength": 255
+  },
+  "storage": {
+    "type": "grid-fs",
+    "maxFileSize": 20971520,
+    "allowedContentTypes": ["image/png", "image/jpeg", "application/pdf"]
+  }
+}

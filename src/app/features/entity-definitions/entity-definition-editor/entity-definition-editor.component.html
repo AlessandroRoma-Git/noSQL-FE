@@ -133,6 +133,59 @@
             </div>
           }
         </div>
+
+        <!-- Email Notifications -->
+        <div class="bg-surface p-6 rounded-lg shadow-md" formGroupName="notificationConfig">
+          <h2 class="text-xl font-semibold mb-4 border-b border-base pb-2 text-primary">Email Notifications on CRUD</h2>
+          <p class="text-sm text-main-text/70 mb-4" ngNonBindable>
+            Automatically send an email when a record is created, updated, or deleted.
+            The 'To' field accepts comma-separated email addresses and placeholders like <code>{{email_field_name}}</code>.
+          </p>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div ngNonBindable>
+              <label for="notificationTo" class="label">To</label>
+              <input id="notificationTo" formControlName="to" type="text" class="input" placeholder="admin@example.com, {{email}}">
+            </div>
+            <div ngNonBindable>
+              <label for="notificationSubject" class="label">Subject</label>
+              <input id="notificationSubject" formControlName="subject" type="text" class="input" placeholder="New Record: {{id}}">
+            </div>
+            <div>
+              <label for="createTemplateId" class="label">Create Template</label>
+              <select id="createTemplateId" formControlName="createTemplateId" class="input">
+                <option [ngValue]="null">-- None --</option>
+                @if (emailTemplates$ | async; as templates) {
+                  @for (template of templates; track template.id) {
+                    <option [value]="template.id">{{ template.name }}</option>
+                  }
+                }
+              </select>
+            </div>
+            <div>
+              <label for="updateTemplateId" class="label">Update Template</label>
+              <select id="updateTemplateId" formControlName="updateTemplateId" class="input">
+                <option [ngValue]="null">-- None --</option>
+                @if (emailTemplates$ | async; as templates) {
+                  @for (template of templates; track template.id) {
+                    <option [value]="template.id">{{ template.name }}</option>
+                  }
+                }
+              </select>
+            </div>
+            <div>
+              <label for="deleteTemplateId" class="label">Delete Template</label>
+              <select id="deleteTemplateId" formControlName="deleteTemplateId" class="input">
+                <option [ngValue]="null">-- None --</option>
+                @if (emailTemplates$ | async; as templates) {
+                  @for (template of templates; track template.id) {
+                    <option [value]="template.id">{{ template.name }}</option>
+                  }
+                }
+              </select>
+            </div>
+          </div>
+        </div>
+
         <!-- Form Actions -->
         <div class="flex justify-end space-x-4 mt-8">
           <a routerLink="/entity-definitions" class="button-secondary">Cancel</a>

@@ -6,6 +6,7 @@ import { Observable } from 'rxjs';
 import { MenuItem } from '../../../core/models/menu-item.model';
 import { MenuService } from '../../../core/services/menu.service';
 import { ModalService } from '../../../core/services/modal.service';
+import { I18nService } from '../../../core/services/i18n.service';
 import { filter } from 'rxjs/operators';
 
 @Component({
@@ -18,11 +19,21 @@ import { filter } from 'rxjs/operators';
 export class MenuListComponent implements OnInit {
   private menuService = inject(MenuService);
   private modalService = inject(ModalService);
+  private i18nService = inject(I18nService);
   public menuItems$!: Observable<MenuItem[]>;
 
   ngOnInit(): void {
     this.menuItems$ = this.menuService.menuItems$;
     this.menuService.loadMenuItems().subscribe();
+  }
+
+  /**
+   * Questo metodo apre una finestrella (Modal) che spiega all'utente
+   * cosa deve fare in questa pagina.
+   */
+  showHelp(): void {
+    const info = this.i18nService.translate('HELP.MENU_SETUP');
+    this.modalService.openInfo('Guida Rapida: Menu', info);
   }
 
   onDelete(id: string, label: string): void {

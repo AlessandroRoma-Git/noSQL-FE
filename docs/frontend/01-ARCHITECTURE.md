@@ -13,8 +13,8 @@ This document provides a high-level overview of the frontend architecture for th
 ## 1.2. Project Structure
 
 - `src/app/core/`: Contains singleton services, data models, and route guards.
-- `src/app/features/`: Encapsulates the primary features, each in its own folder (e.g., `dashboard`, `entity-definitions`, `records`, `files`).
-- `src/app/shared/`: Holds reusable UI components like the global `ModalComponent`.
+- `src/app/features/`: Encapsulates the primary business features (e.g., `dashboard`, `entity-definitions`, `records`, `files`, `settings`).
+- `src/app/shared/`: Holds reusable UI components (e.g., `ModalComponent`, `ReferenceSearchComponent`).
 
 ## 1.3. Navigation
 
@@ -24,4 +24,6 @@ This documentation is split into several parts for clarity:
 - **[3. Theming System](./03-THEMING.md)**
 - **[4. Authentication Flow](./04-AUTHENTICATION.md)**
 - **[5. Modal System](./05-MODAL_SYSTEM.md)**
-- **[6. Dynamic Forms for Records](./06-DYNAMIC_FORMS.md)** (New)
+- **[6. Dynamic Forms for Records](./06-DYNAMIC_FORMS.md)**
+- **[7. File Management](./07-FILE_MANAGEMENT.md)**
+- **[8. Global Settings](./08-GLOBAL_SETTINGS.md)**

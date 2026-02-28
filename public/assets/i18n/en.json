@@ -1,0 +1,51 @@
+{
+  "COMMON": {
+    "WELCOME": "Welcome",
+    "LOGIN": "Login",
+    "LOGOUT": "Logout",
+    "SAVE": "Save",
+    "CANCEL": "Cancel",
+    "SUCCESS": "Operation completed successfully",
+    "ERROR": "An error occurred",
+    "LOADING": "Loading..."
+  },
+  "SIDEBAR": {
+    "DASHBOARD": "Dashboard",
+    "ENTITIES": "Entities",
+    "EMAIL_TEMPLATES": "Email Templates",
+    "GROUPS": "Groups",
+    "USERS": "Users",
+    "MENU_SETUP": "Menu Setup",
+    "FILES": "Files",
+    "CONFIGURATION": "Configuration",
+    "SETTINGS": "Settings"
+  },
+  "LOGIN": {
+    "USERNAME": "Username",
+    "PASSWORD": "Password",
+    "FORGOT_PASSWORD": "Forgot password?",
+    "BUTTON": "Log in to System"
+  },
+  "CHANGE_PASSWORD": {
+    "TITLE": "Change Password",
+    "SUBTITLE": "This is your first login or your password has expired. Please set a new password to continue.",
+    "OLD_PASSWORD": "Current Password",
+    "NEW_PASSWORD": "New Password",
+    "CONFIRM_PASSWORD": "Confirm New Password",
+    "MISMATCH": "Passwords do not match.",
+    "MIN_LENGTH": "Password must be at least 6 characters long.",
+    "BUTTON": "Update Password & Continue",
+    "SUCCESS": "Password updated successfully!"
+  },
+  "HELP": {
+    "DASHBOARD": "Welcome to your virtual desk! Here you can see a summary of the entire system. Use the 'Customize' button to choose which tables you want to keep an eye on. The numbers you see indicate how many items have been entered in total.",
+    "ENTITIES": "On this page, you design the 'skeleton' of your database. Here you decide what data you want to collect (e.g., Name, Email, Price). Once an entity is created, it will appear in the menu to allow you to enter the actual data.",
+    "USERS": "Colleague management: here you create accounts for those who need to use the site. When you add a user, the system generates a secure password and sends it to them via email. You can also block access to a user if necessary.",
+    "GROUPS": "Groups are used to give different permissions to people. For example, you can create an 'Editors' group that can change data and a 'Readers' group that can only view it. Groups with an 'ADMIN' role can also manage these settings.",
+    "EMAIL_TEMPLATES": "Here you prepare the letters that the system sends automatically. You can use placeholders like {{name}} that will be replaced by actual data at the time of sending. It's useful for order confirmations or system alerts.",
+    "MENU_SETUP": "Organize the buttons in the sidebar. You can decide which tables to show users and in what order. You can also create 'subgroups' to keep everything tidy.",
+    "FILES": "This is your file warehouse. Here you can upload images or documents you want to use in the system. Each file has a unique address and is saved securely.",
+    "SETTINGS": "Change the look of your portal! Here you can upload your company logo, change the name that appears at the top, and choose the base language. It is the heart of White Label personalization.",
+    "RECORDS": "This is the list of data entered. You can search for a specific item, sort them by date, or modify them. Remember that every change is tracked if you have activated 'History' in the entity."
+  }
+}

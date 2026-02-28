@@ -63,10 +63,17 @@ paths:
               example:
                 token: eyJhbGciOiJIUzI1NiJ9...
                 username: mario
+                groups: [editors]
                 lastAccessAt: "2025-01-15T10:00:00Z"
                 firstAccess: false
         '401':
           description: Credenziali non valide
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Account disabilitato
           content:
             application/json:
               schema:
@@ -105,6 +112,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Account disabilitato
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
 
   /api/v1/auth/change-password:
     post:
@@ -133,6 +146,7 @@ paths:
               example:
                 token: eyJhbGciOiJIUzI1NiJ9...
                 username: mario
+                groups: [editors]
                 lastAccessAt: "2025-01-15T10:00:00Z"
                 firstAccess: false
         '401':
@@ -737,7 +751,8 @@ paths:
       tags: [Files]
       summary: Elimina un file
       description: |
-        Elimina il file dal backend di storage e i relativi metadati da MongoDB.
+        Esegue un'eliminazione logica (soft delete): marchia i metadati del file come eliminati
+        (`deleted = true`) senza rimuovere il file fisico dal backend di storage (MongoDB GridFS o S3).
       responses:
         '204':
           description: File eliminato
@@ -767,6 +782,12 @@ paths:
         con i placeholder sostituiti dai valori forniti nella mappa `placeholders`.
 
         **Richiede ruolo di sistema `ADMIN`** (o `SUPER_ADMIN`).
+
+        **Risoluzione template:**
+        Se il `templateId` fornito non viene trovato nel database, il sistema cerca
+        automaticamente `template/{templateId}.html` nel classpath. Se presente, viene usato
+        come template (senza validazione bidirezionale dei placeholder).
+        Se non esiste neanche nel classpath, viene restituito 404.
 
         **Sorgenti allegati:**
         - `attachments`: allegati Base64 inline (CID) o classici
@@ -1482,6 +1503,8 @@ components:
           $ref: '#/components/schemas/AclDto'
         historyEnabled:
           type: boolean
+        notificationConfig:
+          $ref: '#/components/schemas/NotificationConfigDto'
 
     UpdateEntityDefinitionRequest:
       type: object
@@ -1499,6 +1522,8 @@ components:
           $ref: '#/components/schemas/AclDto'
         historyEnabled:
           type: boolean
+        notificationConfig:
+          $ref: '#/components/schemas/NotificationConfigDto'
 
     EntityDefinitionResponse:
       type: object
@@ -1520,12 +1545,54 @@ components:
           $ref: '#/components/schemas/AclDto'
         historyEnabled:
           type: boolean
+        notificationConfig:
+          $ref: '#/components/schemas/NotificationConfigDto'
         createdAt:
           type: string
           format: date-time
         updatedAt:
           type: string
           format: date-time
+
+    NotificationConfigDto:
+      type: object
+      description: |
+        Configurazione opzionale delle notifiche email per gli eventi CRUD sui record.
+        Se omessa, nessuna email viene inviata. I templateId nulli disabilitano la notifica
+        per il relativo evento. Le notifiche vengono inviate DOPO il completamento dell'operazione.
+      required: [to]
+      properties:
+        to:
+          type: array
+          minItems: 1
+          items:
+            type: string
+          description: |
+            Lista dei destinatari. Accetta indirizzi fissi ("admin@azienda.it")
+            e placeholder dinamici ("{{email}}") risolti dai dati del record.
+          example: ["admin@azienda.it", "{{email}}"]
+        subject:
+          type: string
+          nullable: true
+          description: |
+            Oggetto dell'email. Supporta placeholder {{chiave}}.
+            Se omesso usa "[CMS] Notifica <entityKey>".
+          example: "Nuovo ordine {{id}} per {{entityKey}}"
+        createTemplateId:
+          type: string
+          nullable: true
+          description: ID del template email per le notifiche di creazione. null = nessuna notifica.
+          example: notifica-creazione
+        updateTemplateId:
+          type: string
+          nullable: true
+          description: ID del template email per le notifiche di aggiornamento. null = nessuna notifica.
+          example: notifica-aggiornamento
+        deleteTemplateId:
+          type: string
+          nullable: true
+          description: ID del template email per le notifiche di eliminazione. null = nessuna notifica.
+          example: null
 
     # ── Records ───────────────────────────────
     CreateRecordRequest:
