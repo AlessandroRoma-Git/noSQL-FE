@@ -6,22 +6,19 @@ import { RecordService } from 'app/consumer-app/services/record.service';
 import { Record } from 'app/consumer-app/models/record.model';
 import { ModalService } from 'app/common/services/modal.service';
 import { ToastService } from 'app/common/services/toast.service';
-import { filter, map, take } from 'rxjs/operators';
+import { filter, map, take, finalize } from 'rxjs/operators';
 import { EntityDefinitionService } from 'app/configurator/services/entity-definition.service';
 import { EntityDefinition, Field } from 'app/configurator/models/entity-definition.model';
 import { I18nService } from 'app/common/services/i18n.service';
 import { AuthService } from 'app/common/services/auth.service';
 import { ConsumerRecordListComponent } from '../consumer-view/consumer-record-list.component';
+import { FilterCondition, FilterOperator } from 'app/consumer-app/services/filter.service';
+import { FormsModule } from '@angular/forms';
 
-/**
- * @class RecordListComponent
- * @description
- * Punto di ingresso per la lista record. Decide se mostrare la vista Admin o Consumer.
- */
 @Component({
   selector: 'app-record-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, ConsumerRecordListComponent],
+  imports: [CommonModule, RouterLink, ConsumerRecordListComponent, FormsModule],
   templateUrl: './record-list.component.html',
 })
 export class RecordListComponent implements OnInit, OnDestroy {
@@ -40,9 +37,22 @@ export class RecordListComponent implements OnInit, OnDestroy {
   public entityDefinition: EntityDefinition | null = null; 
   public entityKey!: string; 
   public isAdmin$!: Observable<boolean>;
-  public hasError = false;
+  public isLoading = false;
 
-  public currentFilters: any[] = []; 
+  // --- FILTRI AVANZATI ---
+  public showAdvancedFilters = false;
+  public activeFilters: FilterCondition[] = [];
+  public editingFilterIndex: number | null = null;
+  public nextFilter: FilterCondition = { field: '', op: 'eq', value: '' };
+  public availableOperators: { label: string, value: FilterOperator }[] = [
+    { label: 'Uguale', value: 'eq' },
+    { label: 'Diverso', value: 'ne' },
+    { label: 'Contiene', value: 'like' },
+    { label: 'Maggiore di', value: 'gt' },
+    { label: 'Minore di', value: 'lt' },
+    { label: 'In lista', value: 'in' }
+  ];
+
   public currentSorts: any[] = [{ field: 'createdAt', direction: 'desc' }]; 
   public currentPage = 0;
   public pageSize = 10;
@@ -50,16 +60,15 @@ export class RecordListComponent implements OnInit, OnDestroy {
   private routeSub!: Subscription;
 
   ngOnInit(): void {
-    // Definiamo il ruolo una volta sola
     this.isAdmin$ = this.authService.systemRoles$.pipe(
       map(roles => roles.includes('ADMIN') || roles.includes('SUPER_ADMIN'))
     );
 
-    // Ascoltiamo i cambi di URL
     this.routeSub = this.route.paramMap.subscribe(params => {
       const newKey = params.get('entityKey');
       if (newKey) {
         this.entityKey = newKey;
+        this.activeFilters = [];
         this.resetAndReload();
       }
     });
@@ -70,22 +79,19 @@ export class RecordListComponent implements OnInit, OnDestroy {
 
   private resetAndReload(): void {
     this.currentPage = 0;
-    this.hasError = false;
     this.entityDefinition = null; 
-    this.cdr.detectChanges(); // Forziamo reset visivo
+    this.cdr.detectChanges();
 
     this.isAdmin$.pipe(take(1)).subscribe(isAdmin => {
       if (isAdmin) {
         this.entityDefinitionService.getEntityDefinition(this.entityKey).subscribe({
           next: (def) => {
-            console.log('Schema caricato con successo per:', this.entityKey);
             this.entityDefinition = def;
-            this.loadRecords(); 
-            this.cdr.detectChanges(); // Forziamo il passaggio da loading a tabella
+            if (def.fields.length > 0) this.nextFilter.field = def.fields[0].name;
+            this.applySearch(0);
+            this.cdr.detectChanges();
           },
-          error: (err) => {
-            console.error('Errore nel caricamento definizione:', err);
-            this.hasError = true;
+          error: () => {
             this.toastService.error('Impossibile caricare lo schema.');
             this.router.navigate(['/dashboard']);
           }
@@ -103,23 +109,47 @@ export class RecordListComponent implements OnInit, OnDestroy {
     this.modalService.openInfo('Guida Rapida: Tabella Dati', info);
   }
 
-  loadRecords(page = this.currentPage): void {
+  applySearch(page = this.currentPage): void {
     this.currentPage = page;
+    this.isLoading = true;
     this.recordService.loadRecords(
       this.entityKey, 
       this.currentPage, 
       this.pageSize, 
-      this.currentFilters, 
+      this.activeFilters, 
       this.currentSorts
-    ).subscribe({
-      next: () => {
+    ).pipe(
+      finalize(() => {
+        this.isLoading = false;
         this.cdr.detectChanges();
-      },
-      error: () => { 
-        this.hasError = true; 
-        this.cdr.detectChanges();
-      }
-    });
+      })
+    ).subscribe();
+  }
+
+  addOrUpdateFilter(): void {
+    if (!this.nextFilter.field || this.nextFilter.value === '') return;
+    let val = this.nextFilter.value;
+    if (this.nextFilter.op === 'in' && typeof val === 'string') val = val.split(',').map(s => s.trim());
+    
+    if (this.editingFilterIndex !== null) {
+      this.activeFilters[this.editingFilterIndex] = { ...this.nextFilter, value: val };
+      this.editingFilterIndex = null;
+    } else {
+      this.activeFilters.push({ ...this.nextFilter, value: val });
+    }
+    this.nextFilter.value = '';
+  }
+
+  editFilter(index: number): void {
+    this.editingFilterIndex = index;
+    const f = this.activeFilters[index];
+    this.nextFilter = { ...f, value: Array.isArray(f.value) ? f.value.join(', ') : f.value };
+    this.showAdvancedFilters = true;
+  }
+
+  removeFilter(index: number): void {
+    this.activeFilters.splice(index, 1);
+    if (this.editingFilterIndex === index) this.editingFilterIndex = null;
   }
 
   toggleSort(fieldName: string): void {
@@ -129,20 +159,19 @@ export class RecordListComponent implements OnInit, OnDestroy {
     } else {
       this.currentSorts = [{ field: fieldName, direction: 'asc' }];
     }
-    this.loadRecords(0);
+    this.applySearch(0);
   }
 
   onSearch(event: any): void {
     const term = event.target.value;
-    if (!term) {
-      this.currentFilters = [];
-    } else {
+    // La ricerca veloce ora agisce solo sulla lista filtri locale, ma serve il tasto CERCA per confermare
+    this.activeFilters = this.activeFilters.filter(f => f.op !== 'like');
+    if (term) {
       const fields = this.entityDefinition?.fields.filter(f => f.type === 'STRING' || f.type === 'EMAIL') || [];
       if (fields.length > 0) {
-        this.currentFilters = [{ field: fields[0].name, op: 'like', value: term }];
+        this.activeFilters.push({ field: fields[0].name, op: 'like', value: term });
       }
     }
-    this.loadRecords(0);
   }
 
   onDelete(id: string): void {
@@ -156,8 +185,7 @@ export class RecordListComponent implements OnInit, OnDestroy {
         next: () => {
           this.toastService.success('Record eliminato con successo');
           this.cdr.detectChanges();
-        },
-        error: () => this.toastService.error('Impossibile eliminare il record')
+        }
       });
     });
   }

@@ -1,5 +1,5 @@
 import { Component, OnInit, inject, OnDestroy, Input, OnChanges, SimpleChanges, ChangeDetectorRef } from '@angular/core';
-import { CommonModule, KeyValuePipe } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { RecordService } from 'app/consumer-app/services/record.service';
@@ -9,18 +9,14 @@ import { EntityDefinitionService } from 'app/configurator/services/entity-defini
 import { EntityDefinition } from 'app/configurator/models/entity-definition.model';
 import { AuthService } from 'app/common/services/auth.service';
 import { ToastService } from 'app/common/services/toast.service';
+import { FilterCondition, FilterOperator } from 'app/consumer-app/services/filter.service';
 import { take, finalize } from 'rxjs/operators';
+import { FormsModule } from '@angular/forms';
 
-/**
- * @class ConsumerRecordListComponent
- * @description
- * Visualizzazione record per utenti non-admin.
- * Gestisce il caricamento dati e la reattività ai cambi di rotta.
- */
 @Component({
   selector: 'app-consumer-record-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, KeyValuePipe],
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './consumer-record-list.component.html',
 })
 export class ConsumerRecordListComponent implements OnInit, OnChanges, OnDestroy {
@@ -40,6 +36,21 @@ export class ConsumerRecordListComponent implements OnInit, OnChanges, OnDestroy
   public currentPage = 0;
   public isLoading = true;
 
+  // --- FILTRI AVANZATI ---
+  public showAdvancedFilters = false;
+  public activeFilters: FilterCondition[] = [];
+  public editingFilterIndex: number | null = null;
+  public nextFilter: FilterCondition = { field: '', op: 'eq', value: '' };
+  public availableOperators: { label: string, value: FilterOperator }[] = [
+    { label: 'Uguale', value: 'eq' },
+    { label: 'Diverso', value: 'ne' },
+    { label: 'Contiene', value: 'like' },
+    { label: 'Maggiore di', value: 'gt' },
+    { label: 'Minore di', value: 'lt' },
+    { label: 'In lista', value: 'in' }
+  ];
+
+  public currentSorts: any[] = [{ field: 'createdAt', direction: 'desc' }];
   public canWrite = false;
   public canDelete = false;
 
@@ -53,6 +64,7 @@ export class ConsumerRecordListComponent implements OnInit, OnChanges, OnDestroy
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes['entityKey'] && !changes['entityKey'].firstChange) {
+      this.activeFilters = [];
       this.loadAll();
     }
   }
@@ -61,30 +73,18 @@ export class ConsumerRecordListComponent implements OnInit, OnChanges, OnDestroy
     if (this.dataSub) this.dataSub.unsubscribe();
   }
 
-  /**
-   * Avvia il caricamento completo (Definizione + Dati).
-   */
   loadAll(): void {
     this.isLoading = true;
-    this.records = [];
-    this.definition = undefined;
-    this.cdr.detectChanges(); // Mostriamo subito il caricamento
-
     this.entityService.getPublicEntityDefinition(this.entityKey).pipe(
       finalize(() => {
-        // Se la definizione fallisce, proviamo comunque a caricare i dati (schema-less)
-        if (!this.definition) {
-          this.loadData(0);
-        }
+        if (!this.definition) this.applySearch();
       })
     ).subscribe({
       next: (def: EntityDefinition) => {
         this.definition = def;
+        if (def.fields.length > 0) this.nextFilter.field = def.fields[0].name;
         this.calculatePermissions(def);
-        this.loadData(0);
-      },
-      error: () => {
-        console.warn('Impossibile caricare lo schema per', this.entityKey, '- Procedo in modalità schema-less');
+        this.applySearch();
       }
     });
   }
@@ -94,7 +94,6 @@ export class ConsumerRecordListComponent implements OnInit, OnChanges, OnDestroy
       const userGroups = state?.groups || [];
       const roles = state?.systemRoles || [];
       const isAdmin = roles.includes('ADMIN') || roles.includes('SUPER_ADMIN');
-
       if (isAdmin) {
         this.canWrite = true;
         this.canDelete = true;
@@ -108,29 +107,73 @@ export class ConsumerRecordListComponent implements OnInit, OnChanges, OnDestroy
   }
 
   /**
-   * Carica i record dall'API search.
+   * Applica la ricerca effettiva (Tasto CERCA)
    */
-  loadData(page: number): void {
+  applySearch(page = 0): void {
     this.currentPage = page;
     this.isLoading = true;
     if (this.dataSub) this.dataSub.unsubscribe();
     
-    this.dataSub = this.recordService.searchRecords(this.entityKey, page, 10).pipe(
+    this.dataSub = this.recordService.loadRecords(
+      this.entityKey, 
+      page, 
+      10, 
+      this.activeFilters, 
+      this.currentSorts
+    ).pipe(
       finalize(() => {
         this.isLoading = false;
-        this.cdr.detectChanges(); // Fondamentale per sbloccare la UI
+        this.cdr.detectChanges();
       })
     ).subscribe({
       next: (response: PageResponse<Record>) => {
         this.records = response.content;
         this.pageInfo = response;
-      },
-      error: (err) => {
-        console.error('Errore nel caricamento dei dati:', err);
-        this.toastService.error('Tabella non trovata o permessi insufficienti.');
-        this.router.navigate(['/dashboard']);
       }
     });
+  }
+
+  // --- LOGICA FILTRI ---
+
+  addOrUpdateFilter(): void {
+    if (!this.nextFilter.field || this.nextFilter.value === '') return;
+    
+    let finalValue = this.nextFilter.value;
+    if (this.nextFilter.op === 'in' && typeof finalValue === 'string') {
+      finalValue = finalValue.split(',').map(s => s.trim());
+    }
+
+    if (this.editingFilterIndex !== null) {
+      this.activeFilters[this.editingFilterIndex] = { ...this.nextFilter, value: finalValue };
+      this.editingFilterIndex = null;
+    } else {
+      this.activeFilters.push({ ...this.nextFilter, value: finalValue });
+    }
+
+    this.nextFilter.value = '';
+    // NOTA: Non chiamiamo applySearch() qui, aspettiamo il tasto Cerca
+  }
+
+  editFilter(index: number): void {
+    this.editingFilterIndex = index;
+    const filter = this.activeFilters[index];
+    this.nextFilter = { ...filter, value: Array.isArray(filter.value) ? filter.value.join(', ') : filter.value };
+    this.showAdvancedFilters = true;
+  }
+
+  removeFilter(index: number): void {
+    this.activeFilters.splice(index, 1);
+    if (this.editingFilterIndex === index) this.editingFilterIndex = null;
+  }
+
+  toggleSort(fieldName: string): void {
+    const current = this.currentSorts.find(s => s.field === fieldName);
+    if (current) {
+      current.direction = current.direction === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.currentSorts = [{ field: fieldName, direction: 'asc' }];
+    }
+    this.applySearch(0);
   }
 
   formatCellData(data: any, fieldName: string): string {
