@@ -1,4 +1,3 @@
-
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -10,7 +9,16 @@ import { EntityDefinitionService } from '../../../core/services/entity-definitio
 import { Group } from '../../../core/models/group.model';
 import { EntityDefinition } from '../../../core/models/entity-definition.model';
 import { MenuItem } from '../../../core/models/menu-item.model';
+import { I18nService } from '../../../core/services/i18n.service';
+import { ModalService } from '../../../core/services/modal.service';
+import { IconPickerModalComponent } from '../../../shared/components/icon-picker-modal/icon-picker-modal.component';
 
+/**
+ * @class MenuEditorComponent
+ * @description
+ * Permette di configurare le voci della barra di navigazione.
+ * Include un selettore grafico avanzato per le icone FontAwesome.
+ */
 @Component({
   selector: 'app-menu-editor',
   standalone: true,
@@ -24,10 +32,12 @@ export class MenuEditorComponent implements OnInit {
   private menuService = inject(MenuService);
   private groupService = inject(GroupService);
   private entityDefService = inject(EntityDefinitionService);
+  private modalService = inject(ModalService);
+  public i18nService = inject(I18nService);
 
   public editorForm!: FormGroup;
   public isEditMode = false;
-  private itemId: string | null = null;
+  public itemId: string | null = null;
 
   public allGroups: Group[] = [];
   public allEntities: EntityDefinition[] = [];
@@ -44,7 +54,7 @@ export class MenuEditorComponent implements OnInit {
     this.editorForm = this.fb.group({
       label: ['', Validators.required],
       entityKey: [''],
-      icon: [''],
+      icon: ['fa-house'], // Default FA icon
       position: [0, Validators.required],
       parentId: [null],
       groups: this.fb.group({})
@@ -78,6 +88,24 @@ export class MenuEditorComponent implements OnInit {
         });
       }
     });
+  }
+
+  /**
+   * Apre il modale di ricerca icone.
+   */
+  openIconPicker(): void {
+    this.modalService.openComponent(IconPickerModalComponent, {
+      onSelect: (icon: string) => {
+        this.editorForm.get('icon')?.setValue(icon);
+      }
+    });
+  }
+
+  /**
+   * Verifica se l'icona è un path SVG o una classe FA.
+   */
+  isFontAwesome(icon: string): boolean {
+    return icon.startsWith('fa-');
   }
 
   onSubmit(): void {

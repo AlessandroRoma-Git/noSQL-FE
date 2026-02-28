@@ -1,10 +1,14 @@
-
 @if (state?.isOpen) {
   <div
     (click)="onContainerClick($event)"
-    class="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+    class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
 
-    <div class="bg-[rgb(var(--color-bg-surface))] rounded-lg shadow-xl max-w-lg w-full m-4 border-2 border-[rgb(var(--color-primary))] text-[rgb(var(--color-primary))]">
+    <!-- Il contenitore ora si adatta al contenuto: se è un componente, lasciamo che decida lui la larghezza -->
+    <div 
+      [class.max-w-lg]="state?.contentType !== 'component'"
+      [class.w-full]="state?.contentType !== 'component'"
+      [class.m-4]="state?.contentType !== 'component'"
+      class="bg-[rgb(var(--color-bg-surface))] rounded-[2.5rem] shadow-2xl border border-white/10 text-[rgb(var(--color-text))] overflow-hidden">
 
       <!-- Dynamic Component Content -->
       @if (contentAsComponent; as component) {
@@ -13,22 +17,28 @@
 
       <!-- Dynamic Template Content -->
       @if (contentAsTemplate; as template) {
-        <ng-container *ngTemplateOutlet="template"></ng-container>
+        <div class="p-8">
+          <ng-container *ngTemplateOutlet="template"></ng-container>
+        </div>
       }
 
       <!-- Simple Data Content (for confirmation/info) -->
       @if (contentAsData; as data) {
-        <div class="p-6">
-          <h3 class="text-xl font-semibold text-[rgb(var(--color-primary))] mb-2">{{ data.title }}</h3>
-          <div class="text-[rgb(var(--color-text))]" [innerHTML]="data.content"></div>
-        </div>
-        <div class="flex justify-end p-4 bg-[rgb(var(--color-bg-base))] rounded-b-lg space-x-4">
-          @if (state?.isConfirmation) {
-            <button (click)="cancel()" class="button-secondary">Cancel</button>
-          }
-          <button (click)="confirm()" class="button-primary">
-            {{ state?.isConfirmation ? 'Confirm' : 'OK' }}
-          </button>
+        <div class="p-10">
+          <div class="flex items-center gap-4 mb-6">
+            <div class="w-12 h-12 rounded-2xl bg-[rgb(var(--color-primary)/0.1)] text-[rgb(var(--color-primary))] flex items-center justify-center text-2xl font-serif italic">i</div>
+            <h3 class="text-2xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">{{ data.title }}</h3>
+          </div>
+          <div class="text-gray-400 leading-relaxed text-sm" [innerHTML]="data.content"></div>
+          
+          <div class="flex justify-end mt-10 gap-4">
+            @if (state?.isConfirmation) {
+              <button (click)="cancel()" class="button-secondary px-8">{{ i18nService.translate('COMMON.CANCEL') }}</button>
+            }
+            <button (click)="confirm()" class="button-primary px-10">
+              {{ state?.isConfirmation ? i18nService.translate('COMMON.CONFIRM') : 'OK' }}
+            </button>
+          </div>
         </div>
       }
     </div>

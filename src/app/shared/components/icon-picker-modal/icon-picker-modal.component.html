@@ -1,0 +1,50 @@
+<div class="flex flex-col h-[80vh] w-[90vw] max-w-5xl bg-surface overflow-hidden animate-soft-in">
+  <!-- Header -->
+  <div class="p-8 border-b border-white/5 flex justify-between items-center bg-black/20">
+    <div class="flex items-center gap-4">
+      <div class="w-12 h-12 rounded-2xl bg-[rgb(var(--color-primary)/0.1)] text-[rgb(var(--color-primary))] flex items-center justify-center text-2xl shadow-inner">
+        <i class="fa-solid fa-icons"></i>
+      </div>
+      <h2 class="text-2xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">{{ i18nService.translate('FIELDS_HELP.SELECT_ICON_TITLE') }}</h2>
+    </div>
+    <button (click)="close()" class="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all text-xl">&times;</button>
+  </div>
+
+  <!-- Search Bar -->
+  <div class="p-6 bg-white/5 border-b border-white/5">
+    <div class="relative group">
+      <i class="fa-solid fa-search absolute left-5 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-[rgb(var(--color-primary))] transition-colors"></i>
+      <input 
+        type="text" 
+        [(ngModel)]="searchTerm" 
+        (input)="filterIcons()"
+        [placeholder]="i18nService.translate('FIELDS_HELP.SEARCH_ICONS')"
+        class="input pl-14 py-4 text-lg">
+    </div>
+  </div>
+
+  <!-- Icon Grid -->
+  <div class="flex-1 overflow-y-auto p-8 custom-scrollbar bg-black/10">
+    <div class="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-8 lg:grid-cols-10 gap-4">
+      @for (icon of filteredIcons; track icon) {
+        <button 
+          (click)="selectIcon(icon)"
+          class="aspect-square flex flex-col items-center justify-center gap-3 rounded-3xl border border-white/5 bg-white/5 hover:bg-[rgb(var(--color-primary))] hover:text-[rgb(var(--color-bg-base))] hover:scale-110 transition-all group p-3 shadow-lg">
+          <i [class]="'fa-solid ' + icon + ' text-2xl'"></i>
+          <span class="text-[8px] font-black uppercase truncate w-full text-center opacity-40 group-hover:opacity-100 tracking-tighter">{{ icon.replace('fa-', '') }}</span>
+        </button>
+      }
+      @if (filteredIcons.length === 0) {
+        <div class="col-span-full py-32 text-center">
+          <i class="fa-solid fa-magnifying-glass text-6xl text-gray-700 mb-6"></i>
+          <p class="text-gray-500 font-black uppercase tracking-[0.3em]">{{ i18nService.translate('COMMON.NO_RECORDS') }}</p>
+        </div>
+      }
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="p-8 bg-black/20 border-t border-white/5 flex justify-end">
+    <button (click)="close()" class="button-secondary px-12 py-4 uppercase tracking-widest">{{ i18nService.translate('COMMON.CANCEL_SHORT') }}</button>
+  </div>
+</div>

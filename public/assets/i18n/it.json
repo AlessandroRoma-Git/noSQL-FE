@@ -219,6 +219,21 @@
     "THEME_ACCENT": "Un colore vivace per evidenziare le cose importanti.",
     "THEME_TEXT": "Il colore delle scritte (assicurati che si legga bene sullo sfondo!).",
     "THEME_BG": "Il colore dello sfondo di tutto il sito.",
-    "THEME_SURFACE": "Il colore delle card e dei menu."
+    "THEME_SURFACE": "Il colore delle card e dei menu.",
+    "MENU_LABEL": "Il nome che apparirà nel menu (es: 'Clienti').",
+    "MENU_ENTITY": "Scegli quale tabella deve aprirsi quando clicchi questa voce.",
+    "MENU_POSITION": "L'ordine in cui apparirà (numeri bassi in alto, numeri alti in basso).",
+    "MENU_ICON": "Scegli un'icona per rendere il menu più bello e facile da riconoscere.",
+    "MENU_PARENT": "Se vuoi che questa voce stia 'dentro' un'altra (come un sottomenu), sceglila qui.",
+    "SEARCH_ICONS": "Cerca icone (es: home, user, cog)...",
+    "SELECT_ICON_TITLE": "Seleziona Icona",
+    "ACTION_SAVE": "Clicca qui per salvare tutte le modifiche che hai fatto.",
+    "ACTION_CANCEL": "Torna indietro senza salvare nulla.",
+    "ACTION_DELETE": "Attenzione: questo cancellerà il dato per sempre!",
+    "ACTION_EDIT": "Apri la pagina per cambiare i dati di questo elemento.",
+    "ACTION_CREATE": "Crea un nuovo elemento da zero.",
+    "ACTION_LOGOUT": "Esci dal sito in modo sicuro.",
+    "ACTION_SEARCH": "Scrivi qui per trovare velocemente quello che cerchi.",
+    "ACTION_ADD": "Aggiungi un nuovo pezzo alla lista."
   }
 }

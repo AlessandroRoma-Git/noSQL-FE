@@ -1,76 +1,55 @@
-import { Component, inject, OnInit, OnDestroy, TemplateRef, Type, ViewContainerRef, ViewChild } from '@angular/core';
-import { CommonModule, NgComponentOutlet } from '@angular/common';
-import { ModalService, ModalState, ModalData } from '../../../core/services/modal.service';
-import { Subscription } from 'rxjs';
+import { Component, inject } from '@angular/core';
+import { CommonModule } from '@angular/common';
+import { ModalService, ModalContent, ModalState, ModalData } from '../../../core/services/modal.service';
+import { I18nService } from '../../../core/services/i18n.service';
 
 /**
  * @class ModalComponent
  * @description
- * Questa è la "Scatola dei Popup" del sito. 
- * Può contenere messaggi semplici, domande di conferma o intere pagine (componenti).
- * Rimane nascosta finché il ModalService non le dice di aprirsi.
+ * Un contenitore "galleggiante" universale.
+ * Può mostrare semplici messaggi, moduli interi o caricare altri componenti.
  */
 @Component({
   selector: 'app-modal',
   standalone: true,
-  imports: [CommonModule, NgComponentOutlet],
+  imports: [CommonModule],
   templateUrl: './modal.component.html',
+  styleUrls: ['./modal.component.css']
 })
-export class ModalComponent implements OnInit, OnDestroy {
-  // Strumento per gestire l'apertura e chiusura
+export class ModalComponent {
   private modalService = inject(ModalService);
-  
-  // Riferimento al punto dove iniettiamo i componenti dinamici
-  @ViewChild('componentHost', { read: ViewContainerRef, static: true }) componentHost!: ViewContainerRef;
+  public i18nService = inject(I18nService);
 
-  private subscription?: Subscription;
-
-  // Lo stato attuale del popup (aperto/chiuso, cosa contiene)
   public state: ModalState | null = null;
 
-  // Metodi per capire cosa mostrare nel template HTML senza errori di tipo
-  get contentAsComponent(): Type<any> | null {
-    return this.state?.contentType === 'component' ? (this.state.content as Type<any>) : null;
-  }
-
-  get contentAsTemplate(): TemplateRef<any> | null {
-    return this.state?.contentType === 'template' ? (this.state.content as TemplateRef<any>) : null;
-  }
-
-  get contentAsData(): ModalData | null {
-    return this.state?.contentType === 'data' ? (this.state.content as ModalData) : null;
-  }
-
-  ngOnInit() {
-    // Ci mettiamo in ascolto del "telecomando" (ModalService)
-    this.subscription = this.modalService.modalState$.subscribe(state => {
+  constructor() {
+    this.modalService.modalState$.subscribe(state => {
       this.state = state;
     });
   }
 
-  ngOnDestroy() {
-    // Quando distruggiamo il popup, smettiamo di ascoltare per non sprecare memoria
-    this.subscription?.unsubscribe();
+  get contentAsComponent() {
+    return this.state?.contentType === 'component' ? this.state.content as any : null;
   }
 
-  /**
-   * Chiude il popup confermando l'azione (clic su OK/Sì)
-   */
+  get contentAsTemplate() {
+    return this.state?.contentType === 'template' ? this.state.content as any : null;
+  }
+
+  get contentAsData() {
+    return this.state?.contentType === 'data' ? this.state.content as ModalData : null;
+  }
+
   confirm(): void {
     this.modalService.respond(true);
   }
 
-  /**
-   * Chiude il popup annullando l'azione (clic su Annulla/No)
-   */
   cancel(): void {
     this.modalService.respond(false);
   }
 
-  /**
-   * Chiude il popup se clicchi fuori dalla finestrella (sullo sfondo scuro)
-   */
   onContainerClick(event: MouseEvent): void {
+    // Se clicchiamo sullo sfondo scuro, chiudiamo il modale
     if (event.target === event.currentTarget) {
       this.modalService.close();
     }

@@ -219,6 +219,21 @@
     "THEME_ACCENT": "A bright color to highlight important things.",
     "THEME_TEXT": "The color of the text (make sure it's readable on the background!).",
     "THEME_BG": "The background color of the whole site.",
-    "THEME_SURFACE": "The color of cards and menus."
+    "THEME_SURFACE": "The color of cards and menus.",
+    "MENU_LABEL": "The name that will appear in the menu (e.g., 'Customers').",
+    "MENU_ENTITY": "Choose which table should open when you click this item.",
+    "MENU_POSITION": "The order in which it will appear (low numbers at top, high numbers at bottom).",
+    "MENU_ICON": "Choose an icon to make the menu look better and easier to recognize.",
+    "MENU_PARENT": "If you want this item to be 'inside' another one (like a submenu), choose it here.",
+    "SEARCH_ICONS": "Search icons (e.g., home, user, cog)...",
+    "SELECT_ICON_TITLE": "Select Icon",
+    "ACTION_SAVE": "Click here to save all the changes you've made.",
+    "ACTION_CANCEL": "Go back without saving anything.",
+    "ACTION_DELETE": "Warning: this will delete the data forever!",
+    "ACTION_EDIT": "Open the page to change this item's data.",
+    "ACTION_CREATE": "Create a new item from scratch.",
+    "ACTION_LOGOUT": "Log out of the site safely.",
+    "ACTION_SEARCH": "Type here to quickly find what you're looking for.",
+    "ACTION_ADD": "Add a new piece to the list."
   }
 }

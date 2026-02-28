@@ -1,53 +1,119 @@
+<div class="container mx-auto p-4 animate-soft-in">
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">
+      {{ isEditMode ? i18nService.translate('COMMON.EDIT') : i18nService.translate('COMMON.CREATE') }} {{ i18nService.translate('SIDEBAR.MENU_SETUP').slice(0, -1) }}
+    </h1>
+    <a routerLink="/menu" class="button-secondary flex items-center gap-2">
+      &larr; {{ i18nService.translate('COMMON.BACK_TO_LIST') }}
+      <button type="button" (click)="$event.preventDefault(); i18nService.showFieldHelp('ACTION_CANCEL')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px] font-black italic">(i)</button>
+    </a>
+  </div>
 
-<div class="container mx-auto p-4">
-  <h1 class="text-3xl font-bold mb-6 text-primary">{{ isEditMode ? 'Edit Menu Item' : 'Create Menu Item' }}</h1>
-
-  <form [formGroup]="editorForm" (ngSubmit)="onSubmit()" class="space-y-8 bg-surface p-6 rounded-lg shadow-md max-w-2xl mx-auto">
-
-    <!-- Main Details -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  <form [formGroup]="editorForm" (ngSubmit)="onSubmit()" class="card-soft p-8 max-w-3xl mx-auto space-y-10">
+    
+    <!-- Info Base del Menu -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
       <div>
-        <label for="label" class="label">Label</label>
-        <input formControlName="label" id="label" type="text" class="input" placeholder="e.g., Customers">
+        <label for="label" class="label flex items-center gap-2">
+          Label
+          <button type="button" (click)="i18nService.showFieldHelp('MENU_LABEL')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+        </label>
+        <input formControlName="label" id="label" type="text" class="input" placeholder="es: Clienti">
       </div>
+
       <div>
-        <label for="position" class="label">Position</label>
-        <input formControlName="position" id="position" type="number" class="input">
-      </div>
-      <div>
-        <label for="entityKey" class="label">Associated Entity (Optional)</label>
+        <label for="entityKey" class="label flex items-center gap-2">
+          Entity
+          <button type="button" (click)="i18nService.showFieldHelp('MENU_ENTITY')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+        </label>
         <select formControlName="entityKey" id="entityKey" class="input">
-          <option value="">None</option>
+          <option value="">-- Nessuna Entità --</option>
           @for (entity of allEntities; track entity.entityKey) {
-            <option [value]="entity.entityKey">{{ entity.label }} ({{ entity.entityKey }})</option>
+            <option [value]="entity.entityKey">{{ entity.label }}</option>
           }
         </select>
       </div>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
       <div>
-        <label for="icon" class="label">Icon (Optional)</label>
-        <input formControlName="icon" id="icon" type="text" class="input" placeholder="e.g., user-icon">
+        <label for="position" class="label flex items-center gap-2">
+          Position
+          <button type="button" (click)="i18nService.showFieldHelp('MENU_POSITION')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+        </label>
+        <input formControlName="position" id="position" type="number" class="input">
+      </div>
+
+      <div>
+        <label for="parentId" class="label flex items-center gap-2">
+          Parent Item
+          <button type="button" (click)="i18nService.showFieldHelp('MENU_PARENT')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+        </label>
+        <select formControlName="parentId" id="parentId" class="input">
+          <option [ngValue]="null">-- Root Level --</option>
+          @for (item of allMenuItems; track item.id) {
+            @if (item.id !== itemId) {
+              <option [value]="item.id">{{ item.label }}</option>
+            }
+          }
+        </select>
       </div>
     </div>
 
-    <!-- Groups -->
-    <div formGroupName="groups">
-      <h3 class="font-medium mb-2 text-primary">Visible to Groups (Optional)</h3>
-      <p class="text-sm text-main-text/70 mb-2">If no groups are selected, the item will be visible to everyone.</p>
-      <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+    <!-- Selettore Grafico Icona (NUOVO MODALE) -->
+    <div class="p-6 bg-white/5 rounded-3xl border border-white/5">
+      <label class="label flex items-center gap-2 mb-4">
+        Icona del Menu
+        <button type="button" (click)="i18nService.showFieldHelp('MENU_ICON')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+      </label>
+      
+      <div class="flex items-center gap-6">
+        <!-- Anteprima Icona Corrente -->
+        <div class="w-20 h-20 bg-black/20 rounded-[2rem] border-2 border-[rgb(var(--color-primary))] flex items-center justify-center text-3xl text-[rgb(var(--color-primary))] shadow-inner">
+          @if (isFontAwesome(editorForm.get('icon')?.value)) {
+            <i class="fas" [ngClass]="editorForm.get('icon')?.value"></i>
+          } @else {
+            <svg class="w-10 h-10" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="editorForm.get('icon')?.value" />
+            </svg>
+          }
+        </div>
+
+        <div class="flex flex-col gap-2 flex-1">
+          <button type="button" (click)="openIconPicker()" class="button-primary w-full md:w-max px-8 py-3 text-sm flex items-center gap-3">
+            <i class="fas fa-search-plus"></i>
+            {{ i18nService.translate('FIELDS_HELP.SELECT_ICON_TITLE') }}
+          </button>
+          <p class="text-[10px] text-gray-500 italic">* Clicca per cercare tra centinaia di icone FontAwesome.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Permessi Gruppi -->
+    <div class="p-6 bg-white/5 rounded-3xl border border-white/5">
+      <h3 class="label text-[rgb(var(--color-primary))] uppercase tracking-widest flex items-center gap-2 mb-4">
+        Permessi di Visualizzazione
+        <button type="button" (click)="i18nService.showFieldHelp('ACL_READ')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+      </h3>
+      <div formGroupName="groups" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         @for (group of allGroups; track group.id) {
           <div class="flex items-center">
-            <input [formControlName]="group.name" [id]="'group-' + group.name" type="checkbox" class="h-4 w-4 rounded border-surface text-primary focus:ring-primary">
-            <label [for]="'group-' + group.name" class="ml-2 text-sm text-main-text">{{ group.name }}</label>
+            <input [formControlName]="group.name" [id]="'group-' + group.id" type="checkbox" class="h-5 w-5 rounded-lg border-none bg-white/10 text-[rgb(var(--color-primary))] focus:ring-offset-0 focus:ring-[rgb(var(--color-primary))] cursor-pointer">
+            <label [for]="'group-' + group.id" class="ml-3 text-sm text-gray-400 font-medium">{{ group.name }}</label>
           </div>
         }
       </div>
     </div>
 
     <!-- Form Actions -->
-    <div class="flex justify-end space-x-4 border-t border-base pt-6 mt-8">
-      <a routerLink="/menu" class="button-secondary">Cancel</a>
-      <button type="submit" [disabled]="editorForm.invalid" class="button-primary disabled:opacity-50">
-        {{ isEditMode ? 'Update Menu Item' : 'Create Menu Item' }}
+    <div class="flex justify-end space-x-4 border-t border-white/5 pt-8">
+      <a routerLink="/menu" class="button-secondary px-8 flex items-center gap-2">
+        {{ i18nService.translate('COMMON.CANCEL_SHORT') }}
+        <button type="button" (click)="$event.preventDefault(); i18nService.showFieldHelp('ACTION_CANCEL')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px] font-black italic">(i)</button>
+      </a>
+      <button type="submit" [disabled]="editorForm.invalid" class="button-primary px-10 flex items-center gap-2">
+        {{ isEditMode ? i18nService.translate('COMMON.SAVE') : i18nService.translate('COMMON.CREATE') }}
+        <button type="button" (click)="$event.stopPropagation(); i18nService.showFieldHelp('ACTION_SAVE')" class="text-white/30 hover:text-white text-[10px] font-black italic">(i)</button>
       </button>
     </div>
   </form>

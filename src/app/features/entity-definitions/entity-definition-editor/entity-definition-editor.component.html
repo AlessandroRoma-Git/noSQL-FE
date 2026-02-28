@@ -23,14 +23,18 @@
           <div>
             <label for="entityKey" class="label flex items-center gap-2">
               Entity Key
-              <button type="button" (click)="i18nService.showFieldHelp('ENTITY_KEY')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+              <button type="button" (click)="i18nService.showFieldHelp('ENTITY_KEY')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
+                <i class="fa-solid fa-circle-info"></i>
+              </button>
             </label>
             <input formControlName="entityKey" id="entityKey" type="text" class="input" [class.opacity-50]="isEditMode">
           </div>
           <div>
             <label for="label" class="label flex items-center gap-2">
               Display Label
-              <button type="button" (click)="i18nService.showFieldHelp('DISPLAY_LABEL')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+              <button type="button" (click)="i18nService.showFieldHelp('DISPLAY_LABEL')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
+                <i class="fa-solid fa-circle-info"></i>
+              </button>
             </label>
             <input formControlName="label" id="label" type="text" class="input">
           </div>
@@ -39,7 +43,9 @@
           <app-toggle-switch formControlName="historyEnabled"></app-toggle-switch>
           <div class="flex items-center gap-2">
             <span class="text-sm font-bold text-gray-400 uppercase tracking-widest">{{ i18nService.translate('ENTITIES.HISTORY_LABEL') }}</span>
-            <button type="button" (click)="i18nService.showFieldHelp('HISTORY_TRACKING')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+            <button type="button" (click)="i18nService.showFieldHelp('HISTORY_TRACKING')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
+              <i class="fa-solid fa-circle-info"></i>
+            </button>
           </div>
         </div>
       </div>
@@ -59,14 +65,18 @@
                 <div>
                   <label class="text-[10px] font-black uppercase text-gray-500 mb-1 flex items-center gap-2">
                     {{ i18nService.translate('ENTITIES.FIELD_NAME') }}
-                    <button type="button" (click)="i18nService.showFieldHelp('FIELD_NAME')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic">(i)</button>
+                    <button type="button" (click)="i18nService.showFieldHelp('FIELD_NAME')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
+                      <i class="fa-solid fa-circle-info"></i>
+                    </button>
                   </label>
                   <input formControlName="name" type="text" class="input py-2 text-xs">
                 </div>
                 <div>
                   <label class="text-[10px] font-black uppercase text-gray-500 mb-1 flex items-center gap-2">
                     {{ i18nService.translate('ENTITIES.DATA_TYPE') }}
-                    <button type="button" (click)="i18nService.showFieldHelp('DATA_TYPE')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic">(i)</button>
+                    <button type="button" (click)="i18nService.showFieldHelp('DATA_TYPE')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
+                      <i class="fa-solid fa-circle-info"></i>
+                    </button>
                   </label>
                   <select formControlName="type" class="input py-2 text-xs">
                     @for (type of fieldTypes; track type) {
@@ -77,14 +87,18 @@
                 <div class="flex items-center pt-6 gap-2">
                   <app-toggle-switch formControlName="required"></app-toggle-switch>
                   <span class="text-[10px] font-bold text-gray-500 uppercase">{{ i18nService.translate('ENTITIES.REQUIRED') }}</span>
-                  <button type="button" (click)="i18nService.showFieldHelp('FIELD_REQUIRED')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+                  <button type="button" (click)="i18nService.showFieldHelp('FIELD_REQUIRED')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
+                    <i class="fa-solid fa-circle-info"></i>
+                  </button>
                 </div>
                 
                 @if (field.get('type')?.value === 'REFERENCE') {
                   <div class="lg:col-span-1">
                     <label class="text-[10px] font-black uppercase text-gray-500 mb-1 flex items-center gap-2">
                       {{ i18nService.translate('ENTITIES.REF_ENTITY') }}
-                      <button type="button" (click)="i18nService.showFieldHelp('REF_ENTITY')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic">(i)</button>
+                      <button type="button" (click)="i18nService.showFieldHelp('REF_ENTITY')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
+                        <i class="fa-solid fa-circle-info"></i>
+                      </button>
                     </label>
                     <select formControlName="referenceEntityKey" class="input py-2 text-xs">
                       @for (e of allEntities; track e.entityKey) {
@@ -107,7 +121,9 @@
             <div [formGroupName]="action" class="space-y-4">
               <h3 class="text-xs font-black uppercase text-gray-400 border-b border-white/5 pb-2 flex items-center justify-between">
                 {{ action }}
-                <button type="button" (click)="i18nService.showFieldHelp('ACL_' + action.toUpperCase())" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic">(i)</button>
+                <button type="button" (click)="i18nService.showFieldHelp('ACL_' + action.toUpperCase())" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
+                  <i class="fa-solid fa-circle-info"></i>
+                </button>
               </h3>
               @for (group of allGroups; track group.id) {
                 <div class="flex items-center gap-2">
@@ -128,14 +144,18 @@
             <div>
               <label class="label flex items-center gap-2">
                 {{ i18nService.translate('ENTITIES.RECIPIENTS') }}
-                <button type="button" (click)="i18nService.showFieldHelp('NOTIF_RECIPIENTS')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+                <button type="button" (click)="i18nService.showFieldHelp('NOTIF_RECIPIENTS')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
+                  <i class="fa-solid fa-circle-info"></i>
+                </button>
               </label>
               <input formControlName="to" type="text" class="input" placeholder="admin@test.it, boss@test.it">
             </div>
             <div>
               <label class="label flex items-center gap-2">
                 {{ i18nService.translate('ENTITIES.SUBJECT') }}
-                <button type="button" (click)="i18nService.showFieldHelp('NOTIF_SUBJECT')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+                <button type="button" (click)="i18nService.showFieldHelp('NOTIF_SUBJECT')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
+                  <i class="fa-solid fa-circle-info"></i>
+                </button>
               </label>
               <input formControlName="subject" type="text" class="input" placeholder="New Record Created">
             </div>
@@ -144,7 +164,9 @@
             <div>
               <label class="label text-[10px] flex items-center gap-2">
                 {{ i18nService.translate('ENTITIES.ON_CREATE') }}
-                <button type="button" (click)="i18nService.showFieldHelp('NOTIF_TEMPLATE')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic">(i)</button>
+                <button type="button" (click)="i18nService.showFieldHelp('NOTIF_TEMPLATE')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
+                  <i class="fa-solid fa-circle-info"></i>
+                </button>
               </label>
               <select formControlName="createTemplateId" class="input text-xs">
                 <option [ngValue]="null">-- {{ i18nService.translate('ENTITIES.DISABLED') }} --</option>
@@ -154,7 +176,9 @@
             <div>
               <label class="label text-[10px] flex items-center gap-2">
                 {{ i18nService.translate('ENTITIES.ON_UPDATE') }}
-                <button type="button" (click)="i18nService.showFieldHelp('NOTIF_TEMPLATE')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic">(i)</button>
+                <button type="button" (click)="i18nService.showFieldHelp('NOTIF_TEMPLATE')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
+                  <i class="fa-solid fa-circle-info"></i>
+                </button>
               </label>
               <select formControlName="updateTemplateId" class="input text-xs">
                 <option [ngValue]="null">-- {{ i18nService.translate('ENTITIES.DISABLED') }} --</option>
@@ -164,7 +188,9 @@
             <div>
               <label class="label text-[10px] flex items-center gap-2">
                 {{ i18nService.translate('ENTITIES.ON_DELETE') }}
-                <button type="button" (click)="i18nService.showFieldHelp('NOTIF_TEMPLATE')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic">(i)</button>
+                <button type="button" (click)="i18nService.showFieldHelp('NOTIF_TEMPLATE')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
+                  <i class="fa-solid fa-circle-info"></i>
+                </button>
               </label>
               <select formControlName="deleteTemplateId" class="input text-xs">
                 <option [ngValue]="null">-- {{ i18nService.translate('ENTITIES.DISABLED') }} --</option>
@@ -175,9 +201,18 @@
         </div>
       </div>
 
-      <div class="flex justify-end pt-8 pb-12">
-        <button type="submit" [disabled]="editorForm.invalid" class="button-primary px-16 py-4 text-lg font-black uppercase tracking-widest shadow-2xl">
+      <div class="flex justify-end pt-8 pb-12 gap-4">
+        <a routerLink="/entity-definitions" class="button-secondary px-12 flex items-center gap-2">
+          {{ i18nService.translate('COMMON.CANCEL') }}
+          <button type="button" (click)="$event.preventDefault(); i18nService.showFieldHelp('ACTION_CANCEL')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
+            <i class="fa-solid fa-circle-info"></i>
+          </button>
+        </a>
+        <button type="submit" [disabled]="editorForm.invalid" class="button-primary px-16 py-4 text-lg font-black uppercase tracking-widest shadow-2xl flex items-center gap-3">
           {{ i18nService.translate('COMMON.SAVE') }}
+          <button type="button" (click)="$event.stopPropagation(); i18nService.showFieldHelp('ACTION_SAVE')" class="text-black/30 hover:text-black text-[10px]">
+            <i class="fa-solid fa-circle-info"></i>
+          </button>
         </button>
       </div>
     </form>
