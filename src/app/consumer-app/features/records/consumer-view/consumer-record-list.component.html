@@ -1,0 +1,135 @@
+<div class="animate-soft-in">
+  <!-- Titolo Intelligente -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+    <div>
+      <div class="flex items-center gap-3">
+        <h1 class="text-3xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">
+          {{ definition?.label || entityKey }}
+        </h1>
+        <div class="px-3 py-1 rounded-full bg-white/5 text-gray-500 text-[8px] font-black uppercase tracking-widest border border-white/5">
+          Consumer View
+        </div>
+      </div>
+      <p class="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1 opacity-60">
+        {{ definition ? 'Vista autorizzata con schema completo' : 'Vista dinamica (schema-less)' }}
+      </p>
+    </div>
+
+    @if (canWrite) {
+      <a [routerLink]="['/records', entityKey, 'new']" class="button-primary flex items-center justify-center gap-3 px-8">
+        <i class="fa-solid fa-plus"></i>
+        {{ i18nService.translate('RECORDS.NEW_RECORD') }}
+      </a>
+    }
+  </div>
+
+  @if (isLoading) {
+    <div class="flex flex-col items-center justify-center py-32 card-soft border-dashed border-2 border-white/5">
+      <div class="w-16 h-16 rounded-[2rem] border-4 border-[rgb(var(--color-primary)/0.1)] border-t-[rgb(var(--color-primary))] animate-spin mb-6"></div>
+      <p class="text-gray-500 font-black uppercase tracking-[0.3em] animate-pulse">{{ i18nService.translate('COMMON.LOADING') }}</p>
+    </div>
+  } @else {
+    @if (records.length > 0) {
+      <!-- Desktop Table -->
+      <div class="hidden md:block card-soft overflow-hidden">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-black/20 border-b border-white/5">
+              <!-- Se abbiamo la definizione usiamo i campi definiti, altrimenti "indoviniamo" dai dati -->
+              @if (definition) {
+                @for (field of definition.fields; track field.name) {
+                  <th class="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">{{ field.name }}</th>
+                }
+              } @else {
+                @for (col of (records[0].data | keyvalue); track col.key) {
+                  @if (col.key !== 'id' && col.key !== 'createdAt' && col.key !== 'updatedAt') {
+                    <th class="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em]">{{ col.key }}</th>
+                  }
+                }
+              }
+              <th class="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] text-right">{{ i18nService.translate('COMMON.ACTIONS') }}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5">
+            @for (record of records; track record.id) {
+              <tr class="hover:bg-white/5 transition-colors group">
+                @if (definition) {
+                  @for (field of definition.fields; track field.name) {
+                    <td class="px-6 py-4 text-sm text-[rgb(var(--color-text))]">
+                      {{ formatCellData(record.data[field.name], field.name) }}
+                    </td>
+                  }
+                } @else {
+                  @for (col of (record.data | keyvalue); track col.key) {
+                    @if (col.key !== 'id' && col.key !== 'createdAt' && col.key !== 'updatedAt') {
+                      <td class="px-6 py-4 text-sm text-[rgb(var(--color-text))]">
+                        {{ formatCellData(col.value, col.key.toString()) }}
+                      </td>
+                    }
+                  }
+                }
+                <td class="px-6 py-4 text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    @if (canWrite) {
+                      <a [routerLink]="['/records', entityKey, 'edit', record.id]" class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all">
+                        <i class="fa-solid fa-pen text-xs"></i>
+                      </a>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Mobile View -->
+      <div class="grid grid-cols-1 gap-4 md:hidden">
+        @for (record of records; track record.id) {
+          <div class="card-soft p-6">
+            @for (col of (record.data | keyvalue); track col.key) {
+              @if (col.key !== 'id' && col.key !== 'createdAt' && col.key !== 'updatedAt') {
+                <div class="flex justify-between py-2 border-b border-white/5 last:border-0">
+                  <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">{{ col.key }}</span>
+                  <span class="text-sm font-bold">{{ formatCellData(col.value, col.key.toString()) }}</span>
+                </div>
+              }
+            }
+            <div class="flex justify-end mt-6">
+              @if (canWrite) {
+                <a [routerLink]="['/records', entityKey, 'edit', record.id]" class="button-secondary text-xs py-2 px-4 flex items-center gap-2">
+                  <i class="fa-solid fa-pen"></i> {{ i18nService.translate('COMMON.EDIT') }}
+                </a>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Pagination -->
+      @if (pageInfo.totalPages > 1) {
+        <div class="flex items-center justify-center mt-10 gap-4 bg-white/5 p-2 rounded-[2rem] border border-white/5 w-max mx-auto shadow-2xl">
+          <button (click)="loadData(pageInfo.page - 1)" [disabled]="pageInfo.page === 0" class="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 text-gray-400 disabled:opacity-20 transition-all">
+            <i class="fa-solid fa-chevron-left"></i>
+          </button>
+          <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 px-4">
+            {{ pageInfo.page + 1 }} / {{ pageInfo.totalPages }}
+          </span>
+          <button (click)="loadData(pageInfo.page + 1)" [disabled]="pageInfo.page >= pageInfo.totalPages - 1" class="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 text-gray-400 disabled:opacity-20 transition-all">
+            <i class="fa-solid fa-chevron-right"></i>
+          </button>
+        </div>
+      }
+    } @else {
+      <div class="flex flex-col items-center justify-center py-32 card-soft border-dashed border-2 border-white/5">
+        <i class="fa-solid fa-folder-open text-4xl text-gray-600 mb-4"></i>
+        <p class="text-gray-500 font-black uppercase tracking-widest">{{ i18nService.translate('COMMON.NO_RECORDS') }}</p>
+        @if (canWrite) {
+          <a [routerLink]="['/records', entityKey, 'new']" class="button-primary mt-6 px-10">
+            <i class="fa-solid fa-plus mr-2"></i> {{ i18nService.translate('RECORDS.NEW_RECORD') }}
+          </a>
+        }
+      </div>
+    }
+  }
+</div>

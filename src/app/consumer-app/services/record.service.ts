@@ -17,6 +17,13 @@ export class RecordService {
   private pageInfoSubject = new BehaviorSubject<any>({});
   public pageInfo$: Observable<any> = this.pageInfoSubject.asObservable();
 
+  /**
+   * Ricerca record specifica per la scoperta dello schema (usata dai consumer).
+   */
+  searchRecords(entityKey: string, page = 0, size = 20): Observable<PageResponse<Record>> {
+    return this.http.post<PageResponse<Record>>(`${this.apiUrl}/${entityKey}/search`, { page, size });
+  }
+
   loadRecords(entityKey: string, page = 0, size = 20, filters: any[] = [], sorts: any[] = []): Observable<PageResponse<Record>> {
     const body = { filters, sorts, page, size };
     return this.http.post<PageResponse<Record>>(`${this.apiUrl}/${entityKey}/search`, body).pipe(

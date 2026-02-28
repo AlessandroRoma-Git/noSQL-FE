@@ -376,11 +376,21 @@ Ogni entity definition può avere un campo `acl` che definisce quali **gruppi** 
 | `delete` | DELETE record |
 | `search` | POST search |
 
-**Logica di enforcement (`AclService`):**
+**Logica di enforcement (`AclService.checkPermission`):**
 1. I gruppi con systemRole `SUPER_ADMIN` o `ADMIN` bypassano sempre l'ACL
 2. Se `acl` è `null` → accesso aperto a tutti gli utenti autenticati
 3. Se la lista per un permesso è `null` o vuota → accesso aperto
 4. Altrimenti, almeno uno dei **gruppi** dell'utente deve essere nella lista
+
+**Logica di visibilità entity definition (`AclService.checkEntityDefinitionVisibility`):**
+
+Utilizzata da `GET /api/v1/entity-definitions/{key}` per consentire l'accesso anche a utenti
+non ADMIN, purché il loro gruppo compaia in almeno una lista ACL della definizione.
+
+1. SUPER_ADMIN e ADMIN → accesso sempre concesso
+2. ACL assente → `403 Forbidden` (nessun gruppo configurato)
+3. Almeno un gruppo dell'utente presente in `read` **o** `write` **o** `delete` **o** `search` → consentito
+4. Nessuna corrispondenza → `403 Forbidden`
 
 > `AclService` estrae i gruppi dell'utente dal token JWT (claim `groups`) e li confronta con le liste ACL della entity definition.
 
@@ -389,7 +399,8 @@ Ogni entity definition può avere un campo `acl` che definisce quali **gruppi** 
 | Endpoint | Accesso |
 |----------|---------|
 | `/api/v1/auth/**` | Login e recupero password sono pubblici, cambio password richiede autenticazione |
-| `/api/v1/entity-definitions/**` | Solo ruolo di sistema `ADMIN` |
+| `GET /api/v1/entity-definitions/{key}` | Utente autenticato + check visibilità ACL (`AclService.checkEntityDefinitionVisibility`) |
+| `/api/v1/entity-definitions/**` (resto) | Solo ruolo di sistema `ADMIN` |
 | `/api/v1/groups/**` | Solo ruolo di sistema `ADMIN` |
 | `/api/v1/users/**` | Solo ruolo di sistema `ADMIN` |
 | `/api/v1/menu/manage/**` | Solo ruolo di sistema `ADMIN` |
@@ -438,8 +449,11 @@ RecordService.search()
   ├── AclService.checkPermission(definition, SEARCH)  →  verifica gruppi utente
   ├── QueryBuilderService.buildQuery(request, definition)
   │     ├── Valida campi filtro/sort contro la definizione
+  │     │     └── Campi di sistema (createdAt, updatedAt) bypassano la validazione
   │     ├── Verifica limiti (max filtri, max page size, regex length)
   │     ├── Traduce ogni FilterRequest in Criteria MongoDB
+  │     │     ├── Campi custom  →  path "data.<nome>"
+  │     │     └── Campi sistema →  path radice (es. "createdAt")
   │     └── Compone Query con paginazione e ordinamento
   ├── RecordRepository.count(query)  →  totale risultati
   └── RecordRepository.find(query)   →  pagina di risultati

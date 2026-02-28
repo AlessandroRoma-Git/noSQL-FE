@@ -155,7 +155,9 @@ curl -X POST http://localhost:8088/api/v1/auth/change-password \
 
 ## Entity Definitions
 
-> Richiede ruolo di sistema **ADMIN** (o **SUPER_ADMIN**).
+> La maggior parte degli endpoint richiede ruolo di sistema **ADMIN** (o **SUPER_ADMIN**).
+> **Eccezione:** `GET /api/v1/entity-definitions/{key}` è accessibile a qualsiasi utente autenticato,
+> con visibilità controllata dall'ACL della definizione (vedi sezione dedicata sotto).
 
 ### Crea definizione entità
 
@@ -284,8 +286,39 @@ curl -H "Authorization: Bearer $TOKEN" http://localhost:8088/api/v1/entity-defin
 GET /api/v1/entity-definitions/{key}
 ```
 
+Unico endpoint della sezione accessibile a **tutti gli utenti autenticati**. La visibilità viene
+verificata in base all'ACL della definizione:
+
+| Utente | Accesso |
+|--------|---------|
+| `SUPER_ADMIN`, `ADMIN` | Sempre consentito |
+| Gruppo presente in almeno una lista ACL (`read`, `write`, `delete` o `search`) | `200 OK` |
+| Nessun gruppo corrispondente in alcuna lista ACL | `403 Forbidden` |
+| Definizione senza ACL configurata | `403 Forbidden` |
+
+**Risposta: `200 OK`** — stessa struttura degli altri endpoint.
+
+**Errore definizione non trovata: `404 Not Found`**
+
+**Errore accesso negato: `403 Forbidden`**
+
+```json
+{
+  "status": 403,
+  "message": "You do not have access to entity definition 'customers'",
+  "errors": null,
+  "timestamp": "2026-02-28T17:00:00Z"
+}
+```
+
 ```bash
-curl -H "Authorization: Bearer $TOKEN" http://localhost:8088/api/v1/entity-definitions/customers
+# Utente con gruppo "lettori" presente nella ACL read → 200 OK
+curl -H "Authorization: Bearer $TOKEN_LETTORI" \
+  http://localhost:8088/api/v1/entity-definitions/customers
+
+# Utente con gruppo "outsiders" non presente in nessuna ACL → 403
+curl -H "Authorization: Bearer $TOKEN_OUTSIDERS" \
+  http://localhost:8088/api/v1/entity-definitions/customers
 ```
 
 ---
@@ -993,6 +1026,15 @@ Richiede permesso ACL **search**.
 | `page` | `int` | `0` | Numero di pagina (0-based) |
 | `size` | `int` | `20` | Elementi per pagina (max 100) |
 
+### Campi di sistema
+
+I campi `createdAt` e `updatedAt` sono campi di sistema presenti su ogni record e sono **sempre ammessi** in filtri e ordinamento, senza dover essere definiti nell'entity. Vengono risolti alla radice del documento MongoDB (non sotto `data.*`).
+
+| Campo | Tipo | Descrizione |
+|-------|------|-------------|
+| `createdAt` | `string` (ISO-8601) | Data di creazione del record |
+| `updatedAt` | `string` (ISO-8601) | Data dell'ultimo aggiornamento |
+
 ### Operatori filtro
 
 | Operatore | Descrizione | Tipo valore |
@@ -1034,6 +1076,40 @@ curl -X POST http://localhost:8088/api/v1/records/customers/search \
     ],
     "sorts": [
       { "field": "age", "direction": "desc" }
+    ],
+    "page": 0,
+    "size": 20
+  }'
+```
+
+### Esempio: ordinamento per data di creazione (campo di sistema)
+
+```bash
+curl -X POST http://localhost:8088/api/v1/records/customers/search \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{
+    "filters": [],
+    "sorts": [
+      { "field": "createdAt", "direction": "desc" }
+    ],
+    "page": 0,
+    "size": 10
+  }'
+```
+
+### Esempio: filtro su campo di sistema
+
+```bash
+curl -X POST http://localhost:8088/api/v1/records/customers/search \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Bearer $TOKEN" \
+  -d '{
+    "filters": [
+      { "field": "createdAt", "op": "gte", "value": "2025-01-01T00:00:00Z" }
+    ],
+    "sorts": [
+      { "field": "updatedAt", "direction": "desc" }
     ],
     "page": 0,
     "size": 20

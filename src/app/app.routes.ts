@@ -44,15 +44,15 @@ export const routes: Routes = [
         children: [
           { 
             path: '', 
-            loadComponent: () => import('app/consumer-app/features/records/record-list.component').then(m => m.RecordListComponent) 
+            loadComponent: () => import('app/consumer-app/features/records/admin-view/record-list.component').then(m => m.RecordListComponent) 
           },
           { 
             path: 'new', 
-            loadComponent: () => import('app/consumer-app/features/records/record-editor.component').then(m => m.RecordEditorComponent) 
+            loadComponent: () => import('app/consumer-app/features/records/admin-view/record-editor.component').then(m => m.RecordEditorComponent) 
           },
           { 
             path: 'edit/:id', 
-            loadComponent: () => import('app/consumer-app/features/records/record-editor.component').then(m => m.RecordEditorComponent) 
+            loadComponent: () => import('app/consumer-app/features/records/admin-view/record-editor.component').then(m => m.RecordEditorComponent) 
           }
         ]
       },

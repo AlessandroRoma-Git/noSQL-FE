@@ -1,4 +1,3 @@
-
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
@@ -8,7 +7,7 @@ import { EntityDefinition, CreateEntityDefinitionRequest, UpdateEntityDefinition
  * @class EntityDefinitionService
  * @description Service for managing entity definitions.
  * It handles fetching, creating, updating, and deleting entity definitions,
- * and provides a reactive stream of the definitions list.
+ * which define the structure and behavior of different content types.
  */
 @Injectable({
   providedIn: 'root'
@@ -18,16 +17,14 @@ export class EntityDefinitionService {
   private http = inject(HttpClient);
 
   private definitionsSubject = new BehaviorSubject<EntityDefinition[]>([]);
-
   /**
-   * Observable stream of the list of entity definitions.
-   * Components can subscribe to this to get live updates.
+   * Observable stream of entity definitions.
    */
   public definitions$: Observable<EntityDefinition[]> = this.definitionsSubject.asObservable();
 
   /**
-   * Fetches the list of entity definitions from the backend and updates the `definitions$` stream.
-   * @returns An observable of the HTTP response.
+   * Loads all entity definitions from the backend and updates the `definitions$` stream.
+   * @returns An observable of the list of entity definitions.
    */
   loadEntityDefinitions(): Observable<EntityDefinition[]> {
     return this.http.get<EntityDefinition[]>(this.apiUrl).pipe(
@@ -41,6 +38,14 @@ export class EntityDefinitionService {
    * @returns An observable of the entity definition.
    */
   getEntityDefinition(key: string): Observable<EntityDefinition> {
+    return this.http.get<EntityDefinition>(`${this.apiUrl}/${key}`);
+  }
+
+  /**
+   * Versione pubblica della definizione (punto 8.1 dei casi d'uso).
+   * @param key - La chiave univoca dell'entità.
+   */
+  getPublicEntityDefinition(key: string): Observable<EntityDefinition> {
     return this.http.get<EntityDefinition>(`${this.apiUrl}/${key}`);
   }
 
@@ -59,8 +64,8 @@ export class EntityDefinitionService {
   /**
    * Updates an existing entity definition.
    * On success, it reloads the list to update the `definitions$` stream.
-   * @param key - The key of the entity definition to update.
-   * @param data - The updated data.
+   * @param key - The unique key of the entity definition to update.
+   * @param data - The updated data for the entity definition.
    * @returns An observable of the updated entity definition.
    */
   updateEntityDefinition(key: string, data: UpdateEntityDefinitionRequest): Observable<EntityDefinition> {
@@ -70,9 +75,9 @@ export class EntityDefinitionService {
   }
 
   /**
-   * Deletes an entity definition.
+   * Deletes an entity definition by its key.
    * On success, it reloads the list to update the `definitions$` stream.
-   * @param key - The key of the entity definition to delete.
+   * @param key - The unique key of the entity definition to delete.
    * @returns An observable that completes when the operation is done.
    */
   deleteEntityDefinition(key: string): Observable<void> {

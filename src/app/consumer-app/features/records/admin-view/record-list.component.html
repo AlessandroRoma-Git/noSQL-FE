@@ -1,0 +1,143 @@
+<div class="container mx-auto p-4 max-w-7xl animate-soft-in">
+  
+  @if (isAdmin$ | async) {
+    <!-- MODALITÀ ADMIN: Tabella Completa con Schema -->
+    @if (entityDefinition) {
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+        <div>
+          <div class="flex items-center gap-3">
+            <h1 class="text-3xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">
+              {{ entityDefinition.label }}
+            </h1>
+            <button (click)="showHelp()" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm" [title]="i18nService.translate('COMMON.MORE')">
+              <i class="fa-solid fa-circle-info"></i>
+            </button>
+          </div>
+          <p class="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1 opacity-60">{{ i18nService.translate('RECORDS.LIST_SUBTITLE') }} {{ entityKey }}</p>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-3">
+          <!-- Barra di Ricerca -->
+          <div class="relative group">
+            <span class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none text-gray-500 group-focus-within:text-[rgb(var(--color-primary))] transition-colors">
+              <i class="fas fa-search"></i>
+            </span>
+            <input 
+              type="text" 
+              (input)="onSearch($event)"
+              [placeholder]="i18nService.translate('COMMON.SEARCH_PLACEHOLDER')" 
+              class="input pl-12 w-full sm:w-64 pr-10">
+            <button type="button" (click)="i18nService.showFieldHelp('ACTION_SEARCH')" class="absolute right-3 top-1/2 -translate-y-1/2 text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
+              <i class="fa-solid fa-circle-info"></i>
+            </button>
+          </div>
+
+          <a [routerLink]="['/records', entityKey, 'new']" class="button-primary flex items-center justify-center gap-3 px-8">
+            <i class="fas fa-plus"></i>
+            {{ i18nService.translate('RECORDS.NEW_RECORD') }}
+            <button type="button" (click)="$event.preventDefault(); $event.stopPropagation(); i18nService.showFieldHelp('ACTION_CREATE')" class="text-black/30 hover:text-black text-[10px]">
+              <i class="fa-solid fa-circle-info"></i>
+            </button>
+          </a>
+        </div>
+      </div>
+
+      <!-- TABELLA ADMIN -->
+      <div class="hidden md:block card-soft overflow-hidden">
+        <table class="w-full text-left border-collapse">
+          <thead>
+            <tr class="bg-black/20 border-b border-white/5">
+              @for (field of entityDefinition.fields; track field.name) {
+                <th (click)="toggleSort(field.name)" class="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] cursor-pointer hover:text-[rgb(var(--color-primary))] transition-colors">
+                  <div class="flex items-center gap-2">
+                    {{ field.name }}
+                    <i class="fas fa-sort opacity-30 text-[8px]"></i>
+                  </div>
+                </th>
+              }
+              <th class="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-[0.2em] text-right">{{ i18nService.translate('COMMON.ACTIONS') }}</th>
+            </tr>
+          </thead>
+          <tbody class="divide-y divide-white/5">
+            @for (record of records$ | async; track record.id) {
+              <tr class="hover:bg-white/5 transition-colors group">
+                @for (field of entityDefinition.fields; track field.name) {
+                  <td class="px-6 py-4 text-sm text-[rgb(var(--color-text))]">
+                    {{ formatCellData(record.data[field.name], field) }}
+                  </td>
+                }
+                <td class="px-6 py-4 text-right">
+                  <div class="flex items-center justify-end gap-2">
+                    <a [routerLink]="['/records', entityKey, 'edit', record.id]" class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all group/btn">
+                      <i class="fas fa-pen text-xs"></i>
+                    </a>
+                    <button (click)="onDelete(record.id)" class="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all group/del">
+                      <i class="fas fa-trash text-xs"></i>
+                    </button>
+                  </div>
+                </td>
+              </tr>
+            } @empty {
+              <tr>
+                <td [attr.colspan]="(entityDefinition.fields.length) + 1" class="px-6 py-20 text-center text-gray-500 font-bold uppercase tracking-widest opacity-50">
+                  <i class="fas fa-folder-open text-4xl block mb-4"></i>
+                  {{ i18nService.translate('COMMON.NO_RECORDS') }}
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- VISTA MOBILE ADMIN -->
+      <div class="grid grid-cols-1 gap-4 md:hidden">
+        @for (record of records$ | async; track record.id) {
+          <div class="card-soft p-6">
+            @for (field of entityDefinition.fields; track field.name; let first = $first) {
+              <div class="flex justify-between py-2 border-b border-white/5 last:border-0">
+                <span class="text-[10px] font-black text-gray-500 uppercase tracking-widest">{{ field.name }}</span>
+                <span class="text-sm font-bold" [class.text-[rgb(var(--color-primary))]]="first">{{ formatCellData(record.data[field.name], field) }}</span>
+              </div>
+            }
+            <div class="flex justify-end mt-6 gap-3">
+              <a [routerLink]="['/records', entityKey, 'edit', record.id]" class="button-secondary text-xs py-2 px-4 flex items-center gap-2">
+                <i class="fas fa-pen"></i> {{ i18nService.translate('COMMON.EDIT') }}
+              </a>
+              <button (click)="onDelete(record.id)" class="bg-red-500/10 text-red-500 border border-red-500/20 px-4 py-2 rounded-xl text-xs font-bold hover:bg-red-500 hover:text-white transition-all flex items-center gap-2">
+                <i class="fas fa-trash"></i> {{ i18nService.translate('COMMON.DELETE') }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- PAGINAZIONE ADMIN -->
+      @if (pageInfo$ | async; as info) {
+        @if (info.totalPages > 1) {
+          <div class="flex items-center justify-center mt-10 gap-4 bg-white/5 p-2 rounded-[2rem] border border-white/5 w-max mx-auto shadow-2xl">
+            <button (click)="loadRecords(info.page - 1)" [disabled]="info.page === 0" class="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 text-gray-400 disabled:opacity-20 transition-all">
+              <i class="fa-solid fa-chevron-left"></i>
+            </button>
+            <span class="text-[10px] font-black uppercase tracking-widest text-gray-500 px-4">
+              {{ info.page + 1 }} / {{ info.totalPages }}
+            </span>
+            <button (click)="loadRecords(info.page + 1)" [disabled]="info.page >= info.totalPages - 1" class="w-10 h-10 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 text-gray-400 disabled:opacity-20 transition-all">
+              <i class="fa-solid fa-chevron-right"></i>
+            </button>
+          </div>
+        }
+      }
+
+    } @else {
+      <!-- Caricamento solo se admin e non abbiamo ancora la definizione -->
+      <div class="flex flex-col items-center justify-center py-32 card-soft border-dashed border-2 border-white/5">
+        <div class="w-16 h-16 rounded-[2rem] border-4 border-[rgb(var(--color-primary)/0.1)] border-t-[rgb(var(--color-primary))] animate-spin mb-6 shadow-2xl"></div>
+        <p class="text-gray-500 font-black uppercase tracking-[0.3em] animate-pulse">{{ i18nService.translate('RECORDS.LOADING_DEF') }}</p>
+      </div>
+    }
+  } @else {
+    <!-- MODALITÀ UTENTE: Vista Dinamica senza Schema Admin -->
+    <app-consumer-record-list [entityKey]="entityKey"></app-consumer-record-list>
+  }
+
+</div>

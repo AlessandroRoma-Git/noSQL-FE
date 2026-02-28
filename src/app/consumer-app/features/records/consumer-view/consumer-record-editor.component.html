@@ -1,0 +1,82 @@
+<div class="container mx-auto p-4 max-w-4xl animate-soft-in">
+  <!-- Titolo -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+    <div>
+      <div class="flex items-center gap-3">
+        <h1 class="text-3xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">
+          {{ isEditMode ? i18nService.translate('RECORDS.EDIT_TITLE') : i18nService.translate('RECORDS.CREATE_TITLE') }} 
+          {{ definition?.label || entityKey }}
+        </h1>
+        <div class="px-3 py-1 rounded-full bg-white/5 text-gray-500 text-[8px] font-black uppercase tracking-widest border border-white/5">
+          Consumer Editor
+        </div>
+      </div>
+      <p class="text-gray-500 text-[10px] font-black uppercase tracking-[0.2em] mt-1 opacity-60">
+        {{ isSchemaLess ? 'Editor dinamico (schema-less)' : 'Editor autorizzato con schema completo' }}
+      </p>
+    </div>
+    
+    <a [routerLink]="['/records', entityKey]" class="button-secondary self-start">
+      &larr; {{ i18nService.translate('COMMON.BACK_TO_LIST') }}
+    </a>
+  </div>
+
+  @if (isLoading) {
+    <div class="flex flex-col items-center justify-center py-32 card-soft border-dashed border-2 border-white/5">
+      <div class="w-16 h-16 rounded-[2rem] border-4 border-white/10 border-t-[rgb(var(--color-primary))] animate-spin mb-6"></div>
+      <p class="text-gray-500 font-black uppercase tracking-widest text-xs animate-pulse">{{ i18nService.translate('RECORDS.LOADING_FIELDS') }}</p>
+    </div>
+  } @else {
+    <form [formGroup]="editorForm" (ngSubmit)="onSubmit()" class="card-soft p-10 space-y-10">
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
+        
+        <!-- Caso A: Abbiamo lo schema ufficiale -->
+        @if (!isSchemaLess && definition) {
+          @for (field of definition.fields; track field.name) {
+            <div class="flex flex-col">
+              <label [for]="field.name" class="label text-[10px] font-black uppercase text-gray-500 mb-2 block tracking-widest">
+                {{ field.name }} @if (field.required) { <span class="text-red-500">*</span> }
+              </label>
+
+              @switch (field.type) {
+                @case ('STRING') { <input [id]="field.name" [formControlName]="field.name" type="text" class="input"> }
+                @case ('EMAIL') { <input [id]="field.name" [formControlName]="field.name" type="email" class="input"> }
+                @case ('NUMBER') { <input [id]="field.name" [formControlName]="field.name" type="number" class="input"> }
+                @case ('BOOLEAN') {
+                  <input [id]="field.name" [formControlName]="field.name" type="checkbox" class="h-6 w-6 rounded-xl border-none bg-white/5 text-[rgb(var(--color-primary))] focus:ring-0 cursor-pointer">
+                }
+                @case ('DATE') { <input [id]="field.name" [formControlName]="field.name" type="datetime-local" class="input"> }
+                @case ('ENUM') {
+                  <select [id]="field.name" [formControlName]="field.name" class="input">
+                    <option [ngValue]="null">-- Scegli --</option>
+                    @for (v of field.enumValues; track v) { <option [value]="v">{{ v }}</option> }
+                  </select>
+                }
+                @case ('REFERENCE') { <app-reference-search [formControlName]="field.name" [entityKey]="field.referenceEntityKey!"></app-reference-search> }
+              }
+            </div>
+          }
+        } 
+        
+        <!-- Caso B: Schema-less (fallback dati grezzi) -->
+        @else {
+          @for (key of getKeys(editorForm.value); track key) {
+            <div class="flex flex-col">
+              <label [for]="key" class="label text-[10px] font-black uppercase text-gray-500 mb-2 block tracking-widest">{{ key }}</label>
+              <input [id]="key" [formControlName]="key" type="text" class="input">
+            </div>
+          }
+        }
+
+      </div>
+
+      <div class="flex justify-end pt-10 mt-10 border-t border-white/5 gap-4">
+        <a [routerLink]="['/records', entityKey]" class="button-secondary px-10">{{ i18nService.translate('COMMON.CANCEL') }}</a>
+        <button type="submit" [disabled]="editorForm.invalid" class="button-primary px-16 py-4 text-lg font-black uppercase tracking-widest shadow-2xl">
+          {{ isEditMode ? i18nService.translate('COMMON.SAVE') : i18nService.translate('COMMON.CREATE') }}
+        </button>
+      </div>
+    </form>
+  }
+</div>

@@ -1,4 +1,3 @@
-
 export interface Field {
   name: string;
   type: 'STRING' | 'NUMBER' | 'BOOLEAN' | 'DATE' | 'EMAIL' | 'ENUM' | 'REFERENCE';
@@ -11,26 +10,29 @@ export interface Field {
   referenceEntityKey?: string;
 }
 
+export interface AclConfig {
+  read?: string[];
+  write?: string[];
+  delete?: string[];
+  search?: string[];
+}
+
 export interface NotificationConfig {
   to: string[];
-  subject: string;
-  createTemplateId: string | null;
-  updateTemplateId: string | null;
-  deleteTemplateId: string | null;
+  subject?: string;
+  createTemplateId?: string | null;
+  updateTemplateId?: string | null;
+  deleteTemplateId?: string | null;
 }
 
 export interface EntityDefinition {
+  id: string;
   entityKey: string;
   label: string;
-  historyEnabled: boolean;
-  acl: {
-    read: { [groupName: string]: boolean };
-    write: { [groupName: string]: boolean };
-    delete: { [groupName: string]: boolean };
-    search: { [groupName: string]: boolean };
-  };
   fields: Field[];
-  notificationConfig?: NotificationConfig; // Optional
+  acl?: AclConfig | null;
+  historyEnabled: boolean;
+  notificationConfig?: NotificationConfig | null;
   createdAt: string;
   updatedAt: string;
 }

@@ -280,6 +280,18 @@ paths:
     get:
       tags: [Entity Definitions]
       summary: Dettaglio definizione
+      description: |
+        Restituisce una entity definition tramite la sua chiave univoca.
+
+        A differenza degli altri endpoint della sezione, **non richiede il ruolo admin**.
+        È accessibile a qualsiasi utente autenticato, ma la visibilità è controllata
+        dall'ACL della definizione:
+
+        - **ADMIN / SUPER_ADMIN**: accesso sempre consentito.
+        - **Utenti con gruppo custom**: accesso consentito se il gruppo appare in almeno una
+          delle liste ACL (`read`, `write`, `delete` o `search`).
+        - **Nessuna ACL configurata**: `403 Forbidden`.
+        - **Gruppo non presente in nessuna lista ACL**: `403 Forbidden`.
       responses:
         '200':
           description: Definizione trovata
@@ -287,6 +299,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/EntityDefinitionResponse'
+        '403':
+          description: Utente non appartiene ad alcun gruppo autorizzato, o definizione senza ACL
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '404':
           description: Definizione non trovata
           content:
@@ -520,9 +538,13 @@ paths:
         **Limiti di sicurezza:**
         - Max 10 filtri per query
         - Max page size 100 (default 20)
-        - Campi filtro/sort devono essere definiti nell'entità
+        - Campi filtro/sort devono essere definiti nell'entità, ad eccezione dei campi di sistema
         - Operatore `like` usa `Pattern.quote()` (escape metacaratteri regex)
         - Regex max 100 caratteri, no lookahead/lookbehind
+
+        **Campi di sistema sempre ammessi (senza definizione nell'entità):**
+        - `createdAt` — timestamp di creazione del record (radice documento MongoDB)
+        - `updatedAt` — timestamp dell'ultimo aggiornamento (radice documento MongoDB)
       requestBody:
         required: true
         content:
@@ -561,6 +583,27 @@ paths:
                     - field: first_name
                       op: like
                       value: mar
+              ordinamento_sistema:
+                summary: Ordinamento per campo di sistema (createdAt)
+                value:
+                  filters: []
+                  sorts:
+                    - field: createdAt
+                      direction: desc
+                  page: 0
+                  size: 10
+              filtro_sistema:
+                summary: Filtro su campo di sistema (createdAt)
+                value:
+                  filters:
+                    - field: createdAt
+                      op: gte
+                      value: "2025-01-01T00:00:00Z"
+                  sorts:
+                    - field: updatedAt
+                      direction: desc
+                  page: 0
+                  size: 20
       responses:
         '200':
           description: Risultati paginati
@@ -1676,7 +1719,10 @@ components:
       properties:
         field:
           type: string
-          description: Nome del campo (deve essere definito nell'entità)
+          description: >
+            Nome del campo su cui applicare il filtro. Deve essere definito nell'entità oppure essere
+            un campo di sistema (`createdAt`, `updatedAt`), che sono sempre ammessi indipendentemente
+            dalla definizione dell'entità.
           example: age
         op:
           $ref: '#/components/schemas/FilterOperator'
@@ -1690,7 +1736,10 @@ components:
       properties:
         field:
           type: string
-          description: Campo di ordinamento (deve essere definito nell'entità)
+          description: >
+            Campo di ordinamento. Deve essere definito nell'entità oppure essere un campo di sistema
+            (`createdAt`, `updatedAt`), che sono sempre ammessi indipendentemente dalla definizione
+            dell'entità.
           example: age
         direction:
           type: string
