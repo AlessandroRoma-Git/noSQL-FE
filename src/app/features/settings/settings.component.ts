@@ -52,19 +52,30 @@ export class SettingsComponent implements OnInit {
     });
 
     this.whiteLabelService.config$.pipe(take(1)).subscribe(config => {
-      this.settingsForm.patchValue({
-        branding: {
-          appName: config.appName,
-          logoUrl: config.logoUrl,
-          language: config.language,
-          themeId: config.themeId,
-          defaults: {
-            desktop: config.defaults.desktop,
-            tablet: config.defaults.tablet,
-            mobile: config.defaults.mobile
-          }
+      // Popoliamo il form con i valori attivi caricati dal servizio
+      this.settingsForm.get('branding')?.patchValue({
+        appName: config.appName,
+        logoUrl: config.logoUrl,
+        language: config.language,
+        themeId: config.themeId,
+        defaults: {
+          desktop: config.defaults.desktop,
+          tablet: config.defaults.tablet,
+          mobile: config.defaults.mobile
         }
-      });
+      }, { emitEvent: false });
+      
+      // Se stiamo usando un tema personalizzato, carichiamo i suoi colori nel designer
+      const currentTheme = this.themes.find(t => t.id === config.themeId);
+      if (currentTheme && currentTheme.isCustom) {
+        this.settingsForm.get('themeDesigner')?.patchValue({
+          primary: this.rgbToHex(currentTheme.colors['--color-primary']),
+          accent: this.rgbToHex(currentTheme.colors['--color-accent']),
+          text: this.rgbToHex(currentTheme.colors['--color-text']),
+          bgBase: this.rgbToHex(currentTheme.colors['--color-bg-base']),
+          bgSurface: this.rgbToHex(currentTheme.colors['--color-bg-surface'])
+        }, { emitEvent: false });
+      }
     });
   }
 
@@ -133,7 +144,7 @@ export class SettingsComponent implements OnInit {
       text: this.rgbToHex(theme.colors['--color-text']),
       bgBase: this.rgbToHex(theme.colors['--color-bg-base']),
       bgSurface: this.rgbToHex(theme.colors['--color-bg-surface'])
-    });
+    }, { emitEvent: false });
     this.showThemeDesigner = true;
     this.themeService.setTheme(theme.id);
   }
@@ -188,7 +199,7 @@ export class SettingsComponent implements OnInit {
     return `${r}, ${g}, ${b}`;
   }
 
-  private rgbToHex(rgb: string): string {
+  private rgbToHex(rgb: string | undefined): string {
     if (!rgb) return '#000000';
     const parts = rgb.split(',').map(p => parseInt(p.trim()));
     if (parts.length < 3) return '#000000';
@@ -203,7 +214,8 @@ export class SettingsComponent implements OnInit {
   onSubmit(): void {
     if (this.settingsForm.invalid) return;
     const formValue = this.settingsForm.value;
-    this.themeService.setTheme(formValue.branding.themeId);
+    
+    // Aggiorniamo la configurazione nel servizio
     this.whiteLabelService.updateConfig({
       appName: formValue.branding.appName,
       logoUrl: formValue.branding.logoUrl,
@@ -211,8 +223,11 @@ export class SettingsComponent implements OnInit {
       themeId: formValue.branding.themeId,
       defaults: formValue.branding.defaults
     });
+
+    this.themeService.setTheme(formValue.branding.themeId);
+
     this.settingsService.updateSettings(formValue).subscribe(() => {
-      this.toastService.success('Configurazioni salvate!');
+      this.toastService.success('Configurazioni salvate con successo!');
     });
   }
 }

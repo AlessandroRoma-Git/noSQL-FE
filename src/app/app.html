@@ -108,6 +108,7 @@
        [class.pt-32]="(whiteLabelConfig$ | async)?.layoutMode === 'tabs'"
        [class.pb-24]="(whiteLabelConfig$ | async)?.layoutMode === 'bottom-nav'">
 
+    <!-- Tasto Toggle Sidebar (Solo Sidebar Mode) -->
     @if ((authService.isAuthenticated$ | async) && !(authService.isFirstAccess$ | async) && ((whiteLabelConfig$ | async)?.layoutMode === 'sidebar' || !(whiteLabelConfig$ | async)?.layoutMode)) {
       <button 
         (click)="toggleSidebar()" 
@@ -121,6 +122,7 @@
       </button>
     }
 
+    <!-- Sfondo dinamico morbido -->
     <div class="absolute inset-0 bg-gradient-to-br from-[rgb(var(--color-bg-base))] via-[rgb(var(--color-bg-base))] to-[rgb(var(--color-primary)/0.05)] -z-10"></div>
 
     <main class="flex-1 overflow-y-auto scroll-smooth animate-soft-in">
@@ -232,7 +234,7 @@
       <span class="text-[9px] font-black uppercase tracking-tighter truncate max-w-[50px]">{{ item.label }}</span>
     </a>
   }
-  <button (click)="toggleSidebar()" class="flex flex-col items-center justify-center gap-1 transition-all w-16 h-16 rounded-2xl" [class.text-[rgb(var(--color-primary))]]="isSidebarOpen" [class.text-gray-500]="!isSidebarOpen">
+  <button (click)="toggleSidebar()" class="flex flex-col items-center justify-center gap-1 transition-all w-16 h-16 rounded-2xl" [style.color]="isSidebarOpen ? 'rgb(var(--color-primary))' : 'rgb(107, 114, 128)'">
     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
     </svg>
