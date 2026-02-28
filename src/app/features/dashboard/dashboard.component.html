@@ -1,15 +1,15 @@
-<div class="container mx-auto p-4 max-w-7xl">
+<div class="container mx-auto p-4 max-w-7xl animate-soft-in">
   
   <!-- INTESTAZIONE DASHBOARD -->
   <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
     <div>
       <div class="flex items-center gap-3">
-        <h1 class="text-4xl font-extrabold text-[rgb(var(--color-primary))] tracking-tight">Dashboard</h1>
-        <button (click)="showHelp()" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Aiuto">
+        <h1 class="text-4xl font-extrabold text-[rgb(var(--color-primary))] tracking-tight">{{ i18nService.translate('DASHBOARD.TITLE') }}</h1>
+        <button (click)="showHelp()" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm" [title]="i18nService.translate('COMMON.MORE')">
           <span class="font-serif italic font-bold">i</span>
         </button>
       </div>
-      <p class="text-gray-500 mt-1">Bentornato! Ecco cosa sta succedendo nel tuo CMS.</p>
+      <p class="text-gray-500 mt-1">{{ i18nService.translate('DASHBOARD.SUBTITLE') }}</p>
     </div>
     
     <button (click)="toggleConfig()" class="button-secondary flex items-center gap-2 self-start">
@@ -17,15 +17,15 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
       </svg>
-      Personalizza Dashboard
+      {{ i18nService.translate('DASHBOARD.CUSTOMIZE') }}
     </button>
   </div>
 
-  <!-- PANNELLO DI CONFIGURAZIONE (Si apre solo se clicchi il bottone sopra) -->
+  <!-- PANNELLO DI CONFIGURAZIONE -->
   @if (isConfiguring) {
     <div class="bg-surface p-6 rounded-2xl shadow-xl border-2 border-[rgb(var(--color-primary))] mb-8 animate-in fade-in zoom-in duration-300">
-      <h3 class="text-xl font-bold mb-4 text-[rgb(var(--color-text))]">Scegli quali tabelle monitorare</h3>
-      <p class="text-sm text-gray-400 mb-6">Seleziona fino a 4 tabelle per vedere il totale dei record in tempo reale.</p>
+      <h3 class="text-xl font-bold mb-4 text-[rgb(var(--color-text))]">{{ i18nService.translate('DASHBOARD.CHOOSE_TABLES') }}</h3>
+      <p class="text-sm text-gray-400 mb-6">{{ i18nService.translate('DASHBOARD.CHOOSE_TABLES_INFO') }}</p>
       
       <div class="flex flex-wrap gap-3 mb-8">
         @for (entity of allEntities$ | async; track entity.entityKey) {
@@ -44,8 +44,8 @@
       </div>
 
       <div class="flex justify-end gap-3">
-        <button (click)="toggleConfig()" class="button-secondary">Annulla</button>
-        <button (click)="saveConfig()" class="button-primary">Salva Configurazione</button>
+        <button (click)="toggleConfig()" class="button-secondary">{{ i18nService.translate('COMMON.CANCEL') }}</button>
+        <button (click)="saveConfig()" class="button-primary">{{ i18nService.translate('COMMON.SAVE') }}</button>
       </div>
     </div>
   }
@@ -55,22 +55,21 @@
     @for (stat of dashboardStats$ | async; track stat.entityKey) {
       <div class="bg-surface p-6 rounded-2xl shadow-lg border border-base flex flex-col items-center justify-center group hover:scale-105 transition-transform cursor-pointer"
            [routerLink]="['/records', stat.entityKey]">
-        <div class="text-gray-400 text-sm font-bold uppercase tracking-widest mb-2 group-hover:text-[rgb(var(--color-primary))] transition-colors">
-          Totale {{ stat.label }}
+        <div class="text-gray-400 text-sm font-bold uppercase tracking-widest mb-2 group-hover:text-[rgb(var(--color-primary))] transition-colors text-center">
+          {{ i18nService.translate('COMMON.TOTAL') }} {{ stat.label }}
         </div>
         <div class="text-5xl font-black text-[rgb(var(--color-text))]">
           {{ stat.count }}
         </div>
         <div class="mt-4 text-xs text-[rgb(var(--color-primary))] font-semibold opacity-0 group-hover:opacity-100 transition-opacity">
-          VAI ALLA LISTA &rarr;
+          {{ i18nService.translate('DASHBOARD.GO_TO_LIST') }} &rarr;
         </div>
       </div>
     } @empty {
-      <!-- Messaggio se la dashboard è vuota -->
       <div class="col-span-full py-12 text-center bg-base rounded-2xl border-2 border-dashed border-base">
-        <p class="text-gray-500">Non hai ancora scelto quali tabelle monitorare.</p>
+        <p class="text-gray-500">{{ i18nService.translate('DASHBOARD.NOT_CONFIGURED') }}</p>
         <button (click)="toggleConfig()" class="text-[rgb(var(--color-primary))] font-bold hover:underline mt-2">
-          Configura ora la tua dashboard
+          {{ i18nService.translate('DASHBOARD.CUSTOMIZE') }}
         </button>
       </div>
     }
@@ -80,18 +79,18 @@
     <!-- COLONNA: ULTIMI UTENTI -->
     <div class="lg:col-span-2 bg-surface p-6 rounded-2xl shadow-lg border border-base">
       <div class="flex items-center justify-between mb-6">
-        <h3 class="text-xl font-bold text-[rgb(var(--color-text))]">Ultimi Utenti Registrati</h3>
-        <a routerLink="/users" class="text-sm text-[rgb(var(--color-primary))] hover:underline">Vedi tutti</a>
+        <h3 class="text-xl font-bold text-[rgb(var(--color-text))]">{{ i18nService.translate('DASHBOARD.RECENT_USERS') }}</h3>
+        <a routerLink="/users" class="text-sm text-[rgb(var(--color-primary))] hover:underline">{{ i18nService.translate('DASHBOARD.SEE_ALL') }}</a>
       </div>
       
       <div class="overflow-x-auto">
         <table class="w-full text-left">
           <thead>
             <tr class="text-xs font-bold text-gray-400 uppercase tracking-wider border-b border-base">
-              <th class="py-3 px-2">Username</th>
+              <th class="py-3 px-2">{{ i18nService.translate('LOGIN.USERNAME') }}</th>
               <th class="py-3 px-2">Email</th>
-              <th class="py-3 px-2 hidden sm:table-cell">Data</th>
-              <th class="py-3 px-2 text-right">Stato</th>
+              <th class="py-3 px-2 hidden sm:table-cell">{{ i18nService.translate('COMMON.DATE') }}</th>
+              <th class="py-3 px-2 text-right">{{ i18nService.translate('COMMON.STATUS') }}</th>
             </tr>
           </thead>
           <tbody class="divide-y divide-base">
@@ -104,7 +103,7 @@
                   <span class="px-2 py-1 rounded-full text-[10px] font-bold uppercase"
                         [class.bg-green-500/20.text-green-500]="user.enabled"
                         [class.bg-red-500/20.text-red-500]="!user.enabled">
-                    {{ user.enabled ? 'Attivo' : 'Bloccato' }}
+                    {{ user.enabled ? i18nService.translate('COMMON.ACTIVE') : i18nService.translate('COMMON.BLOCKED') }}
                   </span>
                 </td>
               </tr>
@@ -114,17 +113,17 @@
       </div>
     </div>
 
-    <!-- COLONNA: AZIONI RAPIDE (Solo per Admin) -->
+    <!-- COLONNA: AZIONI RAPIDE -->
     <div class="bg-surface p-6 rounded-2xl shadow-lg border border-base">
-      <h3 class="text-xl font-bold mb-6 text-[rgb(var(--color-text))]">Azioni Rapide</h3>
+      <h3 class="text-xl font-bold mb-6 text-[rgb(var(--color-text))]">{{ i18nService.translate('DASHBOARD.QUICK_ACTIONS') }}</h3>
       <div class="flex flex-col gap-3">
         <a routerLink="/entity-definitions/new" class="flex items-center p-4 bg-base rounded-xl hover:bg-[rgb(var(--color-primary))] hover:text-white transition-all group">
           <div class="w-10 h-10 rounded-full bg-surface flex items-center justify-center mr-4 group-hover:scale-110 transition-transform">
             <svg class="w-6 h-6 text-[rgb(var(--color-primary))]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
           </div>
           <div>
-            <div class="font-bold">Nuova Entità</div>
-            <div class="text-xs opacity-60">Crea una nuova tabella</div>
+            <div class="font-bold">{{ i18nService.translate('DASHBOARD.NEW_ENTITY') }}</div>
+            <div class="text-xs opacity-60">{{ i18nService.translate('DASHBOARD.NEW_ENTITY_INFO') }}</div>
           </div>
         </a>
         
@@ -133,8 +132,8 @@
             <svg class="w-6 h-6 text-[rgb(var(--color-primary))]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>
           </div>
           <div>
-            <div class="font-bold">Aggiungi Utente</div>
-            <div class="text-xs opacity-60">Registra un nuovo collega</div>
+            <div class="font-bold">{{ i18nService.translate('DASHBOARD.ADD_USER') }}</div>
+            <div class="text-xs opacity-60">{{ i18nService.translate('DASHBOARD.ADD_USER_INFO') }}</div>
           </div>
         </a>
 
@@ -143,8 +142,8 @@
             <svg class="w-6 h-6 text-[rgb(var(--color-primary))]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01"/></svg>
           </div>
           <div>
-            <div class="font-bold">Tema & Logo</div>
-            <div class="text-xs opacity-60">Cambia stile al sito</div>
+            <div class="font-bold">{{ i18nService.translate('DASHBOARD.THEME_LOGO') }}</div>
+            <div class="text-xs opacity-60">{{ i18nService.translate('DASHBOARD.THEME_LOGO_INFO') }}</div>
           </div>
         </a>
       </div>

@@ -1,36 +1,42 @@
+<div class="container mx-auto p-4 animate-soft-in">
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">
+      {{ isEditMode ? i18nService.translate('COMMON.EDIT') : i18nService.translate('COMMON.CREATE') }} {{ i18nService.translate('SIDEBAR.GROUPS').slice(0, -1) }}
+    </h1>
+    <a routerLink="/groups" class="button-secondary">
+      &larr; {{ i18nService.translate('COMMON.BACK_TO_LIST') }}
+    </a>
+  </div>
 
-<div class="container mx-auto p-4">
-  <h1 class="text-3xl font-bold mb-6 text-primary">{{ isEditMode ? 'Edit Group' : 'Create Group' }}</h1>
-
-  <form [formGroup]="editorForm" (ngSubmit)="onSubmit()" class="space-y-8 bg-surface p-6 rounded-lg shadow-md max-w-lg mx-auto">
-
-    <!-- Main Details -->
-    <div class="space-y-4">
+  <form [formGroup]="editorForm" (ngSubmit)="onSubmit()" class="card-soft p-8 max-w-2xl mx-auto space-y-8">
+    <div class="space-y-6">
       <div>
-        <label for="name" class="label">Group Name</label>
-        <input formControlName="name" id="name" type="text" class="input" placeholder="e.g., editors">
+        <label for="name" class="label">{{ i18nService.translate('COMMON.NAME') }}</label>
+        <input formControlName="name" id="name" type="text" class="input">
       </div>
+
       <div>
         <label for="description" class="label">Description</label>
-        <textarea formControlName="description" id="description" rows="4" class="input" placeholder="A brief description of the group's purpose."></textarea>
+        <textarea formControlName="description" id="description" class="input min-h-[100px]"></textarea>
       </div>
+
       <div>
-        <label for="systemRole" class="label">System Role (Optional)</label>
+        <label for="systemRole" class="label">System Role</label>
         <select formControlName="systemRole" id="systemRole" class="input">
-          <option [ngValue]="null">None</option>
+          <option [ngValue]="null">-- Standard User --</option>
           @for (role of systemRoles; track role) {
             <option [value]="role">{{ role }}</option>
           }
         </select>
-        <p class="text-xs text-main-text/70 mt-1">Assigning a system role grants special permissions to all users in this group.</p>
+        <p class="text-[10px] text-gray-500 mt-2 italic">* Roles define special system permissions beyond data ACLs.</p>
       </div>
     </div>
 
     <!-- Form Actions -->
-    <div class="flex justify-end space-x-4">
-      <a routerLink="/groups" class="button-secondary">Cancel</a>
-      <button type="submit" [disabled]="editorForm.invalid" class="button-primary disabled:opacity-50">
-        {{ isEditMode ? 'Update Group' : 'Create Group' }}
+    <div class="flex justify-end space-x-4 border-t border-white/5 pt-8">
+      <a routerLink="/groups" class="button-secondary px-8">{{ i18nService.translate('COMMON.CANCEL_SHORT') }}</a>
+      <button type="submit" [disabled]="editorForm.invalid" class="button-primary px-10">
+        {{ isEditMode ? i18nService.translate('COMMON.SAVE') : i18nService.translate('COMMON.CREATE') }}
       </button>
     </div>
   </form>

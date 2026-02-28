@@ -1,4 +1,4 @@
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators, FormsModule } from '@angular/forms';
 import { SettingsService } from '../../core/services/settings.service';
@@ -28,6 +28,7 @@ export class SettingsComponent implements OnInit {
   private emailTemplateService = inject(EmailTemplateService);
   private whiteLabelService = inject(WhiteLabelService);
   private themeService = inject(ThemeService);
+  private cdr = inject(ChangeDetectorRef);
   public modalService = inject(ModalService);
   public i18nService = inject(I18nService);
   private toastService = inject(ToastService);
@@ -42,8 +43,9 @@ export class SettingsComponent implements OnInit {
   public newThemeName = '';
 
   ngOnInit(): void {
-    this.refreshThemes();
     this.initForm();
+    this.refreshThemes(); // Carichiamo i temi (inclusi quelli salvati nel browser)
+    
     this.emailTemplates$ = this.emailTemplateService.templates$;
     this.emailTemplateService.loadEmailTemplates().subscribe();
 
@@ -52,30 +54,34 @@ export class SettingsComponent implements OnInit {
     });
 
     this.whiteLabelService.config$.pipe(take(1)).subscribe(config => {
-      // Popoliamo il form con i valori attivi caricati dal servizio
-      this.settingsForm.get('branding')?.patchValue({
-        appName: config.appName,
-        logoUrl: config.logoUrl,
-        language: config.language,
-        themeId: config.themeId,
-        defaults: {
-          desktop: config.defaults.desktop,
-          tablet: config.defaults.tablet,
-          mobile: config.defaults.mobile
-        }
-      }, { emitEvent: false });
-      
-      // Se stiamo usando un tema personalizzato, carichiamo i suoi colori nel designer
-      const currentTheme = this.themes.find(t => t.id === config.themeId);
-      if (currentTheme && currentTheme.isCustom) {
-        this.settingsForm.get('themeDesigner')?.patchValue({
-          primary: this.rgbToHex(currentTheme.colors['--color-primary']),
-          accent: this.rgbToHex(currentTheme.colors['--color-accent']),
-          text: this.rgbToHex(currentTheme.colors['--color-text']),
-          bgBase: this.rgbToHex(currentTheme.colors['--color-bg-base']),
-          bgSurface: this.rgbToHex(currentTheme.colors['--color-bg-surface'])
+      // Usiamo un piccolo ritardo per assicurarci che il select abbia già le opzioni caricate
+      setTimeout(() => {
+        this.settingsForm.get('branding')?.patchValue({
+          appName: config.appName,
+          logoUrl: config.logoUrl,
+          language: config.language,
+          themeId: config.themeId,
+          defaults: {
+            desktop: config.defaults.desktop,
+            tablet: config.defaults.tablet,
+            mobile: config.defaults.mobile
+          }
         }, { emitEvent: false });
-      }
+
+        // Se stiamo usando un tema personalizzato, carichiamo i suoi colori nel designer
+        const currentTheme = this.themes.find(t => t.id === config.themeId);
+        if (currentTheme && currentTheme.isCustom) {
+          this.settingsForm.get('themeDesigner')?.patchValue({
+            primary: this.rgbToHex(currentTheme.colors['--color-primary']),
+            accent: this.rgbToHex(currentTheme.colors['--color-accent']),
+            text: this.rgbToHex(currentTheme.colors['--color-text']),
+            bgBase: this.rgbToHex(currentTheme.colors['--color-bg-base']),
+            bgSurface: this.rgbToHex(currentTheme.colors['--color-bg-surface'])
+          }, { emitEvent: false });
+        }
+        
+        this.cdr.detectChanges(); // Forza l'aggiornamento grafico del select
+      }, 0);
     });
   }
 
@@ -190,6 +196,7 @@ export class SettingsComponent implements OnInit {
 
   private refreshThemes(): void {
     this.themes = this.themeService.getThemes();
+    this.cdr.detectChanges();
   }
 
   private hexToRgb(hex: string): string {
@@ -201,8 +208,9 @@ export class SettingsComponent implements OnInit {
 
   private rgbToHex(rgb: string | undefined): string {
     if (!rgb) return '#000000';
+    // Assicuriamoci di gestire sia "255, 255, 255" che "255,255,255"
     const parts = rgb.split(',').map(p => parseInt(p.trim()));
-    if (parts.length < 3) return '#000000';
+    if (parts.length < 3 || parts.some(isNaN)) return '#000000';
     return "#" + ((1 << 24) + (parts[0] << 16) + (parts[1] << 8) + parts[2]).toString(16).slice(1);
   }
 

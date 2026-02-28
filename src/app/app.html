@@ -43,7 +43,7 @@
           <div class="fixed bottom-0 left-0 w-full bg-surface rounded-t-[3rem] p-8 shadow-2xl border-t border-white/10 animate-in slide-in-from-bottom duration-500" (click)="$event.stopPropagation()">
             <div class="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-8"></div>
             <div class="flex items-center justify-between mb-8">
-              <h3 class="text-xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">Menu Principale</h3>
+              <h3 class="text-xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">{{ i18nService.translate('SIDEBAR.ADMIN_PANEL') }}</h3>
               <button (click)="toggleSidebar()" class="p-2 text-gray-500 hover:text-white">&times;</button>
             </div>
             <nav class="grid grid-cols-2 gap-4 max-h-[60vh] overflow-y-auto custom-scrollbar pb-12">
@@ -141,7 +141,7 @@
       <img *ngIf="(whiteLabelConfig$ | async)?.logoUrl" [src]="(whiteLabelConfig$ | async)?.logoUrl" class="h-8 w-auto" alt="Logo">
       <div class="flex flex-col overflow-hidden">
         <span class="text-lg font-black text-[rgb(var(--color-primary))] truncate uppercase tracking-tighter leading-none">{{ (whiteLabelConfig$ | async)?.appName }}</span>
-        <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">Admin Panel</span>
+        <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">{{ i18nService.translate('SIDEBAR.ADMIN_PANEL') }}</span>
       </div>
     </div>
     <nav class="flex-grow p-4 space-y-1 overflow-y-auto custom-scrollbar">
@@ -160,7 +160,7 @@
   </a>
 
   <div class="pt-6 pb-2">
-    <p class="px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 opacity-50">Gestione Dati</p>
+    <p class="px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 opacity-50">{{ i18nService.translate('SIDEBAR.YOUR_DATA') }}</p>
     @for (item of userMenuItems$ | async; track item.id) {
       <a [routerLink]="['/records', item.entityKey]" routerLinkActive="active-link" class="nav-link">
         <div class="w-1.5 h-1.5 rounded-full bg-[rgb(var(--color-primary)/0.3)]"></div>
@@ -171,7 +171,7 @@
 
   @if (isAdmin$ | async) {
     <div class="pt-6 border-t border-white/5">
-      <p class="px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 opacity-50">Configurazione</p>
+      <p class="px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 opacity-50">{{ i18nService.translate('SIDEBAR.CONFIGURATION') }}</p>
       <a routerLink="/entity-definitions" routerLinkActive="active-link" class="nav-link">
         <svg class="w-5 h-5 opacity-70" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" /></svg>
         {{ i18nService.translate('SIDEBAR.ENTITIES') }}
@@ -206,19 +206,19 @@
 
 <ng-template #horizontalLinks>
   <div class="flex items-center gap-1">
-    <a routerLink="/dashboard" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-sm font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all whitespace-nowrap">Home</a>
+    <a routerLink="/dashboard" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-sm font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all whitespace-nowrap">{{ i18nService.translate('COMMON.HOME') }}</a>
     @for (item of userMenuItems$ | async; track item.id) {
       <a [routerLink]="['/records', item.entityKey]" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-sm font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all whitespace-nowrap">{{ item.label }}</a>
     }
     @if (isAdmin$ | async) {
       <div class="h-6 w-px bg-white/10 mx-2"></div>
-      <a routerLink="/entity-definitions" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-xs font-bold text-gray-500 hover:text-white transition-all whitespace-nowrap">Entities</a>
-      <a routerLink="/email-templates" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-xs font-bold text-gray-500 hover:text-white transition-all whitespace-nowrap">Emails</a>
-      <a routerLink="/users" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-xs font-bold text-gray-500 hover:text-white transition-all whitespace-nowrap">Users</a>
-      <a routerLink="/groups" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-xs font-bold text-gray-500 hover:text-white transition-all whitespace-nowrap">Groups</a>
-      <a routerLink="/menu" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-xs font-bold text-gray-500 hover:text-white transition-all whitespace-nowrap">Menu</a>
-      <a routerLink="/files" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-xs font-bold text-gray-500 hover:text-white transition-all whitespace-nowrap">Files</a>
-      <a routerLink="/settings" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-xs font-bold text-gray-500 hover:text-white transition-all whitespace-nowrap">Settings</a>
+      <a routerLink="/entity-definitions" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-xs font-bold text-gray-500 hover:text-white transition-all whitespace-nowrap">{{ i18nService.translate('SIDEBAR.ENTITIES') }}</a>
+      <a routerLink="/email-templates" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-xs font-bold text-gray-500 hover:text-white transition-all whitespace-nowrap">{{ i18nService.translate('SIDEBAR.EMAIL_TEMPLATES').split(' ')[0] }}</a>
+      <a routerLink="/users" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-xs font-bold text-gray-500 hover:text-white transition-all whitespace-nowrap">{{ i18nService.translate('SIDEBAR.USERS') }}</a>
+      <a routerLink="/groups" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-xs font-bold text-gray-500 hover:text-white transition-all whitespace-nowrap">{{ i18nService.translate('SIDEBAR.GROUPS') }}</a>
+      <a routerLink="/menu" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-xs font-bold text-gray-500 hover:text-white transition-all whitespace-nowrap">{{ i18nService.translate('SIDEBAR.MENU_SETUP') }}</a>
+      <a routerLink="/files" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-xs font-bold text-gray-500 hover:text-white transition-all whitespace-nowrap">{{ i18nService.translate('SIDEBAR.FILES') }}</a>
+      <a routerLink="/settings" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-xs font-bold text-gray-500 hover:text-white transition-all whitespace-nowrap">{{ i18nService.translate('SIDEBAR.SETTINGS') }}</a>
     }
   </div>
 </ng-template>
@@ -226,7 +226,7 @@
 <ng-template #bottomNavIcons>
   <a routerLink="/dashboard" routerLinkActive="text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.1)]" class="flex flex-col items-center justify-center gap-1 text-gray-500 transition-all w-16 h-16 rounded-2xl">
     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-    <span class="text-[9px] font-black uppercase tracking-tighter">Home</span>
+    <span class="text-[9px] font-black uppercase tracking-tighter">{{ i18nService.translate('COMMON.HOME') }}</span>
   </a>
   @for (item of (userMenuItems$ | async)?.slice(0, 3); track item.id) {
     <a [routerLink]="['/records', item.entityKey]" routerLinkActive="text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.1)]" class="flex flex-col items-center justify-center gap-1 text-gray-500 transition-all w-16 h-16 rounded-2xl">
@@ -238,7 +238,7 @@
     <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
     </svg>
-    <span class="text-[9px] font-black uppercase tracking-tighter">Menu</span>
+    <span class="text-[9px] font-black uppercase tracking-tighter">{{ i18nService.translate('COMMON.MORE') }}</span>
   </button>
 </ng-template>
 

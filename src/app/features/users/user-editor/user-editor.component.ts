@@ -1,4 +1,3 @@
-
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
@@ -9,6 +8,7 @@ import { UserService } from '../../../core/services/user.service';
 import { GroupService } from '../../../core/services/group.service';
 import { Group } from '../../../core/models/group.model';
 import { User } from '../../../core/models/user.model';
+import { I18nService } from '../../../core/services/i18n.service';
 
 @Component({
   selector: 'app-user-editor',
@@ -22,6 +22,7 @@ export class UserEditorComponent implements OnInit {
   private fb = inject(FormBuilder);
   private userService = inject(UserService);
   private groupService = inject(GroupService);
+  public i18nService = inject(I18nService);
 
   public editorForm!: FormGroup;
   public isEditMode = false;

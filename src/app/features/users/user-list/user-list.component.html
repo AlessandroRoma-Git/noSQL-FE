@@ -1,47 +1,44 @@
-
-<div class="container mx-auto p-4">
-  <div class="flex justify-between items-center mb-4">
+<div class="container mx-auto p-4 animate-soft-in">
+  <div class="flex justify-between items-center mb-8">
     <div class="flex items-center gap-3">
-      <h1 class="text-2xl font-bold text-primary">Users</h1>
-      <button (click)="showHelp()" class="w-6 h-6 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Aiuto">
-        <span class="font-serif italic font-bold text-xs">i</span>
+      <h1 class="text-3xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">{{ i18nService.translate('SIDEBAR.USERS') }}</h1>
+      <button (click)="showHelp()" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm" [title]="i18nService.translate('COMMON.MORE')">
+        <span class="font-serif italic font-bold">i</span>
       </button>
     </div>
-    <a routerLink="new" class="button-primary">
-      Create New
+    <a routerLink="new" class="button-primary px-8">
+      {{ i18nService.translate('ENTITIES.CREATE_NEW') }}
     </a>
   </div>
 
-  <div class="bg-surface shadow-md rounded-lg">
+  <div class="card-soft overflow-hidden">
     @if (users.length > 0) {
       <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-base">
-          <thead class="bg-base">
-            <tr>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-main-text/70 uppercase tracking-wider">Username</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-main-text/70 uppercase tracking-wider">Email</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-main-text/70 uppercase tracking-wider">Groups</th>
-              <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-main-text/70 uppercase tracking-wider">Status</th>
-              <th scope="col" class="relative px-6 py-3"><span class="sr-only">Actions</span></th>
+        <table class="w-full text-left">
+          <thead>
+            <tr class="bg-black/10 border-b border-white/5 text-[10px] font-black uppercase tracking-widest text-gray-500">
+              <th class="px-6 py-4">{{ i18nService.translate('LOGIN.USERNAME') }}</th>
+              <th class="px-6 py-4">Email</th>
+              <th class="px-6 py-4">{{ i18nService.translate('COMMON.STATUS') }}</th>
+              <th class="px-6 py-4 text-right">{{ i18nService.translate('COMMON.ACTIONS') }}</th>
             </tr>
           </thead>
-          <tbody class="bg-surface divide-y divide-base">
+          <tbody class="divide-y divide-white/5">
             @for (user of users; track user.id) {
-              <tr class="hover:bg-base">
-                <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-primary">{{ user.username }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-main-text/70">{{ user.email }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm text-main-text/70">{{ user.groupNames?.join(', ') || 'None' }}</td>
-                <td class="px-6 py-4 whitespace-nowrap text-sm">
-                  @if (user.enabled) {
-                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">Enabled</span>
-                  } @else {
-                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">Disabled</span>
-                  }
+              <tr class="hover:bg-white/5 transition-colors">
+                <td class="px-6 py-4 font-bold text-[rgb(var(--color-text))]">{{ user.username }}</td>
+                <td class="px-6 py-4 text-sm text-gray-400">{{ user.email }}</td>
+                <td class="px-6 py-4 text-sm">
+                  <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest shadow-sm"
+                        [class.bg-green-500/20.text-green-500]="user.enabled"
+                        [class.bg-red-500/20.text-red-500]="!user.enabled">
+                    {{ user.enabled ? i18nService.translate('COMMON.ACTIVE') : i18nService.translate('COMMON.BLOCKED') }}
+                  </span>
                 </td>
-                <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-4">
-                  <button (click)="onResetPassword(user.id, user.username)" class="text-cyan-400 hover:underline">Reset Password</button>
-                  <a [routerLink]="['/users/edit', user.id]" class="text-accent hover:underline">Edit</a>
-                  <button (click)="onDelete(user.id, user.username)" class="text-red-500 hover:underline">Delete</button>
+                <td class="px-6 py-4 text-right space-x-2">
+                  <button (click)="onResetPassword(user.id, user.username)" class="button-secondary-sm">Reset Pwd</button>
+                  <a [routerLink]="['edit', user.id]" class="button-secondary-sm">{{ i18nService.translate('COMMON.EDIT') }}</a>
+                  <button (click)="onDelete(user.id, user.username)" class="button-danger-sm">{{ i18nService.translate('COMMON.DELETE') }}</button>
                 </td>
               </tr>
             }
@@ -49,7 +46,9 @@
         </table>
       </div>
     } @else {
-      <p class="p-4 text-main-text/70">No users found. Click "Create New User" to get started.</p>
+      <div class="p-20 text-center text-gray-500 font-bold">
+        {{ i18nService.translate('COMMON.NO_RECORDS') }}
+      </div>
     }
   </div>
 </div>

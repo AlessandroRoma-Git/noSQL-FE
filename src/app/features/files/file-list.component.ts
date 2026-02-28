@@ -14,7 +14,7 @@ import { I18nService } from '../../core/services/i18n.service';
 export class FileListComponent {
   private fileService = inject(FileService);
   private modalService = inject(ModalService);
-  private i18nService = inject(I18nService);
+  public i18nService = inject(I18nService);
 
   public uploadProgress: number | null = null;
   public lastUploadedFile: { filename: string, id: string } | null = null;

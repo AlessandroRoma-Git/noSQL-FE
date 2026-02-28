@@ -19,7 +19,7 @@ import { filter } from 'rxjs/operators';
 export class UserListComponent implements OnInit, OnDestroy {
   private userService = inject(UserService);
   private modalService = inject(ModalService);
-  private i18nService = inject(I18nService);
+  public i18nService = inject(I18nService);
   private destroy$ = new Subject<void>();
 
   public users: User[] = [];

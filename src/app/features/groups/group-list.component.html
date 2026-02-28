@@ -1,38 +1,40 @@
 <div class="container mx-auto p-4 animate-soft-in">
   <div class="flex justify-between items-center mb-8">
     <div class="flex items-center gap-3">
-      <h1 class="text-3xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">{{ i18nService.translate('SIDEBAR.MENU_SETUP') }}</h1>
+      <h1 class="text-3xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">{{ i18nService.translate('SIDEBAR.GROUPS') }}</h1>
       <button (click)="showHelp()" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm" [title]="i18nService.translate('COMMON.MORE')">
         <span class="font-serif italic font-bold text-xs">i</span>
       </button>
     </div>
-    <a routerLink="new" class="button-primary px-8">
+    <a routerLink="/groups/new" class="button-primary px-8">
       {{ i18nService.translate('ENTITIES.CREATE_NEW') }}
     </a>
   </div>
 
   <div class="card-soft overflow-hidden">
-    @if (menuItems$ | async; as items) {
-      @if (items.length > 0) {
+    @if (groups$ | async; as groups) {
+      @if (groups.length > 0) {
         <div class="overflow-x-auto">
           <table class="w-full text-left">
             <thead>
               <tr class="bg-black/10 border-b border-white/5 text-[10px] font-black uppercase tracking-widest text-gray-500">
-                <th class="px-6 py-4">Label</th>
-                <th class="px-6 py-4">Entity</th>
-                <th class="px-6 py-4">Pos.</th>
+                <th class="px-6 py-4">{{ i18nService.translate('COMMON.NAME') }}</th>
+                <th class="px-6 py-4">System Role</th>
                 <th class="px-6 py-4 text-right">{{ i18nService.translate('COMMON.ACTIONS') }}</th>
               </tr>
             </thead>
             <tbody class="divide-y divide-white/5">
-              @for (item of items; track item.id) {
+              @for (group of groups; track group.id) {
                 <tr class="hover:bg-white/5 transition-colors">
-                  <td class="px-6 py-4 font-bold text-[rgb(var(--color-text))]">{{ item.label }}</td>
-                  <td class="px-6 py-4 text-sm text-gray-400 font-mono">{{ item.entityKey }}</td>
-                  <td class="px-6 py-4 text-sm">{{ item.position }}</td>
+                  <td class="px-6 py-4 font-bold text-[rgb(var(--color-text))]">{{ group.name }}</td>
+                  <td class="px-6 py-4">
+                    <span class="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest bg-[rgb(var(--color-primary)/0.1)] text-[rgb(var(--color-primary))] border border-[rgb(var(--color-primary)/0.2)]">
+                      {{ group.systemRole }}
+                    </span>
+                  </td>
                   <td class="px-6 py-4 text-right space-x-2">
-                    <a [routerLink]="['edit', item.id]" class="button-secondary-sm">{{ i18nService.translate('COMMON.EDIT') }}</a>
-                    <button (click)="onDelete(item.id, item.label)" class="button-danger-sm">{{ i18nService.translate('COMMON.DELETE') }}</button>
+                    <a [routerLink]="['edit', group.id]" class="button-secondary-sm">{{ i18nService.translate('COMMON.EDIT') }}</a>
+                    <button (click)="onDelete(group.id, group.name)" class="button-danger-sm">{{ i18nService.translate('COMMON.DELETE') }}</button>
                   </td>
                 </tr>
               }

@@ -4,19 +4,19 @@
   <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
     <div>
       <div class="flex items-center gap-3">
-        <h1 class="text-3xl font-bold text-[rgb(var(--color-primary))]">Architettura Entità</h1>
-        <button (click)="showHelp()" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Aiuto">
+        <h1 class="text-3xl font-bold text-[rgb(var(--color-primary))]">{{ i18nService.translate('ENTITIES.TITLE') }}</h1>
+        <button (click)="showHelp()" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm" [title]="i18nService.translate('COMMON.MORE')">
           <span class="font-serif italic font-bold">i</span>
         </button>
       </div>
-      <p class="text-gray-500 text-sm">Definisci come sono fatte le tue tabelle e chi può vederle.</p>
+      <p class="text-gray-500 text-sm">{{ i18nService.translate('ENTITIES.SUBTITLE') }}</p>
     </div>
     
     <a routerLink="new" class="button-primary flex items-center justify-center gap-2 self-start">
       <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
       </svg>
-      Crea Nuova Entità
+      {{ i18nService.translate('ENTITIES.CREATE_NEW') }}
     </a>
   </div>
 
@@ -24,9 +24,9 @@
   @if (definitions$ | async; as definitions) {
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       @for (def of definitions; track def.entityKey) {
-        <div class="bg-surface p-6 rounded-2xl shadow-lg border border-base flex flex-col hover:border-[rgb(var(--color-primary))] transition-all group">
+        <div class="card-soft p-8 flex flex-col hover:border-[rgb(var(--color-primary))] transition-all group">
           <div class="flex justify-between items-start mb-4">
-            <div class="w-12 h-12 rounded-xl bg-base flex items-center justify-center text-[rgb(var(--color-primary))]">
+            <div class="w-12 h-12 rounded-xl bg-base flex items-center justify-center text-[rgb(var(--color-primary))] shadow-inner">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
               </svg>
@@ -37,7 +37,7 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </button>
-              <a [routerLink]="['edit', def.entityKey]" class="p-2 text-gray-400 hover:text-blue-500" title="Modifica Schema">
+              <a [routerLink]="['edit', def.entityKey]" class="p-2 text-gray-400 hover:text-blue-500" [title]="i18nService.translate('COMMON.EDIT')">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
                 </svg>
@@ -46,24 +46,24 @@
           </div>
 
           <h3 class="text-xl font-bold text-[rgb(var(--color-text))] mb-1">{{ def.label }}</h3>
-          <code class="text-xs text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.1)] px-2 py-1 rounded self-start mb-4">
+          <code class="text-[10px] font-black uppercase tracking-widest text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.1)] px-2 py-1 rounded-xl self-start mb-6">
             {{ def.entityKey }}
           </code>
 
-          <div class="flex gap-4 mb-6 text-sm text-gray-400">
+          <div class="flex gap-6 mb-8 text-xs">
             <div class="flex flex-col">
-              <span class="font-bold text-[rgb(var(--color-text))]">{{ def.fields.length }}</span>
-              <span>Campi</span>
+              <span class="font-black text-[rgb(var(--color-text))] text-lg leading-none">{{ def.fields.length }}</span>
+              <span class="text-gray-500 uppercase tracking-widest font-bold mt-1">{{ i18nService.translate('ENTITIES.FIELDS') }}</span>
             </div>
-            <div class="flex flex-col border-l border-base pl-4">
-              <span class="font-bold text-[rgb(var(--color-text))]">{{ def.historyEnabled ? 'Sì' : 'No' }}</span>
-              <span>History</span>
+            <div class="flex flex-col border-l border-white/5 pl-6">
+              <span class="font-black text-[rgb(var(--color-text))] text-lg leading-none">{{ def.historyEnabled ? 'Sì' : 'No' }}</span>
+              <span class="text-gray-500 uppercase tracking-widest font-bold mt-1">{{ i18nService.translate('ENTITIES.HISTORY_ENABLED') }}</span>
             </div>
           </div>
 
           <div class="mt-auto flex gap-3">
-            <a [routerLink]="['/records', def.entityKey]" class="button-primary text-xs flex-1 text-center">Gestisci Dati</a>
-            <button (click)="onDelete(def.entityKey)" class="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors">
+            <a [routerLink]="['/records', def.entityKey]" class="button-primary text-[10px] py-2 flex-1 text-center font-black tracking-widest">{{ i18nService.translate('ENTITIES.MANAGE_DATA_BTN') }}</a>
+            <button (click)="onDelete(def.entityKey)" class="p-2.5 text-red-500 bg-red-500/10 hover:bg-red-500 hover:text-white border border-red-500/20 rounded-2xl transition-all">
               <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
               </svg>
@@ -71,11 +71,11 @@
           </div>
         </div>
       } @empty {
-        <div class="col-span-full py-20 text-center bg-surface rounded-2xl border-2 border-dashed border-base">
-          <p class="text-gray-500 mb-4">Nessuna entità definita. Comincia creandone una!</p>
-          <a routerLink="new" class="button-primary inline-flex items-center gap-2">
+        <div class="col-span-full py-24 text-center card-soft border-dashed border-2 border-white/10">
+          <p class="text-gray-500 mb-6 font-bold">{{ i18nService.translate('ENTITIES.NO_ENTITIES') }}</p>
+          <a routerLink="new" class="button-primary inline-flex items-center gap-3 px-8">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-            Inizia Ora
+            {{ i18nService.translate('ENTITIES.START_NOW') }}
           </a>
         </div>
       }
@@ -83,7 +83,7 @@
   } @else {
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
       @for (i of [1,2,3]; track i) {
-        <div class="bg-surface h-64 rounded-2xl border border-base"></div>
+        <div class="h-64 card-soft bg-white/5 border-none shadow-none"></div>
       }
     </div>
   }

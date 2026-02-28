@@ -11,6 +11,7 @@ import { GroupService } from '../../../core/services/group.service';
 import { ToggleSwitchComponent } from '../../../shared/components/toggle-switch/toggle-switch.component';
 import { EmailTemplate } from '../../../core/models/email-template.model';
 import { EmailTemplateService } from '../../../core/services/email-template.service';
+import { I18nService } from '../../../core/services/i18n.service';
 
 @Component({
   selector: 'app-entity-definition-editor',
@@ -25,6 +26,7 @@ export class EntityDefinitionEditorComponent implements OnInit, OnDestroy {
   private entityDefinitionService = inject(EntityDefinitionService);
   private groupService = inject(GroupService);
   private emailTemplateService = inject(EmailTemplateService);
+  public i18nService = inject(I18nService);
 
   public editorForm!: FormGroup;
   public isEditMode = false;

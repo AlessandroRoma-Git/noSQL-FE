@@ -28,7 +28,7 @@ export class DashboardComponent implements OnInit {
   private entityService = inject(EntityDefinitionService);
   private userService = inject(UserService);
   private dashboardService = inject(DashboardService);
-  private i18nService = inject(I18nService);
+  public i18nService = inject(I18nService);
   private modalService = inject(ModalService);
 
   // --- DATI DINAMICI ---

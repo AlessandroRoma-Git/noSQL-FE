@@ -1,10 +1,10 @@
-
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AuthService } from '../../../core/services/auth.service';
 import { RecoverPasswordRequest } from '../../../core/models/auth.model';
 import { RouterLink } from '@angular/router';
+import { I18nService } from '../../../core/services/i18n.service';
 
 @Component({
   selector: 'app-recover-password',
@@ -16,6 +16,7 @@ import { RouterLink } from '@angular/router';
 export class RecoverPasswordComponent {
   private fb = inject(FormBuilder);
   private authService = inject(AuthService);
+  public i18nService = inject(I18nService);
 
   recoverForm: FormGroup;
   errorMessage: string | null = null;
@@ -36,8 +37,6 @@ export class RecoverPasswordComponent {
           this.errorMessage = null;
         },
         error: (err) => {
-          // For security, we show the same success message even if the user is not found.
-          // The error is only logged for debugging.
           this.submitted = true;
           console.error(err);
         }

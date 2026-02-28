@@ -1,211 +1,158 @@
-
-<div class="container mx-auto p-4">
-  <div class="flex justify-between items-center mb-4">
-    <div class="flex items-center space-x-4">
-      <h1 class="text-3xl font-bold text-primary">{{ isEditMode ? 'Edit Entity Definition' : 'Create Entity Definition' }}</h1>
-      @if (isEditMode) {
-        <button (click)="showUsage()" title="Show API Usage" class="text-main-text/70 hover:text-primary">
-          <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
-        </button>
-      }
-    </div>
-    <app-toggle-switch [activeOption]="activeTab" (toggleChange)="activeTab = $event"></app-toggle-switch>
+<div class="container mx-auto p-4 animate-soft-in">
+  <div class="flex justify-between items-center mb-8">
+    <h1 class="text-3xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">
+      {{ isEditMode ? i18nService.translate('COMMON.EDIT') : i18nService.translate('COMMON.CREATE') }} {{ i18nService.translate('SIDEBAR.ENTITIES').slice(0, -1) }}
+    </h1>
+    <a routerLink="/entity-definitions" class="button-secondary">
+      &larr; {{ i18nService.translate('COMMON.BACK_TO_LIST') }}
+    </a>
   </div>
 
-  <!-- Tab Content -->
-  @switch (activeTab) {
-    @case ('UI') {
-      <form [formGroup]="editorForm" (ngSubmit)="onSubmit()" class="space-y-8">
-        <!-- Main Details -->
-        <div class="bg-surface p-6 rounded-lg shadow-md">
-          <h2 class="text-xl font-semibold mb-4 border-b border-base pb-2 text-primary">Main Details</h2>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div>
-              <label for="entityKey" class="label">Entity Key</label>
-              <input formControlName="entityKey" id="entityKey" type="text" class="input" [class.bg-base]="isEditMode" placeholder="e.g., blog_posts">
-            </div>
-            <div>
-              <label for="label" class="label">Label</label>
-              <input formControlName="label" id="label" type="text" class="input" placeholder="e.g., Blog Posts">
-            </div>
+  <div class="flex border-b border-white/5 mb-8">
+    <button (click)="activeTab = 'UI'" class="px-8 py-4 font-black uppercase text-xs tracking-widest transition-all" [class.text-[rgb(var(--color-primary))] ]="activeTab === 'UI'" [class.border-b-2]="activeTab === 'UI'" [class.border-[rgb(var(--color-primary))]]="activeTab === 'UI'">UI Editor</button>
+    <button (click)="activeTab = 'JSON'" class="px-8 py-4 font-black uppercase text-xs tracking-widest transition-all" [class.text-[rgb(var(--color-primary))]]="activeTab === 'JSON'" [class.border-b-2]="activeTab === 'JSON'" [class.border-[rgb(var(--color-primary))]]="activeTab === 'JSON'">JSON Config</button>
+  </div>
+
+  @if (activeTab === 'UI') {
+    <form [formGroup]="editorForm" (ngSubmit)="onSubmit()" class="space-y-10">
+      
+      <!-- Basics -->
+      <div class="card-soft p-8 space-y-6">
+        <h2 class="text-sm font-black uppercase tracking-[0.2em] text-[rgb(var(--color-primary))] opacity-70">Base Info</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+          <div>
+            <label for="entityKey" class="label">Entity Key (Tech Name)</label>
+            <input formControlName="entityKey" id="entityKey" type="text" class="input" [class.opacity-50]="isEditMode">
           </div>
-          <div class="mt-4">
-            <label class="flex items-center">
-              <input formControlName="historyEnabled" type="checkbox" class="h-4 w-4 rounded border-surface text-primary focus:ring-primary">
-              <span class="ml-2 text-sm text-main-text">Enable Record History</span>
-            </label>
+          <div>
+            <label for="label" class="label">Display Label</label>
+            <input formControlName="label" id="label" type="text" class="input">
           </div>
         </div>
+        <div class="flex items-center gap-4 p-4 bg-white/5 rounded-2xl border border-white/5">
+          <app-toggle-switch formControlName="historyEnabled"></app-toggle-switch>
+          <span class="text-sm font-bold text-gray-400 uppercase tracking-widest">Enable History Tracking</span>
+        </div>
+      </div>
 
-        <!-- ACLs -->
-        <div class="bg-surface p-6 rounded-lg shadow-md" formGroupName="acl">
-          <h2 class="text-xl font-semibold mb-4 border-b border-base pb-2 text-primary">Access Control List (by Group)</h2>
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            <div formGroupName="read">
-              <h3 class="font-medium mb-2">Read Access</h3>
-              @for (group of allGroups; track group.id) {
-                <div class="flex items-center mb-1">
-                  <input [formControlName]="group.name" [id]="'read-' + group.name" type="checkbox" class="h-4 w-4 rounded border-surface text-primary focus:ring-primary">
-                  <label [for]="'read-' + group.name" class="ml-2 text-sm text-main-text">{{ group.name }}</label>
-                </div>
-              }
-            </div>
-            <div formGroupName="write">
-              <h3 class="font-medium mb-2">Write Access</h3>
-              @for (group of allGroups; track group.id) {
-                <div class="flex items-center mb-1">
-                  <input [formControlName]="group.name" [id]="'write-' + group.name" type="checkbox" class="h-4 w-4 rounded border-surface text-primary focus:ring-primary">
-                  <label [for]="'write-' + group.name" class="ml-2 text-sm text-main-text">{{ group.name }}</label>
-                </div>
-              }
-            </div>
-            <div formGroupName="delete">
-              <h3 class="font-medium mb-2">Delete Access</h3>
-              @for (group of allGroups; track group.id) {
-                <div class="flex items-center mb-1">
-                  <input [formControlName]="group.name" [id]="'delete-' + group.name" type="checkbox" class="h-4 w-4 rounded border-surface text-primary focus:ring-primary">
-                  <label [for]="'delete-' + group.name" class="ml-2 text-sm text-main-text">{{ group.name }}</label>
-                </div>
-              }
-            </div>
-            <div formGroupName="search">
-              <h3 class="font-medium mb-2">Search Access</h3>
-              @for (group of allGroups; track group.id) {
-                <div class="flex items-center mb-1">
-                  <input [formControlName]="group.name" [id]="'search-' + group.name" type="checkbox" class="h-4 w-4 rounded border-surface text-primary focus:ring-primary">
-                  <label [for]="'search-' + group.name" class="ml-2 text-sm text-main-text">{{ group.name }}</label>
-                </div>
-              }
-            </div>
-          </div>
+      <!-- Fields -->
+      <div class="card-soft p-8">
+        <div class="flex justify-between items-center mb-8">
+          <h2 class="text-sm font-black uppercase tracking-[0.2em] text-[rgb(var(--color-primary))] opacity-70">Data Schema (Fields)</h2>
+          <button type="button" (click)="addField()" class="button-primary py-2 px-6 text-xs">+ Add Field</button>
         </div>
 
-        <!-- Fields -->
-        <div class="bg-surface p-6 rounded-lg shadow-md" formArrayName="fields">
-          <div class="flex justify-between items-center mb-4 border-b border-base pb-2">
-            <h2 class="text-xl font-semibold text-primary">Fields</h2>
-            <button type="button" (click)="addField()" class="button-primary">Add Field</button>
-          </div>
-          @for (fieldGroup of fields.controls; track i; let i = $index) {
-            <div [formGroupName]="i" class="space-y-4 p-4 mb-4 border border-base rounded-md bg-base/50 relative">
-              <button type="button" (click)="removeField(i)" class="absolute top-2 right-2 text-red-500 hover:text-red-700 font-semibold">X</button>
-              <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div><label [for]="'field-name-' + i" class="label">Field Name</label><input [id]="'field-name-' + i" formControlName="name" placeholder="e.g., title" class="input"></div>
-                <div><label [for]="'field-type-' + i" class="label">Type</label><select [id]="'field-type-' + i" formControlName="type" class="input">@for (type of fieldTypes; track type) { <option [value]="type">{{ type }}</option> }</select></div>
-                <div class="flex items-end pb-2"><label class="flex items-center"><input formControlName="required" type="checkbox" class="h-4 w-4 rounded border-surface text-primary focus:ring-primary"><span class="ml-2 text-sm text-main-text">Required</span></label></div>
-              </div>
-              @switch (fieldGroup.get('type')?.value) {
-                @case ('STRING') {
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div><label [for]="'field-maxlen-' + i" class="label">Max Length</label><input [id]="'field-maxlen-' + i" formControlName="maxLen" type="number" class="input" placeholder="e.g., 255"></div>
-                    <div><label [for]="'field-pattern-' + i" class="label">Regex Pattern</label><input [id]="'field-pattern-' + i" formControlName="pattern" type="text" class="input" placeholder="e.g., ^[A-Za-z]+$"></div>
-                  </div>
-                }
-                @case ('NUMBER') {
-                  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div><label [for]="'field-min-' + i" class="label">Min Value</label><input [id]="'field-min-' + i" formControlName="min" type="number" class="input" placeholder="e.g., 0"></div>
-                    <div><label [for]="'field-max-' + i" class="label">Max Value</label><input [id]="'field-max-' + i" formControlName="max" type="number" class="input" placeholder="e.g., 100"></div>
-                  </div>
-                }
-                @case ('ENUM') {
-                  <div formArrayName="enumValues">
-                    <label class="label">Enum Values</label>
-                    @for (enumControl of getEnumValues(fieldGroup).controls; track j; let j = $index) {
-                      <div class="flex items-center space-x-2 mb-2">
-                        <input [formControlName]="j" class="input flex-grow" placeholder="e.g., active"><button type="button" (click)="removeEnumValue(fieldGroup, j)" class="button-danger-sm">Remove</button>
-                      </div>
+        <div formArrayName="fields" class="space-y-4">
+          @for (field of fields.controls; track $index; let i = $index) {
+            <div [formGroupName]="i" class="p-6 bg-white/5 rounded-3xl border border-white/5 relative group animate-soft-in">
+              <button (click)="removeField(i)" class="absolute top-4 right-4 text-red-500 opacity-0 group-hover:opacity-100 transition-all">&times;</button>
+              <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div>
+                  <label class="text-[10px] font-black uppercase text-gray-500 mb-1 block">Field Name</label>
+                  <input formControlName="name" type="text" class="input py-2 text-xs">
+                </div>
+                <div>
+                  <label class="text-[10px] font-black uppercase text-gray-500 mb-1 block">Data Type</label>
+                  <select formControlName="type" class="input py-2 text-xs">
+                    @for (type of fieldTypes; track type) {
+                      <option [value]="type">{{ type }}</option>
                     }
-                    <button type="button" (click)="addEnumValue(fieldGroup)" class="button-secondary-sm mt-2">Add Value</button>
-                  </div>
-                }
-                @case ('REFERENCE') {
-                  <div>
-                    <label [for]="'field-ref-' + i" class="label">Reference Entity</label>
-                    <select [id]="'field-ref-' + i" formControlName="referenceEntityKey" class="input">
-                      <option value="">-- Select Entity --</option>
-                      @for (entity of allEntities; track entity.entityKey) {
-                        <option [value]="entity.entityKey">{{ entity.label }}</option>
+                  </select>
+                </div>
+                <div class="flex items-center pt-6">
+                  <app-toggle-switch formControlName="required"></app-toggle-switch>
+                  <span class="ml-2 text-[10px] font-bold text-gray-500 uppercase">Required</span>
+                </div>
+                
+                @if (field.get('type')?.value === 'REFERENCE') {
+                  <div class="lg:col-span-1">
+                    <label class="text-[10px] font-black uppercase text-gray-500 mb-1 block">Ref Entity</label>
+                    <select formControlName="referenceEntityKey" class="input py-2 text-xs">
+                      @for (e of allEntities; track e.entityKey) {
+                        <option [value]="e.entityKey">{{ e.label }}</option>
                       }
                     </select>
                   </div>
                 }
+              </div>
+            </div>
+          }
+        </div>
+      </div>
+
+      <!-- ACLs -->
+      <div class="card-soft p-8" formGroupName="acl">
+        <h2 class="text-sm font-black uppercase tracking-[0.2em] text-[rgb(var(--color-primary))] opacity-70 mb-8">Access Control (ACL)</h2>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+          @for (action of ['read', 'write', 'delete', 'search']; track action) {
+            <div [formGroupName]="action" class="space-y-4">
+              <h3 class="text-xs font-black uppercase text-gray-400 border-b border-white/5 pb-2">{{ action }}</h3>
+              @for (group of allGroups; track group.id) {
+                <div class="flex items-center gap-2">
+                  <input [formControlName]="group.name" type="checkbox" class="h-4 w-4 rounded-lg border-none bg-white/5 text-[rgb(var(--color-primary))] focus:ring-0">
+                  <span class="text-[10px] font-bold text-gray-500">{{ group.name }}</span>
+                </div>
               }
             </div>
           }
         </div>
+      </div>
 
-        <!-- Email Notifications -->
-        <div class="bg-surface p-6 rounded-lg shadow-md" formGroupName="notificationConfig">
-          <h2 class="text-xl font-semibold mb-4 border-b border-base pb-2 text-primary">Email Notifications on CRUD</h2>
-          <p class="text-sm text-main-text/70 mb-4" ngNonBindable>
-            Automatically send an email when a record is created, updated, or deleted.
-            The 'To' field accepts comma-separated email addresses and placeholders like <code>{{email_field_name}}</code>.
-          </p>
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div ngNonBindable>
-              <label for="notificationTo" class="label">To</label>
-              <input id="notificationTo" formControlName="to" type="text" class="input" placeholder="admin@example.com, {{email}}">
-            </div>
-            <div ngNonBindable>
-              <label for="notificationSubject" class="label">Subject</label>
-              <input id="notificationSubject" formControlName="subject" type="text" class="input" placeholder="New Record: {{id}}">
+      <!-- Notifications -->
+      <div class="card-soft p-8" formGroupName="notificationConfig">
+        <h2 class="text-sm font-black uppercase tracking-[0.2em] text-[rgb(var(--color-primary))] opacity-70 mb-8">Email Notifications</h2>
+        <div class="space-y-6">
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+            <div>
+              <label class="label">Recipient Emails (comma separated)</label>
+              <input formControlName="to" type="text" class="input" placeholder="admin@test.it, boss@test.it">
             </div>
             <div>
-              <label for="createTemplateId" class="label">Create Template</label>
-              <select id="createTemplateId" formControlName="createTemplateId" class="input">
-                <option [ngValue]="null">-- None --</option>
-                @if (emailTemplates$ | async; as templates) {
-                  @for (template of templates; track template.id) {
-                    <option [value]="template.id">{{ template.name }}</option>
-                  }
-                }
+              <label class="label">Subject Line</label>
+              <input formControlName="subject" type="text" class="input" placeholder="New Record Created">
+            </div>
+          </div>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div>
+              <label class="label text-[10px]">On Create</label>
+              <select formControlName="createTemplateId" class="input text-xs">
+                <option [ngValue]="null">-- Disabled --</option>
+                @for (t of emailTemplates$ | async; track t.id) { <option [value]="t.id">{{ t.name }}</option> }
               </select>
             </div>
             <div>
-              <label for="updateTemplateId" class="label">Update Template</label>
-              <select id="updateTemplateId" formControlName="updateTemplateId" class="input">
-                <option [ngValue]="null">-- None --</option>
-                @if (emailTemplates$ | async; as templates) {
-                  @for (template of templates; track template.id) {
-                    <option [value]="template.id">{{ template.name }}</option>
-                  }
-                }
+              <label class="label text-[10px]">On Update</label>
+              <select formControlName="updateTemplateId" class="input text-xs">
+                <option [ngValue]="null">-- Disabled --</option>
+                @for (t of emailTemplates$ | async; track t.id) { <option [value]="t.id">{{ t.name }}</option> }
               </select>
             </div>
             <div>
-              <label for="deleteTemplateId" class="label">Delete Template</label>
-              <select id="deleteTemplateId" formControlName="deleteTemplateId" class="input">
-                <option [ngValue]="null">-- None --</option>
-                @if (emailTemplates$ | async; as templates) {
-                  @for (template of templates; track template.id) {
-                    <option [value]="template.id">{{ template.name }}</option>
-                  }
-                }
+              <label class="label text-[10px]">On Delete</label>
+              <select formControlName="deleteTemplateId" class="input text-xs">
+                <option [ngValue]="null">-- Disabled --</option>
+                @for (t of emailTemplates$ | async; track t.id) { <option [value]="t.id">{{ t.name }}</option> }
               </select>
             </div>
           </div>
         </div>
+      </div>
 
-        <!-- Form Actions -->
-        <div class="flex justify-end space-x-4 mt-8">
-          <a routerLink="/entity-definitions" class="button-secondary">Cancel</a>
-          <button type="submit" [disabled]="editorForm.invalid" class="button-primary disabled:opacity-50">{{ isEditMode ? 'Update Definition' : 'Create Definition' }}</button>
-        </div>
-      </form>
-    }
-    @case ('JSON') {
-      <div class="bg-surface p-6 rounded-lg shadow-md">
-        <h2 class="text-xl font-semibold mb-4 border-b border-base pb-2 text-primary">JSON Configuration</h2>
-        <textarea [formControl]="jsonContentControl" rows="25" class="input font-mono text-sm"></textarea>
-        @if (jsonError) {
-          <div class="error-text mt-2">{{ jsonError }}</div>
-        }
+      <div class="flex justify-end pt-8 pb-12">
+        <button type="submit" [disabled]="editorForm.invalid" class="button-primary px-16 py-4 text-lg font-black uppercase tracking-widest shadow-2xl">
+          {{ i18nService.translate('COMMON.SAVE') }}
+        </button>
       </div>
-       <!-- Form Actions -->
-      <div class="flex justify-end space-x-4 mt-8">
-        <a routerLink="/entity-definitions" class="button-secondary">Cancel</a>
-        <button type="button" (click)="onSubmit()" [disabled]="editorForm.invalid || jsonError" class="button-primary disabled:opacity-50">{{ isEditMode ? 'Update Definition' : 'Create Definition' }}</button>
+    </form>
+  }
+
+  @if (activeTab === 'JSON') {
+    <div class="card-soft p-8 space-y-6">
+      <textarea [formControl]="jsonContentControl" class="w-full h-[600px] bg-black/20 text-green-400 font-mono text-xs p-6 rounded-3xl border border-white/5 focus:ring-1 focus:ring-green-500 outline-none resize-none custom-scrollbar"></textarea>
+      @if (jsonError) { <p class="text-red-500 text-sm font-bold">{{ jsonError }}</p> }
+      <div class="flex justify-end">
+        <button (click)="onSubmit()" [disabled]="!!jsonError" class="button-primary px-12">Save JSON</button>
       </div>
-    }
+    </div>
   }
 </div>

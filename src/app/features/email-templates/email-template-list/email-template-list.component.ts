@@ -20,7 +20,7 @@ import { EmailTestSendComponent } from '../email-test-send/email-test-send.compo
 export class EmailTemplateListComponent implements OnInit {
   private emailTemplateService = inject(EmailTemplateService);
   private modalService = inject(ModalService);
-  private i18nService = inject(I18nService);
+  public i18nService = inject(I18nService);
   public templates$!: Observable<EmailTemplate[]>;
 
   ngOnInit(): void {

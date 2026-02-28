@@ -1,26 +1,24 @@
-
 <div class="container mx-auto p-4 max-w-7xl animate-soft-in">
   <div class="flex items-center gap-3 mb-8">
-    <h1 class="text-3xl font-bold text-[rgb(var(--color-primary))] uppercase tracking-tighter">File Upload</h1>
-    <button (click)="showHelp()" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Aiuto">
+    <h1 class="text-3xl font-bold text-[rgb(var(--color-primary))] uppercase tracking-tighter">{{ i18nService.translate('FILES.TITLE') }}</h1>
+    <button (click)="showHelp()" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm" [title]="i18nService.translate('COMMON.MORE')">
       <span class="font-serif italic font-bold">i</span>
     </button>
   </div>
 
   <div class="card-soft p-8 max-w-lg mx-auto">
-    <p class="text-sm text-main-text/70 mb-4">
-      Select a file to upload. The backend does not currently support listing files,
-      so you will only see a confirmation message upon successful upload.
+    <p class="text-sm text-gray-400 mb-6 leading-relaxed">
+      {{ i18nService.translate('FILES.INFO') }}
     </p>
 
-    <label class="button-primary cursor-pointer w-full text-center block">
-      <span>Choose File</span>
+    <label class="button-primary cursor-pointer w-full text-center block shadow-lg">
+      <span>{{ i18nService.translate('FILES.CHOOSE') }}</span>
       <input type="file" class="hidden" (change)="onFileSelected($event)">
     </label>
 
     @if (uploadProgress !== null) {
-      <div class="w-full bg-base rounded-full h-4 mt-4">
-        <div class="bg-primary h-4 rounded-full text-xs font-medium text-blue-100 text-center p-0.5 leading-none"
+      <div class="w-full bg-base rounded-full h-4 mt-6 overflow-hidden shadow-inner">
+        <div class="bg-[rgb(var(--color-primary))] h-4 rounded-full text-[10px] font-black text-[rgb(var(--color-bg-base))] text-center p-0.5 leading-none transition-all duration-300"
              [style.width.%]="uploadProgress">
           {{ uploadProgress }}%
         </div>
@@ -28,10 +26,12 @@
     }
 
     @if (lastUploadedFile) {
-      <div class="mt-4 p-4 bg-base rounded-md text-sm">
-        <p><strong>Upload Complete!</strong></p>
-        <p class="text-main-text/80">File: {{ lastUploadedFile.filename }}</p>
-        <p class="text-main-text/80">ID: <code>{{ lastUploadedFile.id }}</code></p>
+      <div class="mt-6 p-6 bg-black/20 rounded-3xl border border-white/5 animate-soft-in">
+        <p class="text-[rgb(var(--color-primary))] font-black uppercase text-xs mb-2 tracking-widest">{{ i18nService.translate('FILES.COMPLETE') }}</p>
+        <div class="space-y-1">
+          <p class="text-sm"><span class="text-gray-500">File:</span> {{ lastUploadedFile.filename }}</p>
+          <p class="text-xs font-mono opacity-50"><span class="text-gray-500">ID:</span> {{ lastUploadedFile.id }}</p>
+        </div>
       </div>
     }
   </div>

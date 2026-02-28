@@ -1,10 +1,10 @@
-
 import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { GroupService } from '../../../core/services/group.service';
 import { CreateGroupRequest, UpdateGroupRequest } from '../../../core/models/group.model';
+import { I18nService } from '../../../core/services/i18n.service';
 
 @Component({
   selector: 'app-group-editor',
@@ -17,6 +17,7 @@ export class GroupEditorComponent implements OnInit {
   private router = inject(Router);
   private route = inject(ActivatedRoute);
   private groupService = inject(GroupService);
+  public i18nService = inject(I18nService);
 
   editorForm!: FormGroup;
   isEditMode = false;

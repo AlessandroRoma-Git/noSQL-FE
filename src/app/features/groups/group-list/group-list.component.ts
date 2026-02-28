@@ -19,7 +19,7 @@ import { filter } from 'rxjs/operators';
 export class GroupListComponent implements OnInit {
   private groupService = inject(GroupService);
   private modalService = inject(ModalService);
-  private i18nService = inject(I18nService);
+  public i18nService = inject(I18nService);
   public groups$!: Observable<Group[]>;
 
   ngOnInit(): void {

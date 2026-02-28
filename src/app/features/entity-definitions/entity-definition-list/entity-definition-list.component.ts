@@ -19,7 +19,7 @@ import { filter } from 'rxjs/operators';
 export class EntityDefinitionListComponent implements OnInit {
   private entityDefinitionService = inject(EntityDefinitionService);
   private modalService = inject(ModalService);
-  private i18nService = inject(I18nService);
+  public i18nService = inject(I18nService);
   public definitions$!: Observable<EntityDefinition[]>;
 
   ngOnInit(): void {

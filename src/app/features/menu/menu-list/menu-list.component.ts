@@ -19,7 +19,7 @@ import { filter } from 'rxjs/operators';
 export class MenuListComponent implements OnInit {
   private menuService = inject(MenuService);
   private modalService = inject(ModalService);
-  private i18nService = inject(I18nService);
+  public i18nService = inject(I18nService);
   public menuItems$!: Observable<MenuItem[]>;
 
   ngOnInit(): void {

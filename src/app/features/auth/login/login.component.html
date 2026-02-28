@@ -1,17 +1,23 @@
-
-<div class="flex items-center justify-center min-h-screen bg-base">
-  <div class="w-full max-w-md p-8 space-y-6 bg-surface rounded-lg shadow-md">
+<div class="flex items-center justify-center min-h-screen bg-base p-4">
+  <div class="w-full max-w-md p-8 space-y-6 bg-surface rounded-[2.5rem] shadow-2xl border border-white/5 animate-soft-in">
     
-    <div class="flex flex-col items-center justify-center space-y-2 mb-4">
-      @if ((config$ | async)?.logoUrl) {
-        <img [src]="(config$ | async)?.logoUrl" alt="Logo" class="h-16 object-contain" />
-      }
-      <h1 class="text-2xl font-bold text-center text-[rgb(var(--color-primary))]">
-        {{ (config$ | async)?.appName }} Login
-      </h1>
+    <div class="flex flex-col items-center justify-center space-y-4 mb-8">
+      <div class="w-20 h-20 bg-[rgb(var(--color-primary)/0.1)] rounded-[2rem] p-2 flex items-center justify-center shadow-inner">
+        @if ((config$ | async)?.logoUrl) {
+          <img [src]="(config$ | async)?.logoUrl" alt="Logo" class="max-h-full object-contain" />
+        } @else {
+          <div class="w-12 h-12 bg-[rgb(var(--color-primary))] rounded-xl"></div>
+        }
+      </div>
+      <div class="text-center">
+        <h1 class="text-3xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter leading-none">
+          {{ (config$ | async)?.appName }}
+        </h1>
+        <p class="text-gray-500 font-bold uppercase tracking-widest text-[10px] mt-2 opacity-50">{{ i18nService.translate('LOGIN.SUBTITLE') }}</p>
+      </div>
     </div>
 
-    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()">
+    <form [formGroup]="loginForm" (ngSubmit)="onSubmit()" class="space-y-6">
       <div class="space-y-4">
         <div>
           <label for="username" class="label">{{ i18nService.translate('LOGIN.USERNAME') }}</label>
@@ -23,21 +29,21 @@
         </div>
       </div>
 
-      <div class="flex items-center justify-end mt-4 text-sm">
-        <a routerLink="/recover-password" class="font-medium text-[rgb(var(--color-accent))] hover:underline">
+      <div class="flex items-center justify-end text-[10px] font-black uppercase tracking-widest">
+        <a routerLink="/recover-password" class="text-gray-500 hover:text-[rgb(var(--color-primary))] transition-colors">
           {{ i18nService.translate('LOGIN.FORGOT_PASSWORD') }}
         </a>
       </div>
 
       @if (errorMessage) {
-        <div class="mt-4 text-sm text-red-600">
+        <div class="p-3 bg-red-500/10 border border-red-500/50 rounded-xl text-red-500 text-xs font-bold text-center">
           {{ errorMessage }}
         </div>
       }
 
-      <div class="mt-6">
-        <button type="submit" [disabled]="loginForm.invalid" class="w-full button-primary disabled:opacity-50">
-          {{ i18nService.translate('LOGIN.BUTTON') }}
+      <div class="pt-2">
+        <button type="submit" [disabled]="loginForm.invalid" class="w-full button-primary py-4 text-base font-black uppercase tracking-widest shadow-xl disabled:opacity-30">
+          {{ i18nService.translate('COMMON.LOGIN') }}
         </button>
       </div>
     </form>

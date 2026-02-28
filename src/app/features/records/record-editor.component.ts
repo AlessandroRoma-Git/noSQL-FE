@@ -5,6 +5,7 @@ import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, ValidatorFn } 
 import { EntityDefinitionService } from '../../core/services/entity-definition.service';
 import { RecordService } from '../../core/services/record.service';
 import { ToastService } from '../../core/services/toast.service';
+import { I18nService } from '../../core/services/i18n.service';
 import { EntityDefinition } from '../../core/models/entity-definition.model';
 import { ReferenceSearchComponent } from '../../shared/components/reference-search/reference-search.component';
 import { RecordHistoryComponent } from './record-history/record-history.component';
@@ -31,6 +32,7 @@ export class RecordEditorComponent implements OnInit {
   private entityDefinitionService = inject(EntityDefinitionService); // Per scaricare lo "schema" (cosa dobbiamo mostrare?)
   private recordService = inject(RecordService); // Per salvare i dati
   private toastService = inject(ToastService); // Per mandare messaggi di successo o errore
+  public i18nService = inject(I18nService); // Il nostro traduttore personale
 
   // --- STATO DEL MODULO ---
   public editorForm!: FormGroup; // Il contenitore di tutti i campi

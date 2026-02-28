@@ -32,7 +32,7 @@ export class RecordListComponent implements OnInit, OnDestroy {
   private entityDefinitionService = inject(EntityDefinitionService);
   private modalService = inject(ModalService);
   private toastService = inject(ToastService);
-  private i18nService = inject(I18nService);
+  public i18nService = inject(I18nService);
 
   // --- DATI ---
   public records$!: Observable<Record[]>; // Il "canale" che ci invia i dati da mostrare
