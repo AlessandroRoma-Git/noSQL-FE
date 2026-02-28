@@ -1,119 +1,137 @@
-
-<div class="container mx-auto p-4">
-  <div class="flex justify-between items-center mb-4">
-    <div class="flex items-center space-x-4">
-      <h1 class="text-3xl font-bold text-primary">{{ isEditMode ? 'Edit Email Template' : 'Create Email Template' }}</h1>
+<div class="container mx-auto p-4 animate-soft-in">
+  <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+    <div class="flex items-center gap-4">
+      <h1 class="text-3xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">
+        {{ isEditMode ? i18nService.translate('COMMON.EDIT') : i18nService.translate('COMMON.CREATE') }} {{ i18nService.translate('SIDEBAR.EMAIL_TEMPLATES').slice(0, -1) }}
+      </h1>
       @if (isEditMode) {
-        <button (click)="showInfo('usage')" title="Show API Usage" class="text-main-text/70 hover:text-primary">
+        <button (click)="showInfo('usage')" title="Show API Usage" class="text-gray-500 hover:text-[rgb(var(--color-primary))] transition-colors">
           <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" /></svg>
         </button>
       }
     </div>
-    <app-toggle-switch [activeOption]="activeTab" (toggleChange)="activeTab = $event"></app-toggle-switch>
+    
+    <div class="flex items-center gap-4">
+      <app-toggle-switch 
+        [options]="[{value: 'UI', label: 'UI'}, {value: 'JSON', label: 'JSON'}]" 
+        [activeOption]="activeTab" 
+        (toggleChange)="activeTab = $event">
+      </app-toggle-switch>
+      
+      <a routerLink="/email-templates" class="button-secondary">
+        &larr; {{ i18nService.translate('COMMON.BACK_TO_LIST') }}
+      </a>
+    </div>
   </div>
 
   <!-- Tab Content -->
   @switch (activeTab) {
     @case ('UI') {
-      <form [formGroup]="editorForm" (ngSubmit)="onSubmit()" class="space-y-8">
+      <form [formGroup]="editorForm" (ngSubmit)="onSubmit()" class="space-y-10">
         <!-- Main Details -->
-        <div class="bg-surface p-6 rounded-lg shadow-md">
-          <div class="flex justify-between items-center border-b border-base pb-2 mb-4">
-            <h2 class="text-xl font-semibold text-primary">Template Details</h2>
-            <button type="button" (click)="showInfo('details')" class="info-button">i</button>
+        <div class="card-soft p-8">
+          <div class="flex justify-between items-center border-b border-white/5 pb-4 mb-6">
+            <h2 class="text-sm font-black uppercase tracking-widest text-[rgb(var(--color-primary))] opacity-70">Template Details</h2>
           </div>
-          <div class="space-y-4">
+          <div class="space-y-6">
             <div>
-              <label for="name" class="label">Template Name</label>
+              <label for="name" class="label flex items-center gap-2">
+                Template Name
+                <button type="button" (click)="i18nService.showFieldHelp('TEMPLATE_NAME')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+              </label>
               <input formControlName="name" id="name" type="text" class="input" placeholder="e.g., welcome_email">
             </div>
             <div>
-              <label for="htmlContent" class="label">HTML Content</label>
-              <textarea formControlName="htmlContent" id="htmlContent" rows="15" class="input font-mono"></textarea>
-              <p class="text-xs text-main-text/70 mt-1" ngNonBindable>Use {{placeholder_name}} for placeholders.</p>
+              <label for="htmlContent" class="label flex items-center gap-2">
+                HTML Content
+                <button type="button" (click)="i18nService.showFieldHelp('TEMPLATE_HTML')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+              </label>
+              <textarea formControlName="htmlContent" id="htmlContent" rows="12" class="input font-mono text-sm custom-scrollbar"></textarea>
+              <p class="text-[10px] text-gray-500 mt-2 italic" ngNonBindable>* Use {{placeholder_name}} for dynamic tags.</p>
             </div>
           </div>
         </div>
 
         <!-- Live Preview -->
-        <div class="bg-surface p-6 rounded-lg shadow-md">
-          <div class="flex justify-between items-center border-b border-base pb-2 mb-4">
-            <h2 class="text-xl font-semibold text-primary">Live Preview</h2>
-            <div class="flex space-x-2">
-              <button type="button" (click)="setPreviewDevice('desktop')" class="button-secondary-sm" [class.bg-primary]="previewDevice === 'desktop'">Desktop</button>
-              <button type="button" (click)="setPreviewDevice('tablet')" class="button-secondary-sm" [class.bg-primary]="previewDevice === 'tablet'">Tablet</button>
-              <button type="button" (click)="setPreviewDevice('mobile')" class="button-secondary-sm" [class.bg-primary]="previewDevice === 'mobile'">Mobile</button>
+        <div class="card-soft p-8">
+          <div class="flex flex-col md:flex-row md:items-center justify-between border-b border-white/5 pb-4 mb-6 gap-4">
+            <h2 class="text-sm font-black uppercase tracking-widest text-[rgb(var(--color-primary))] opacity-70">Live Preview</h2>
+            <div class="flex bg-black/20 p-1 rounded-2xl gap-1">
+              <button type="button" (click)="setPreviewDevice('desktop')" class="px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase transition-all" [class.bg-[rgb(var(--color-primary))]]="previewDevice === 'desktop'" [class.text-[rgb(var(--color-bg-base))]]="previewDevice === 'desktop'" [class.text-gray-500]="previewDevice !== 'desktop'">Desktop</button>
+              <button type="button" (click)="setPreviewDevice('tablet')" class="px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase transition-all" [class.bg-[rgb(var(--color-primary))]]="previewDevice === 'tablet'" [class.text-[rgb(var(--color-bg-base))]]="previewDevice === 'tablet'" [class.text-gray-500]="previewDevice !== 'tablet'">Tablet</button>
+              <button type="button" (click)="setPreviewDevice('mobile')" class="px-4 py-1.5 rounded-xl text-[10px] font-bold uppercase transition-all" [class.bg-[rgb(var(--color-primary))]]="previewDevice === 'mobile'" [class.text-[rgb(var(--color-bg-base))]]="previewDevice === 'mobile'" [class.text-gray-500]="previewDevice !== 'mobile'">Mobile</button>
             </div>
           </div>
-          <div class="mt-4 p-2 bg-base rounded-md flex justify-center">
+          <div class="mt-4 p-4 bg-black/40 rounded-[2rem] flex justify-center border border-white/5">
             <iframe
-              class="border-2 border-primary transition-all duration-300 ease-in-out"
+              class="border-4 border-white/5 rounded-2xl transition-all duration-500 ease-in-out bg-white shadow-2xl"
               [srcdoc]="previewContent"
-              [ngClass]="{
-                'w-full h-[600px]': previewDevice === 'desktop',
-                'w-[768px] h-[1024px]': previewDevice === 'tablet',
-                'w-[375px] h-[667px]': previewDevice === 'mobile'
-              }"
+              [style.width]="previewDevice === 'desktop' ? '100%' : (previewDevice === 'tablet' ? '768px' : '375px')"
+              [style.height]="'600px'"
             ></iframe>
           </div>
         </div>
 
         <!-- Placeholders & Attachments -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
           <!-- Detected Placeholders -->
-          <div class="bg-surface p-6 rounded-lg shadow-md">
-            <div class="flex justify-between items-center border-b border-base pb-2 mb-4">
-              <h2 class="text-xl font-semibold text-primary">Detected Placeholders</h2>
-              <button type="button" (click)="showInfo('placeholders')" class="info-button">i</button>
+          <div class="card-soft p-8">
+            <div class="flex justify-between items-center border-b border-white/5 pb-4 mb-6">
+              <h2 class="text-sm font-black uppercase tracking-widest text-[rgb(var(--color-primary))] opacity-70">Detected Placeholders</h2>
             </div>
             @if (detectedPlaceholders$ | async; as placeholders) {
               @if (placeholders.length > 0) {
-                <ul class="list-disc list-inside bg-base p-4 rounded-md">
+                <div class="flex flex-wrap gap-2">
                   @for (p of placeholders; track p) {
-                    <li class="text-main-text"><code>{{p}}</code></li>
+                    <code class="px-3 py-1.5 rounded-xl bg-white/5 text-xs text-[rgb(var(--color-primary))] border border-white/5">{{p}}</code>
                   }
-                </ul>
+                </div>
               } @else {
-                <p class="text-sm text-main-text/70 italic">No placeholders detected yet.</p>
+                <p class="text-sm text-gray-500 italic">No placeholders detected yet.</p>
               }
             }
           </div>
 
           <!-- Attachments -->
-          <div class="bg-surface p-6 rounded-lg shadow-md" formArrayName="attachments">
-            <div class="flex justify-between items-center border-b border-base pb-2 mb-4">
-              <h2 class="text-xl font-semibold text-primary">Attachments</h2>
-              <button type="button" (click)="showInfo('attachments')" class="info-button">i</button>
+          <div class="card-soft p-8" formArrayName="attachments">
+            <div class="flex justify-between items-center border-b border-white/5 pb-4 mb-6">
+              <h2 class="text-sm font-black uppercase tracking-widest text-[rgb(var(--color-primary))] opacity-70">Attachments</h2>
             </div>
-            @for (attachment of attachments.controls; track i; let i = $index) {
-              <div [formGroupName]="i" class="space-y-2 p-4 border border-base rounded-md bg-base/50 mb-2">
-                 <div class="flex justify-end"><button type="button" (click)="removeAttachment(i)" class="text-red-500 hover:underline font-semibold">Remove</button></div>
-                <div><label class="label">File</label><input type="file" (change)="onFileChange($event, i)" class="input"></div>
-                <div><label class="label">Filename</label><input formControlName="filename" class="input bg-base" readonly></div>
-              </div>
-            }
-             <button type="button" (click)="addAttachment()" class="button-secondary-sm mt-2">Add Attachment</button>
+            <div class="space-y-4">
+              @for (attachment of attachments.controls; track i; let i = $index) {
+                <div [formGroupName]="i" class="p-4 bg-white/5 rounded-2xl border border-white/5 relative group animate-soft-in">
+                  <button (click)="removeAttachment(i)" class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center text-xs opacity-0 group-hover:opacity-100 transition-all shadow-lg">&times;</button>
+                  <div class="space-y-3">
+                    <input type="file" (change)="onFileChange($event, i)" class="text-xs text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-xs file:font-semibold file:bg-[rgb(var(--color-primary)/0.1)] file:text-[rgb(var(--color-primary))] hover:file:bg-[rgb(var(--color-primary)/0.2)]">
+                    <input formControlName="filename" class="input py-2 text-[10px] opacity-50" readonly placeholder="Filename will appear here">
+                  </div>
+                </div>
+              }
+              <button type="button" (click)="addAttachment()" class="button-primary w-full py-2 text-xs border-dashed border-2">+ Add Attachment</button>
+            </div>
           </div>
         </div>
-        <!-- Form Actions -->
-        <div class="flex justify-end space-x-4 mt-8">
-          <a routerLink="/email-templates" class="button-secondary">Cancel</a>
-          <button type="submit" [disabled]="editorForm.invalid" class="button-primary disabled:opacity-50">{{ isEditMode ? 'Update Template' : 'Create Template' }}</button>
+
+        <div class="flex justify-end pt-8 pb-12">
+          <button type="submit" [disabled]="editorForm.invalid" class="button-primary px-16 py-4 text-lg font-black uppercase tracking-widest shadow-2xl">
+            {{ i18nService.translate('COMMON.UPDATE') }}
+          </button>
         </div>
       </form>
     }
     @case ('JSON') {
-      <div class="bg-surface p-6 rounded-lg shadow-md">
-        <h2 class="text-xl font-semibold mb-4 border-b border-base pb-2 text-primary">JSON Configuration</h2>
-        <textarea [formControl]="jsonContentControl" rows="25" class="input font-mono text-sm"></textarea>
+      <div class="card-soft p-8 space-y-6">
+        <h2 class="text-sm font-black uppercase tracking-widest text-[rgb(var(--color-primary))] opacity-70 mb-4">JSON Configuration</h2>
+        <textarea [formControl]="jsonContentControl" class="w-full h-[500px] bg-black/20 text-green-400 font-mono text-xs p-6 rounded-3xl border border-white/5 focus:ring-1 focus:ring-green-500 outline-none resize-none custom-scrollbar"></textarea>
         @if (jsonError) {
-          <div class="error-text mt-2">{{ jsonError }}</div>
+          <div class="text-red-500 text-xs font-bold uppercase tracking-widest">{{ jsonError }}</div>
         }
-      </div>
-       <!-- Form Actions -->
-      <div class="flex justify-end space-x-4 mt-8">
-        <a routerLink="/email-templates" class="button-secondary">Cancel</a>
-        <button type="button" (click)="onSubmit()" [disabled]="editorForm.invalid || jsonError" class="button-primary disabled:opacity-50">{{ isEditMode ? 'Update Template' : 'Create Template' }}</button>
+        <div class="flex justify-end gap-4 pt-4">
+          <a routerLink="/email-templates" class="button-secondary px-8">{{ i18nService.translate('COMMON.CANCEL_SHORT') }}</a>
+          <button type="button" (click)="onSubmit()" [disabled]="editorForm.invalid || jsonError" class="button-primary px-12">
+            {{ i18nService.translate('COMMON.UPDATE') }}
+          </button>
+        </div>
       </div>
     }
   }

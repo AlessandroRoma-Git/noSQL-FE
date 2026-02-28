@@ -30,9 +30,9 @@ export class App implements OnInit {
   // --- INIEZIONE SERVIZI ---
   public authService = inject(AuthService);
   public i18nService = inject(I18nService);
-  private themeService = inject(ThemeService);
+  public themeService = inject(ThemeService);
   private menuService = inject(MenuService);
-  private whiteLabelService = inject(WhiteLabelService);
+  public whiteLabelService = inject(WhiteLabelService);
   private router = inject(Router);
   private platformId = inject(PLATFORM_ID);
 
@@ -88,6 +88,13 @@ export class App implements OnInit {
    */
   toggleSidebar(): void {
     this.isSidebarOpen = !this.isSidebarOpen;
+  }
+
+  /**
+   * Cambia la lingua del sito.
+   */
+  setLang(lang: string): void {
+    this.whiteLabelService.updateConfig({ language: lang });
   }
 
   onThemeChange(event: Event): void {

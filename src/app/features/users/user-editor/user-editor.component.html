@@ -13,11 +13,17 @@
     <!-- Main Details -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
       <div>
-        <label for="username" class="label">{{ i18nService.translate('LOGIN.USERNAME') }}</label>
+        <label for="username" class="label flex items-center gap-2">
+          {{ i18nService.translate('LOGIN.USERNAME') }}
+          <button type="button" (click)="i18nService.showFieldHelp('USER_USERNAME')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+        </label>
         <input formControlName="username" id="username" type="text" class="input" [class.opacity-50]="isEditMode">
       </div>
       <div>
-        <label for="email" class="label">Email</label>
+        <label for="email" class="label flex items-center gap-2">
+          Email
+          <button type="button" (click)="i18nService.showFieldHelp('USER_EMAIL')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+        </label>
         <input formControlName="email" id="email" type="email" class="input">
       </div>
     </div>
@@ -25,7 +31,10 @@
     <!-- Status -->
     @if (isEditMode) {
       <div class="p-4 bg-white/5 rounded-2xl border border-white/5">
-        <label class="label">{{ i18nService.translate('COMMON.STATUS') }}</label>
+        <label class="label flex items-center gap-2">
+          {{ i18nService.translate('COMMON.STATUS') }}
+          <button type="button" (click)="i18nService.showFieldHelp('USER_ENABLED')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+        </label>
         <div class="flex items-center h-10">
           <input formControlName="enabled" id="status-enabled" type="checkbox" class="h-6 w-6 rounded-xl border-none bg-white/5 text-[rgb(var(--color-primary))] focus:ring-offset-0 focus:ring-[rgb(var(--color-primary))] cursor-pointer">
           <label for="status-enabled" class="ml-3 text-sm text-gray-400 font-bold">{{ i18nService.translate('COMMON.ACTIVE') }}</label>
@@ -35,7 +44,10 @@
 
     <!-- Groups -->
     <div class="p-4 bg-white/5 rounded-2xl border border-white/5">
-      <h3 class="label text-[rgb(var(--color-primary))] uppercase tracking-widest">{{ i18nService.translate('SIDEBAR.GROUPS') }}</h3>
+      <h3 class="label text-[rgb(var(--color-primary))] uppercase tracking-widest flex items-center gap-2">
+        {{ i18nService.translate('SIDEBAR.GROUPS') }}
+        <button type="button" (click)="i18nService.showFieldHelp('USER_GROUPS')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+      </h3>
       <div formGroupName="groups" class="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-4">
         @for (group of allGroups; track group.id) {
           <div class="flex items-center">

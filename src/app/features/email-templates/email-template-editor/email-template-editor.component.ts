@@ -8,6 +8,7 @@ import { EmailTemplateService } from '../../../core/services/email-template.serv
 import { EmailTemplate, Attachment } from '../../../core/models/email-template.model';
 import { ToggleSwitchComponent } from '../../../shared/components/toggle-switch/toggle-switch.component';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
+import { I18nService } from '../../../core/services/i18n.service';
 
 @Component({
   selector: 'app-email-template-editor',
@@ -22,6 +23,7 @@ export class EmailTemplateEditorComponent implements OnInit, OnDestroy {
   private fb = inject(FormBuilder);
   private emailTemplateService = inject(EmailTemplateService);
   private sanitizer = inject(DomSanitizer);
+  public i18nService = inject(I18nService);
 
   public editorForm!: FormGroup;
   public isEditMode = false;

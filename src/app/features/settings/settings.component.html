@@ -19,15 +19,24 @@
         <!-- Colonna Sinistra: Testi e Logo -->
         <div class="space-y-6">
           <div>
-            <label for="appName" class="label">{{ i18nService.translate('SETTINGS.APP_NAME') }}</label>
+            <label for="appName" class="label flex items-center gap-2">
+              {{ i18nService.translate('SETTINGS.APP_NAME') }}
+              <button type="button" (click)="i18nService.showFieldHelp('APP_NAME')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+            </label>
             <input id="appName" formControlName="appName" type="text" class="input">
           </div>
           <div>
-            <label for="logoUrl" class="label">{{ i18nService.translate('SETTINGS.LOGO_URL') }}</label>
+            <label for="logoUrl" class="label flex items-center gap-2">
+              {{ i18nService.translate('SETTINGS.LOGO_URL') }}
+              <button type="button" (click)="i18nService.showFieldHelp('LOGO_URL')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+            </label>
             <input id="logoUrl" formControlName="logoUrl" type="text" class="input" placeholder="assets/logo.svg">
           </div>
           <div>
-            <label for="themeId" class="label">{{ i18nService.translate('SETTINGS.DEFAULT_THEME') }}</label>
+            <label for="themeId" class="label flex items-center gap-2">
+              {{ i18nService.translate('SETTINGS.DEFAULT_THEME') }}
+              <button type="button" (click)="i18nService.showFieldHelp('THEME_SELECT')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+            </label>
             <div class="flex gap-2">
               <select id="themeId" formControlName="themeId" class="input flex-grow">
                 @for (theme of themes; track theme.id) {
@@ -47,7 +56,10 @@
           
           <div formGroupName="defaults" class="space-y-4">
             <div class="grid grid-cols-3 items-center gap-4">
-              <label class="text-[10px] font-black uppercase text-gray-400">{{ i18nService.translate('SETTINGS.DESKTOP') }}</label>
+              <label class="text-[10px] font-black uppercase text-gray-400 flex items-center gap-2">
+                {{ i18nService.translate('SETTINGS.DESKTOP') }}
+                <button type="button" (click)="i18nService.showFieldHelp('LAYOUT_DESKTOP')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic">(i)</button>
+              </label>
               <select formControlName="desktop" class="input col-span-2 text-xs py-2">
                 <option value="sidebar">Sidebar</option>
                 <option value="navbar">Navbar</option>
@@ -56,7 +68,10 @@
               </select>
             </div>
             <div class="grid grid-cols-3 items-center gap-4">
-              <label class="text-[10px] font-black uppercase text-gray-400">{{ i18nService.translate('SETTINGS.TABLET') }}</label>
+              <label class="text-[10px] font-black uppercase text-gray-400 flex items-center gap-2">
+                {{ i18nService.translate('SETTINGS.TABLET') }}
+                <button type="button" (click)="i18nService.showFieldHelp('LAYOUT_TABLET')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic">(i)</button>
+              </label>
               <select formControlName="tablet" class="input col-span-2 text-xs py-2">
                 <option value="sidebar">Sidebar</option>
                 <option value="navbar">Navbar</option>
@@ -65,7 +80,10 @@
               </select>
             </div>
             <div class="grid grid-cols-3 items-center gap-4">
-              <label class="text-[10px] font-black uppercase text-gray-400">{{ i18nService.translate('SETTINGS.MOBILE') }}</label>
+              <label class="text-[10px] font-black uppercase text-gray-400 flex items-center gap-2">
+                {{ i18nService.translate('SETTINGS.MOBILE') }}
+                <button type="button" (click)="i18nService.showFieldHelp('LAYOUT_MOBILE')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic">(i)</button>
+              </label>
               <select formControlName="mobile" class="input col-span-2 text-xs py-2">
                 <option value="sidebar">Sidebar</option>
                 <option value="bottom-nav">Bottom Nav</option>
@@ -100,11 +118,26 @@
               <h3 class="text-xl font-black text-white uppercase tracking-tighter">{{ isEditingTheme ? i18nService.translate('SETTINGS.APPLY_CHANGES') : i18nService.translate('SETTINGS.CUSTOM_STYLE') }}</h3>
               <input type="text" [(ngModel)]="newThemeName" [ngModelOptions]="{standalone: true}" class="input" [placeholder]="i18nService.translate('SETTINGS.THEME_NAME_PLACEHOLDER')">
               <div formGroupName="themeDesigner" class="grid grid-cols-2 md:grid-cols-5 gap-4">
-                <div><label class="label text-[10px]">{{ i18nService.translate('SETTINGS.PRIMARY_COLOR') }}</label><input type="color" formControlName="primary" class="w-full h-12 bg-transparent border-none cursor-pointer rounded-xl shadow-lg"></div>
-                <div><label class="label text-[10px]">{{ i18nService.translate('SETTINGS.ACCENT_COLOR') }}</label><input type="color" formControlName="accent" class="w-full h-12 bg-transparent border-none cursor-pointer rounded-xl shadow-lg"></div>
-                <div><label class="label text-[10px]">{{ i18nService.translate('SETTINGS.TEXT_COLOR') }}</label><input type="color" formControlName="text" class="w-full h-12 bg-transparent border-none cursor-pointer rounded-xl shadow-lg"></div>
-                <div><label class="label text-[10px]">{{ i18nService.translate('SETTINGS.BG_BASE') }}</label><input type="color" formControlName="bgBase" class="w-full h-12 bg-transparent border-none cursor-pointer rounded-xl shadow-lg"></div>
-                <div><label class="label text-[10px]">{{ i18nService.translate('SETTINGS.BG_SURFACE') }}</label><input type="color" formControlName="bgSurface" class="w-full h-12 bg-transparent border-none cursor-pointer rounded-xl shadow-lg"></div>
+                <div>
+                  <label class="label text-[10px] flex items-center gap-1">{{ i18nService.translate('SETTINGS.PRIMARY_COLOR') }} <button type="button" (click)="i18nService.showFieldHelp('THEME_PRIMARY')" class="opacity-50 hover:opacity-100">(i)</button></label>
+                  <input type="color" formControlName="primary" class="w-full h-12 bg-transparent border-none cursor-pointer rounded-xl shadow-lg">
+                </div>
+                <div>
+                  <label class="label text-[10px] flex items-center gap-1">{{ i18nService.translate('SETTINGS.ACCENT_COLOR') }} <button type="button" (click)="i18nService.showFieldHelp('THEME_ACCENT')" class="opacity-50 hover:opacity-100">(i)</button></label>
+                  <input type="color" formControlName="accent" class="w-full h-12 bg-transparent border-none cursor-pointer rounded-xl shadow-lg">
+                </div>
+                <div>
+                  <label class="label text-[10px] flex items-center gap-1">{{ i18nService.translate('SETTINGS.TEXT_COLOR') }} <button type="button" (click)="i18nService.showFieldHelp('THEME_TEXT')" class="opacity-50 hover:opacity-100">(i)</button></label>
+                  <input type="color" formControlName="text" class="w-full h-12 bg-transparent border-none cursor-pointer rounded-xl shadow-lg">
+                </div>
+                <div>
+                  <label class="label text-[10px] flex items-center gap-1">{{ i18nService.translate('SETTINGS.BG_BASE') }} <button type="button" (click)="i18nService.showFieldHelp('THEME_BG')" class="opacity-50 hover:opacity-100">(i)</button></label>
+                  <input type="color" formControlName="bgBase" class="w-full h-12 bg-transparent border-none cursor-pointer rounded-xl shadow-lg">
+                </div>
+                <div>
+                  <label class="label text-[10px] flex items-center gap-1">{{ i18nService.translate('SETTINGS.BG_SURFACE') }} <button type="button" (click)="i18nService.showFieldHelp('THEME_SURFACE')" class="opacity-50 hover:opacity-100">(i)</button></label>
+                  <input type="color" formControlName="bgSurface" class="w-full h-12 bg-transparent border-none cursor-pointer rounded-xl shadow-lg">
+                </div>
               </div>
             </div>
             <div class="flex flex-col gap-2 min-w-[150px]">
@@ -142,19 +175,25 @@
     </div>
 
     <!-- 3. EMAIL & NOTIFICHE -->
-    <div class="card-soft p-8">
+    <div class="card-soft p-8 text-[rgb(var(--color-text))]">
       <h2 class="text-xl font-black mb-6 flex items-center gap-2 border-b border-white/5 pb-4 uppercase tracking-widest opacity-80">
         <svg class="w-6 h-6 text-[rgb(var(--color-primary))]" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>
         {{ i18nService.translate('SETTINGS.EMAIL_CONFIG') }}
       </h2>
       <div formGroupName="email" class="space-y-6">
         <div>
-          <label for="defaultFrom" class="label">{{ i18nService.translate('SETTINGS.DEFAULT_SENDER') }}</label>
+          <label for="defaultFrom" class="label flex items-center gap-2">
+            {{ i18nService.translate('SETTINGS.DEFAULT_SENDER') }}
+            <button type="button" (click)="i18nService.showFieldHelp('SENDER_EMAIL')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+          </label>
           <input id="defaultFrom" formControlName="defaultFrom" type="email" class="input" placeholder="noreply@azienda.it">
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label for="passwordTemplateId" class="label">{{ i18nService.translate('SETTINGS.NEW_PWD_TEMPLATE') }}</label>
+            <label for="passwordTemplateId" class="label flex items-center gap-2">
+              {{ i18nService.translate('SETTINGS.NEW_PWD_TEMPLATE') }}
+              <button type="button" (click)="i18nService.showFieldHelp('NOTIF_TEMPLATE')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+            </label>
             <select id="passwordTemplateId" formControlName="passwordTemplateId" class="input">
               <option [ngValue]="null">-- {{ i18nService.translate('SETTINGS.NONE') }} --</option>
               @if (emailTemplates$ | async; as templates) {
@@ -165,7 +204,10 @@
             </select>
           </div>
           <div>
-            <label for="recoverPasswordTemplateId" class="label">{{ i18nService.translate('SETTINGS.RECOVER_PWD_TEMPLATE') }}</label>
+            <label for="recoverPasswordTemplateId" class="label flex items-center gap-2">
+              {{ i18nService.translate('SETTINGS.RECOVER_PWD_TEMPLATE') }}
+              <button type="button" (click)="i18nService.showFieldHelp('NOTIF_TEMPLATE')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+            </label>
             <select id="recoverPasswordTemplateId" formControlName="recoverPasswordTemplateId" class="input">
               <option [ngValue]="null">-- {{ i18nService.translate('SETTINGS.NONE') }} --</option>
               @if (emailTemplates$ | async; as templates) {

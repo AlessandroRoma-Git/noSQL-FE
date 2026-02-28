@@ -141,6 +141,7 @@ export class EntityDefinitionEditorComponent implements OnInit, OnDestroy {
   }
 
   addField(field?: Field): void {
+    console.log('Aggiunta di un nuovo campo...', field);
     const fieldGroup = this.fb.group({
       name: [field?.name || '', Validators.required],
       type: [field?.type || 'STRING', Validators.required],
@@ -153,6 +154,7 @@ export class EntityDefinitionEditorComponent implements OnInit, OnDestroy {
       referenceEntityKey: [field?.referenceEntityKey || '']
     });
     this.fields.push(fieldGroup);
+    console.log('Totale campi ora:', this.fields.length);
   }
 
   removeField(index: number): void {

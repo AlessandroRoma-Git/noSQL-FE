@@ -1,19 +1,25 @@
-
-<div class="relative flex items-center bg-[rgb(var(--color-bg-base))] rounded-full p-1 cursor-pointer w-32" (click)="toggle()">
+<div 
+  class="relative flex items-center bg-black/20 rounded-full p-1 cursor-pointer w-44 h-10 border border-white/5 transition-all shadow-inner" 
+  (click)="toggle()"
+  [class.opacity-50]="disabled"
+  [class.pointer-events-none]="disabled">
+  
   <!-- Background slider -->
-  <div class="absolute bg-[rgb(var(--color-primary))] shadow-md rounded-full h-7 w-1/2 transition-transform duration-300 ease-in-out"
-       [style.transform]="activeOption === 'UI' ? 'translateX(0)' : 'translateX(100%)'">
+  <div class="absolute bg-[rgb(var(--color-primary))] shadow-lg rounded-full h-8 w-[calc(50%-4px)] transition-all duration-500 ease-in-out"
+       [style.transform]="(options.length === 2 ? activeOption === options[1].value : value) ? 'translateX(100%)' : 'translateX(0)'">
   </div>
 
-  <!-- Options -->
-  <div class="flex-1 text-center z-10 text-sm font-medium transition-colors"
-       [class.text-[rgb(var(--color-bg-base))]]="activeOption === 'UI'"
-       [class.text-[rgb(var(--color-primary))]]="activeOption !== 'UI'">
-    UI
+  <!-- Opzione 1 (Sinistra) -->
+  <div class="flex-1 text-center z-10 text-[10px] font-black uppercase tracking-widest transition-colors duration-500"
+       [class.text-[rgb(var(--color-bg-base))]]="!(options.length === 2 ? activeOption === options[1].value : value)"
+       [class.text-gray-500]="(options.length === 2 ? activeOption === options[1].value : value)">
+    {{ options.length === 2 ? options[0].label : i18nService.translate('COMMON.INACTIVE') }}
   </div>
-  <div class="flex-1 text-center z-10 text-sm font-medium transition-colors"
-       [class.text-[rgb(var(--color-bg-base))]]="activeOption === 'JSON'"
-       [class.text-[rgb(var(--color-primary))]]="activeOption !== 'JSON'">
-    JSON
+
+  <!-- Opzione 2 (Destra) -->
+  <div class="flex-1 text-center z-10 text-[10px] font-black uppercase tracking-widest transition-colors duration-500"
+       [class.text-[rgb(var(--color-bg-base))]]="(options.length === 2 ? activeOption === options[1].value : value)"
+       [class.text-gray-500]="!(options.length === 2 ? activeOption === options[1].value : value)">
+    {{ options.length === 2 ? options[1].label : i18nService.translate('COMMON.ACTIVE') }}
   </div>
 </div>

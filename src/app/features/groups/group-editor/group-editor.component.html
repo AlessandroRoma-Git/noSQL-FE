@@ -11,7 +11,10 @@
   <form [formGroup]="editorForm" (ngSubmit)="onSubmit()" class="card-soft p-8 max-w-2xl mx-auto space-y-8">
     <div class="space-y-6">
       <div>
-        <label for="name" class="label">{{ i18nService.translate('COMMON.NAME') }}</label>
+        <label for="name" class="label flex items-center gap-2">
+          {{ i18nService.translate('COMMON.NAME') }}
+          <button type="button" (click)="i18nService.showFieldHelp('GROUP_NAME')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+        </label>
         <input formControlName="name" id="name" type="text" class="input">
       </div>
 
@@ -21,7 +24,10 @@
       </div>
 
       <div>
-        <label for="systemRole" class="label">System Role</label>
+        <label for="systemRole" class="label flex items-center gap-2">
+          System Role
+          <button type="button" (click)="i18nService.showFieldHelp('GROUP_ROLE')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+        </label>
         <select formControlName="systemRole" id="systemRole" class="input">
           <option [ngValue]="null">-- Standard User --</option>
           @for (role of systemRoles; track role) {
