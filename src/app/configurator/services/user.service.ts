@@ -1,3 +1,4 @@
+import { environment } from 'src/environments/environment';
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -14,7 +15,7 @@ import { User, CreateUserRequest, UpdateUserRequest } from '../models/user.model
   providedIn: 'root'
 })
 export class UserService {
-  private readonly apiUrl = 'http://localhost:8088/api/v1/users';
+  private readonly apiUrl = environment.apiUrl + '/users';
   private http = inject(HttpClient);
 
   private usersSubject = new BehaviorSubject<User[]>([]);

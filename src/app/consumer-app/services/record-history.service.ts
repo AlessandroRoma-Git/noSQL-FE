@@ -1,3 +1,4 @@
+import { environment } from 'src/environments/environment';
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -7,7 +8,7 @@ import { RecordHistoryResponse } from '../models/record.model';
   providedIn: 'root'
 })
 export class RecordHistoryService {
-  private readonly apiUrl = 'http://localhost:8088/api/v1/records';
+  private readonly apiUrl = environment.apiUrl + '/records';
   private http = inject(HttpClient);
 
   getRecordHistory(entityKey: string, recordId: string): Observable<RecordHistoryResponse[]> {

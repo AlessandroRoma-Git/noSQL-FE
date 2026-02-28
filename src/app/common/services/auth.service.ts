@@ -1,3 +1,4 @@
+import { environment } from 'src/environments/environment';
 import { Injectable, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { HttpClient } from '@angular/common/http';
@@ -25,7 +26,7 @@ interface UserState {
   providedIn: 'root'
 })
 export class AuthService {
-  private readonly apiUrl = 'http://localhost:8088/api/v1/auth';
+  private readonly apiUrl = environment.apiUrl + '/auth';
   private readonly USER_STATE_KEY = 'user_state';
 
   private http = inject(HttpClient);

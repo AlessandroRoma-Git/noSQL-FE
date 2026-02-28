@@ -1,3 +1,4 @@
+import { environment } from 'src/environments/environment';
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -8,7 +9,7 @@ import { Record, CreateRecordRequest, UpdateRecordRequest, PageResponse } from '
   providedIn: 'root'
 })
 export class RecordService {
-  private readonly apiUrl = 'http://localhost:8088/api/v1/records';
+  private readonly apiUrl = environment.apiUrl + '/records';
   private http = inject(HttpClient);
 
   private recordsSubject = new BehaviorSubject<Record[]>([]);

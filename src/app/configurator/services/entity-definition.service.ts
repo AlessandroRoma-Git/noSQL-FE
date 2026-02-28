@@ -1,3 +1,4 @@
+import { environment } from 'src/environments/environment';
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
@@ -13,7 +14,7 @@ import { EntityDefinition, CreateEntityDefinitionRequest, UpdateEntityDefinition
   providedIn: 'root'
 })
 export class EntityDefinitionService {
-  private readonly apiUrl = 'http://localhost:8088/api/v1/entity-definitions';
+  private readonly apiUrl = environment.apiUrl + '/entity-definitions';
   private http = inject(HttpClient);
 
   private definitionsSubject = new BehaviorSubject<EntityDefinition[]>([]);

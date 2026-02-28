@@ -1,3 +1,4 @@
+import { environment } from 'src/environments/environment';
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, of } from 'rxjs';
@@ -7,7 +8,7 @@ import { FileMetadata } from '../models/file.model';
   providedIn: 'root'
 })
 export class FileService {
-  private readonly apiUrl = 'http://localhost:8088/api/v1/files';
+  private readonly apiUrl = environment.apiUrl + '/files';
   private http = inject(HttpClient);
 
   /**

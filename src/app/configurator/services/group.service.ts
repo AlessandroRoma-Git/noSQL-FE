@@ -1,3 +1,4 @@
+import { environment } from 'src/environments/environment';
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -14,7 +15,7 @@ import { Group, CreateGroupRequest, UpdateGroupRequest } from '../models/group.m
   providedIn: 'root'
 })
 export class GroupService {
-  private readonly apiUrl = 'http://localhost:8088/api/v1/groups';
+  private readonly apiUrl = environment.apiUrl + '/groups';
   private http = inject(HttpClient);
 
   private groupsSubject = new BehaviorSubject<Group[]>([]);

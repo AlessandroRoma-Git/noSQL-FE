@@ -1,3 +1,4 @@
+import { environment } from 'src/environments/environment';
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -14,7 +15,7 @@ import { EmailTemplate, CreateEmailTemplateRequest, UpdateEmailTemplateRequest }
   providedIn: 'root'
 })
 export class EmailTemplateService {
-  private readonly apiUrl = 'http://localhost:8088/api/v1/email/templates'; // Corrected URL
+  private readonly apiUrl = environment.apiUrl + '/email/templates'; // Corrected URL
   private http = inject(HttpClient);
 
   private templatesSubject = new BehaviorSubject<EmailTemplate[]>([]);

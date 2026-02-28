@@ -1,3 +1,4 @@
+import { environment } from 'src/environments/environment';
 
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
@@ -14,8 +15,8 @@ import { MenuItem, CreateMenuItemRequest, UpdateMenuItemRequest } from 'app/comm
   providedIn: 'root'
 })
 export class MenuService {
-  private readonly manageApiUrl = 'http://localhost:8088/api/v1/menu/manage';
-  private readonly publicApiUrl = 'http://localhost:8088/api/v1/menu';
+  private readonly manageApiUrl = environment.apiUrl + '/menu/manage';
+  private readonly publicApiUrl = environment.apiUrl + '/menu';
   private http = inject(HttpClient);
 
   private menuItemsSubject = new BehaviorSubject<MenuItem[]>([]);

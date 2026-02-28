@@ -1,3 +1,4 @@
+import { environment } from 'src/environments/environment';
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, forkJoin, of } from 'rxjs';
@@ -26,7 +27,7 @@ export interface DashboardStat {
 export class DashboardService {
   private http = inject(HttpClient);
   private readonly STORAGE_KEY = 'app_dashboard_config';
-  private readonly RECORDS_API = 'http://localhost:8088/api/v1/records';
+  private readonly RECORDS_API = environment.apiUrl + '/records';
 
   // Liste delle tabelle da mostrare (salvata nel browser per ora)
   private configSubject = new BehaviorSubject<string[]>([]);
