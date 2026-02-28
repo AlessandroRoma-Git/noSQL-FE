@@ -1,57 +1,123 @@
-<div class="container mx-auto p-4 animate-soft-in">
-  <div class="flex justify-between items-center mb-8">
-    <div class="flex items-center gap-3">
-      <h1 class="text-3xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">{{ i18nService.translate('SIDEBAR.EMAIL_TEMPLATES') }}</h1>
-      <button (click)="showHelp()" class="w-6 h-6 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm" [title]="i18nService.translate('COMMON.MORE')">
-        <span class="font-serif italic font-bold text-xs">i</span>
-      </button>
+<div class="container mx-auto p-4 max-w-7xl animate-soft-in">
+  
+  <!-- INTESTAZIONE -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+    <div>
+      <div class="flex items-center gap-3">
+        <h1 class="text-3xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">
+          {{ i18nService.translate('SIDEBAR.EMAIL_TEMPLATES') }}
+        </h1>
+        <button (click)="showHelp()" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm">
+          <i class="fa-solid fa-circle-info"></i>
+        </button>
+      </div>
+      <p class="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1 opacity-60">Gestione dei messaggi automatici</p>
     </div>
-    <a routerLink="/email-templates/new" class="button-primary px-8">
-      {{ i18nService.translate('ENTITIES.CREATE_NEW') }}
-    </a>
+
+    <div class="flex items-center gap-3">
+      <button (click)="showFilters = !showFilters" 
+              class="button-secondary flex items-center gap-3"
+              [class.bg-[rgb(var(--color-primary)/0.1)]]="showFilters">
+        <i class="fa-solid fa-filter"></i>
+        {{ filterRows.length > 0 ? 'Filtri (' + filterRows.length + ')' : 'Filtra' }}
+      </button>
+
+      <a routerLink="/email-templates/new" class="button-primary flex items-center justify-center gap-3 px-8 shadow-lg">
+        <i class="fa-solid fa-plus"></i>
+        {{ i18nService.translate('COMMON.CREATE') }}
+      </a>
+    </div>
   </div>
 
-  <div class="card-soft overflow-hidden">
-    @if (templates$ | async; as templates) {
-      @if (templates.length > 0) {
-        <div class="overflow-x-auto">
-          <table class="w-full text-left">
-            <thead>
-              <tr class="bg-black/10 border-b border-white/5 text-[10px] font-black uppercase tracking-widest text-gray-500">
-                <th class="px-6 py-4">{{ i18nService.translate('COMMON.NAME') }}</th>
-                <th class="px-6 py-4">Placeholders</th>
-                <th class="px-6 py-4 text-right">{{ i18nService.translate('COMMON.ACTIONS') }}</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-white/5">
-              @for (template of templates; track template.id) {
-                <tr class="hover:bg-white/5 transition-colors">
-                  <td class="px-6 py-4 font-bold text-[rgb(var(--color-text))]">{{ template.name }}</td>
-                  <td class="px-6 py-4">
-                    <div class="flex flex-wrap gap-1">
-                      @for (p of template.placeholders; track p) {
-                        <span class="px-2 py-0.5 rounded-lg bg-white/5 text-[9px] font-mono text-gray-400">{{ p }}</span>
-                      }
-                    </div>
-                  </td>
-                  <td class="px-6 py-4 text-right space-x-2">
-                    <button (click)="showUsage(template)" class="button-secondary-sm">Usage</button>
-                    <a [routerLink]="['edit', template.id]" class="button-secondary-sm">{{ i18nService.translate('COMMON.EDIT') }}</a>
-                    <button (click)="onDelete(template.id, template.name)" class="button-danger-sm">{{ i18nService.translate('COMMON.DELETE') }}</button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
+  <!-- QUERY BUILDER -->
+  @if (showFilters) {
+    <div class="card-soft p-8 bg-[rgb(var(--color-primary)/0.02)] border-[rgb(var(--color-primary)/0.1)] border-2 animate-soft-in space-y-6 mb-8">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-sm font-black uppercase tracking-widest text-gray-400">Ricerca Avanzata</h2>
+        <button (click)="addFilterRow()" class="text-[10px] font-black text-[rgb(var(--color-primary))] uppercase hover:underline">+ Aggiungi Riga</button>
+      </div>
+
+      <div class="space-y-3">
+        @for (row of filterRows; track $index; let i = $index) {
+          <div class="flex flex-col md:flex-row gap-3 items-center bg-black/20 p-4 rounded-2xl border border-white/5 animate-soft-in">
+            <div class="flex-1 w-full">
+              <select [(ngModel)]="row.field" class="input py-2 text-xs bg-transparent border-none">
+                @for (col of columns; track col.name) {
+                  <option [value]="col.name">{{ col.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="w-full md:w-40">
+              <select [(ngModel)]="row.op" class="input py-2 text-xs bg-transparent border-none">
+                @for (op of availableOperators; track op.value) {
+                  <option [value]="op.value">{{ op.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="flex-[2] w-full">
+              <input type="text" [(ngModel)]="row.value" (keyup.enter)="applyLocalFilters()" class="input py-2 text-xs bg-transparent border-none focus:ring-1" placeholder="Cerca...">
+            </div>
+            <button (click)="removeFilterRow(i)" class="text-red-500/50 hover:text-red-500 p-2"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+        }
+      </div>
+
+      <div class="flex justify-end pt-6 border-t border-white/5">
+        <button (click)="applyLocalFilters()" class="button-primary px-16 py-3 bg-green-600 hover:bg-green-700 shadow-xl flex items-center gap-3">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          Applica
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- GRID TEMPLATE -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    @for (template of filteredTemplates; track template.id) {
+      <div class="card-soft p-8 group hover:scale-[1.02] transition-all relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-[rgb(var(--color-primary)/0.05)] rounded-bl-full -mr-8 -mt-8"></div>
+        
+        <div class="flex justify-between items-start mb-6">
+          <div class="w-12 h-12 rounded-2xl bg-[rgb(var(--color-primary)/0.1)] text-[rgb(var(--color-primary))] flex items-center justify-center text-xl shadow-inner">
+            <i class="fa-solid fa-envelope-open-text"></i>
+          </div>
+          <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <a [routerLink]="['/email-templates/edit', template.id]" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-[rgb(var(--color-primary))] hover:text-white transition-all shadow-sm">
+              <i class="fa-solid fa-pen text-[10px]"></i>
+            </a>
+            <button (click)="onDelete(template.id, template.name)" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm">
+              <i class="fa-solid fa-trash text-[10px]"></i>
+            </button>
+          </div>
         </div>
-      } @else {
-        <div class="p-20 text-center text-gray-500 font-bold">
-          {{ i18nService.translate('COMMON.NO_RECORDS') }}
+
+        <h3 class="text-xl font-black uppercase tracking-tighter mb-4">{{ template.name }}</h3>
+        
+        <div class="space-y-3">
+          <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-gray-500">
+            <span>Placeholder</span>
+            <span class="text-[rgb(var(--color-primary))]">{{ template.placeholders.length }}</span>
+          </div>
+          <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-gray-500">
+            <span>Allegati</span>
+            <span class="text-gray-600">{{ template.attachments?.length || 0 }}</span>
+          </div>
         </div>
-      }
-    } @else {
-      <div class="p-20 text-center text-gray-500">
-        {{ i18nService.translate('COMMON.LOADING') }}
+
+        <div class="mt-6 pt-6 border-t border-white/5 flex flex-wrap gap-1">
+          @for (p of template.placeholders.slice(0, 3); track p) {
+            <span class="px-2 py-0.5 rounded-md bg-white/5 text-[8px] font-mono text-gray-500 border border-white/5">{{ '{{' + p + '}}' }}</span>
+          }
+          @if (template.placeholders.length > 3) {
+            <span class="text-[8px] font-bold text-gray-600">...</span>
+          }
+        </div>
+      </div>
+    } @empty {
+      <div class="col-span-full py-32 text-center card-soft border-dashed border-2 border-white/5">
+        <i class="fa-solid fa-envelope-circle-check text-5xl text-gray-700 mb-6"></i>
+        <p class="text-gray-500 font-black uppercase tracking-[0.3em]">Nessun template email trovato.</p>
+        <a routerLink="/email-templates/new" class="button-primary mt-8 px-12 uppercase tracking-widest">Crea Primo Template</a>
       </div>
     }
   </div>

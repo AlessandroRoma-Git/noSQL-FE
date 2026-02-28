@@ -1,53 +1,135 @@
-<div class="container mx-auto p-4 animate-soft-in">
-  <div class="flex justify-between items-center mb-8">
-    <div class="flex items-center gap-3">
-      <h1 class="text-3xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">{{ i18nService.translate('SIDEBAR.MENU_SETUP') }}</h1>
-      <button (click)="showHelp()" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm" [title]="i18nService.translate('COMMON.MORE')">
-        <span class="font-serif italic font-bold text-xs">i</span>
-      </button>
+<div class="container mx-auto p-4 max-w-7xl animate-soft-in">
+  
+  <!-- INTESTAZIONE -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+    <div>
+      <div class="flex items-center gap-3">
+        <h1 class="text-3xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">
+          {{ i18nService.translate('SIDEBAR.MENU_SETUP') }}
+        </h1>
+        <button (click)="showHelp()" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm">
+          <i class="fa-solid fa-circle-info"></i>
+        </button>
+      </div>
+      <p class="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1 opacity-60">Organizza la navigazione degli utenti</p>
     </div>
-    <a routerLink="new" class="button-primary px-8">
-      {{ i18nService.translate('ENTITIES.CREATE_NEW') }}
-    </a>
+
+    <div class="flex items-center gap-3">
+      <button (click)="showFilters = !showFilters" 
+              class="button-secondary flex items-center gap-3"
+              [class.bg-[rgb(var(--color-primary)/0.1)]]="showFilters">
+        <i class="fa-solid fa-filter"></i>
+        {{ filterRows.length > 0 ? 'Filtri (' + filterRows.length + ')' : 'Filtra' }}
+      </button>
+
+      <a routerLink="/menu/new" class="button-primary flex items-center justify-center gap-3 px-8 shadow-lg">
+        <i class="fa-solid fa-plus"></i>
+        {{ i18nService.translate('COMMON.CREATE') }}
+      </a>
+    </div>
   </div>
 
-  <div class="card-soft overflow-hidden">
-    @if (menuItems$ | async; as items) {
-      @if (items.length > 0) {
-        <div class="overflow-x-auto">
-          <table class="w-full text-left">
-            <thead>
-              <tr class="bg-black/10 border-b border-white/5 text-[10px] font-black uppercase tracking-widest text-gray-500">
-                <th class="px-6 py-4">Label</th>
-                <th class="px-6 py-4">Entity</th>
-                <th class="px-6 py-4">Pos.</th>
-                <th class="px-6 py-4 text-right">{{ i18nService.translate('COMMON.ACTIONS') }}</th>
-              </tr>
-            </thead>
-            <tbody class="divide-y divide-white/5">
-              @for (item of items; track item.id) {
-                <tr class="hover:bg-white/5 transition-colors">
-                  <td class="px-6 py-4 font-bold text-[rgb(var(--color-text))]">{{ item.label }}</td>
-                  <td class="px-6 py-4 text-sm text-gray-400 font-mono">{{ item.entityKey }}</td>
-                  <td class="px-6 py-4 text-sm">{{ item.position }}</td>
-                  <td class="px-6 py-4 text-right space-x-2">
-                    <a [routerLink]="['edit', item.id]" class="button-secondary-sm">{{ i18nService.translate('COMMON.EDIT') }}</a>
-                    <button (click)="onDelete(item.id, item.label)" class="button-danger-sm">{{ i18nService.translate('COMMON.DELETE') }}</button>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      } @else {
-        <div class="p-20 text-center text-gray-500 font-bold">
-          {{ i18nService.translate('COMMON.NO_RECORDS') }}
-        </div>
-      }
-    } @else {
-      <div class="p-20 text-center text-gray-500">
-        {{ i18nService.translate('COMMON.LOADING') }}
+  <!-- QUERY BUILDER -->
+  @if (showFilters) {
+    <div class="card-soft p-8 bg-[rgb(var(--color-primary)/0.02)] border-[rgb(var(--color-primary)/0.1)] border-2 animate-soft-in space-y-6 mb-8">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-sm font-black uppercase tracking-widest text-gray-400">Ricerca Avanzata</h2>
+        <button (click)="addFilterRow()" class="text-[10px] font-black text-[rgb(var(--color-primary))] uppercase hover:underline">+ Aggiungi Riga</button>
       </div>
-    }
+
+      <div class="space-y-3">
+        @for (row of filterRows; track $index; let i = $index) {
+          <div class="flex flex-col md:flex-row gap-3 items-center bg-black/20 p-4 rounded-2xl border border-white/5 animate-soft-in">
+            <div class="flex-1 w-full">
+              <select [(ngModel)]="row.field" class="input py-2 text-xs bg-transparent border-none">
+                @for (col of columns; track col.name) {
+                  <option [value]="col.name">{{ col.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="w-full md:w-40">
+              <select [(ngModel)]="row.op" class="input py-2 text-xs bg-transparent border-none">
+                @for (op of availableOperators; track op.value) {
+                  <option [value]="op.value">{{ op.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="flex-[2] w-full">
+              <input type="text" [(ngModel)]="row.value" (keyup.enter)="applyLocalFilters()" class="input py-2 text-xs bg-transparent border-none focus:ring-1" placeholder="Cerca...">
+            </div>
+            <button (click)="removeFilterRow(i)" class="text-red-500/50 hover:text-red-500 p-2"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+        }
+      </div>
+
+      <div class="flex justify-end pt-6 border-t border-white/5">
+        <button (click)="applyLocalFilters()" class="button-primary px-16 py-3 bg-green-600 hover:bg-green-700 shadow-xl flex items-center gap-3">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          Applica
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- TABELLA MENU -->
+  <div class="card-soft overflow-hidden">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="bg-black/20 border-b border-white/5">
+          <th class="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Icona</th>
+          <th class="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Etichetta</th>
+          <th class="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Entità</th>
+          <th class="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Posizione</th>
+          <th class="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Gruppi</th>
+          <th class="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">Azioni</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-white/5">
+        @for (item of filteredItems; track item.id) {
+          <tr class="hover:bg-white/5 transition-colors group">
+            <td class="px-6 py-4 text-[rgb(var(--color-primary))] text-lg">
+              @if (item.icon && item.icon.startsWith('fa-')) {
+                <i class="fa-solid {{ item.icon }}"></i>
+              } @else if (item.icon) {
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" /></svg>
+              } @else {
+                <i class="fa-solid fa-circle text-[8px] opacity-20"></i>
+              }
+            </td>
+            <td class="px-6 py-4">
+              <span class="text-sm font-bold">{{ item.label }}</span>
+            </td>
+            <td class="px-6 py-4">
+              <code class="text-[10px] bg-white/5 px-2 py-1 rounded border border-white/5 text-gray-400">{{ item.entityKey || '–' }}</code>
+            </td>
+            <td class="px-6 py-4 text-xs font-mono text-gray-500">{{ item.position }}</td>
+            <td class="px-6 py-4">
+              <div class="flex flex-wrap gap-1">
+                @for (group of item.groups; track group) {
+                  <span class="px-2 py-0.5 rounded bg-blue-500/10 text-blue-500 text-[8px] font-black uppercase border border-blue-500/20">{{ group }}</span>
+                }
+              </div>
+            </td>
+            <td class="px-6 py-4 text-right">
+              <div class="flex items-center justify-end gap-2">
+                <a [routerLink]="['/menu/edit', item.id]" class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm">
+                  <i class="fa-solid fa-pen text-[10px]"></i>
+                </a>
+                <button (click)="onDelete(item.id, item.label)" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm">
+                  <i class="fa-solid fa-trash text-[10px]"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="6" class="px-6 py-20 text-center text-gray-500 font-bold uppercase tracking-widest opacity-50">
+              <i class="fa-solid fa-list-check text-4xl block mb-4"></i>
+              Nessuna voce di menu trovata.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
   </div>
 </div>

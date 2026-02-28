@@ -1,90 +1,120 @@
-<div class="container mx-auto p-4 max-w-7xl">
+<div class="container mx-auto p-4 max-w-7xl animate-soft-in">
   
   <!-- INTESTAZIONE -->
-  <div class="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
     <div>
       <div class="flex items-center gap-3">
-        <h1 class="text-3xl font-bold text-[rgb(var(--color-primary))]">{{ i18nService.translate('ENTITIES.TITLE') }}</h1>
-        <button (click)="showHelp()" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm" [title]="i18nService.translate('COMMON.MORE')">
-          <span class="font-serif italic font-bold">i</span>
+        <h1 class="text-3xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">
+          {{ i18nService.translate('SIDEBAR.ENTITIES') }}
+        </h1>
+        <button (click)="showHelp()" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm">
+          <i class="fa-solid fa-circle-info"></i>
         </button>
       </div>
-      <p class="text-gray-500 text-sm">{{ i18nService.translate('ENTITIES.SUBTITLE') }}</p>
+      <p class="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1 opacity-60">Architettura delle tabelle e dei dati</p>
     </div>
-    
-    <a routerLink="new" class="button-primary flex items-center justify-center gap-2 self-start">
-      <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-      </svg>
-      {{ i18nService.translate('ENTITIES.CREATE_NEW') }}
-    </a>
+
+    <div class="flex items-center gap-3">
+      <button (click)="showFilters = !showFilters" 
+              class="button-secondary flex items-center gap-3"
+              [class.bg-[rgb(var(--color-primary)/0.1)]]="showFilters">
+        <i class="fa-solid fa-filter"></i>
+        {{ filterRows.length > 0 ? 'Filtri (' + filterRows.length + ')' : 'Filtra' }}
+      </button>
+
+      <a routerLink="/entity-definitions/new" class="button-primary flex items-center justify-center gap-3 px-8 shadow-lg">
+        <i class="fa-solid fa-plus"></i>
+        {{ i18nService.translate('COMMON.CREATE') }}
+      </a>
+    </div>
   </div>
 
-  <!-- LISTA ENTITÀ -->
-  @if (definitions$ | async; as definitions) {
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-      @for (def of definitions; track def.entityKey) {
-        <div class="card-soft p-8 flex flex-col hover:border-[rgb(var(--color-primary))] transition-all group">
-          <div class="flex justify-between items-start mb-4">
-            <div class="w-12 h-12 rounded-xl bg-base flex items-center justify-center text-[rgb(var(--color-primary))] shadow-inner">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4" />
-              </svg>
+  <!-- QUERY BUILDER -->
+  @if (showFilters) {
+    <div class="card-soft p-8 bg-[rgb(var(--color-primary)/0.02)] border-[rgb(var(--color-primary)/0.1)] border-2 animate-soft-in space-y-6 mb-8">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-sm font-black uppercase tracking-widest text-gray-400">Ricerca Avanzata</h2>
+        <button (click)="addFilterRow()" class="text-[10px] font-black text-[rgb(var(--color-primary))] uppercase hover:underline">+ Aggiungi Riga</button>
+      </div>
+
+      <div class="space-y-3">
+        @for (row of filterRows; track $index; let i = $index) {
+          <div class="flex flex-col md:flex-row gap-3 items-center bg-black/20 p-4 rounded-2xl border border-white/5 animate-soft-in">
+            <div class="flex-1 w-full">
+              <select [(ngModel)]="row.field" class="input py-2 text-xs bg-transparent border-none">
+                @for (col of columns; track col.name) {
+                  <option [value]="col.name">{{ col.label }}</option>
+                }
+              </select>
             </div>
-            <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-              <button (click)="showUsage(def)" class="p-2 text-gray-400 hover:text-[rgb(var(--color-primary))]" title="Info API">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </button>
-              <a [routerLink]="['edit', def.entityKey]" class="p-2 text-gray-400 hover:text-blue-500" [title]="i18nService.translate('COMMON.EDIT')">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                </svg>
-              </a>
+            <div class="w-full md:w-40">
+              <select [(ngModel)]="row.op" class="input py-2 text-xs bg-transparent border-none">
+                @for (op of availableOperators; track op.value) {
+                  <option [value]="op.value">{{ op.label }}</option>
+                }
+              </select>
             </div>
+            <div class="flex-[2] w-full">
+              <input type="text" [(ngModel)]="row.value" (keyup.enter)="applyLocalFilters()" class="input py-2 text-xs bg-transparent border-none focus:ring-1" placeholder="Cerca...">
+            </div>
+            <button (click)="removeFilterRow(i)" class="text-red-500/50 hover:text-red-500 p-2"><i class="fa-solid fa-trash-can"></i></button>
           </div>
+        }
+      </div>
 
-          <h3 class="text-xl font-bold text-[rgb(var(--color-text))] mb-1">{{ def.label }}</h3>
-          <code class="text-[10px] font-black uppercase tracking-widest text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.1)] px-2 py-1 rounded-xl self-start mb-6">
-            {{ def.entityKey }}
-          </code>
+      <div class="flex justify-end pt-6 border-t border-white/5">
+        <button (click)="applyLocalFilters()" class="button-primary px-16 py-3 bg-green-600 hover:bg-green-700 shadow-xl flex items-center gap-3">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          Applica
+        </button>
+      </div>
+    </div>
+  }
 
-          <div class="flex gap-6 mb-8 text-xs">
-            <div class="flex flex-col">
-              <span class="font-black text-[rgb(var(--color-text))] text-lg leading-none">{{ def.fields.length }}</span>
-              <span class="text-gray-500 uppercase tracking-widest font-bold mt-1">{{ i18nService.translate('ENTITIES.FIELDS') }}</span>
-            </div>
-            <div class="flex flex-col border-l border-white/5 pl-6">
-              <span class="font-black text-[rgb(var(--color-text))] text-lg leading-none">{{ def.historyEnabled ? 'Sì' : 'No' }}</span>
-              <span class="text-gray-500 uppercase tracking-widest font-bold mt-1">{{ i18nService.translate('ENTITIES.HISTORY_ENABLED') }}</span>
-            </div>
+  <!-- LISTA ENTITÀ (GRID) -->
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+    @for (def of filteredDefs; track def.id) {
+      <div class="card-soft p-8 group hover:scale-[1.02] transition-all relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-24 h-24 bg-[rgb(var(--color-primary)/0.05)] rounded-bl-full -mr-8 -mt-8"></div>
+        
+        <div class="flex justify-between items-start mb-6">
+          <div class="w-12 h-12 rounded-2xl bg-[rgb(var(--color-primary)/0.1)] text-[rgb(var(--color-primary))] flex items-center justify-center text-xl shadow-inner">
+            <i class="fa-solid fa-database"></i>
           </div>
-
-          <div class="mt-auto flex gap-3">
-            <a [routerLink]="['/records', def.entityKey]" class="button-primary text-[10px] py-2 flex-1 text-center font-black tracking-widest">{{ i18nService.translate('ENTITIES.MANAGE_DATA_BTN') }}</a>
-            <button (click)="onDelete(def.entityKey)" class="p-2.5 text-red-500 bg-red-500/10 hover:bg-red-500 hover:text-white border border-red-500/20 rounded-2xl transition-all">
-              <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-              </svg>
+          <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
+            <a [routerLink]="['/entity-definitions/edit', def.entityKey]" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-[rgb(var(--color-primary))] hover:text-white transition-all shadow-sm">
+              <i class="fa-solid fa-pen text-[10px]"></i>
+            </a>
+            <button (click)="onDelete(def.entityKey)" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm">
+              <i class="fa-solid fa-trash text-[10px]"></i>
             </button>
           </div>
         </div>
-      } @empty {
-        <div class="col-span-full py-24 text-center card-soft border-dashed border-2 border-white/10">
-          <p class="text-gray-500 mb-6 font-bold">{{ i18nService.translate('ENTITIES.NO_ENTITIES') }}</p>
-          <a routerLink="new" class="button-primary inline-flex items-center gap-3 px-8">
-            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" /></svg>
-            {{ i18nService.translate('ENTITIES.START_NOW') }}
-          </a>
+
+        <h3 class="text-xl font-black uppercase tracking-tighter mb-1">{{ def.label }}</h3>
+        <p class="text-[10px] font-black text-gray-500 uppercase tracking-widest mb-6 opacity-60">{{ def.entityKey }}</p>
+
+        <div class="space-y-4">
+          <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400">
+            <span>{{ i18nService.translate('ENTITIES.FIELDS') }}</span>
+            <span class="text-[rgb(var(--color-primary))]">{{ def.fields.length }}</span>
+          </div>
+          <div class="flex items-center justify-between text-[10px] font-bold uppercase tracking-widest text-gray-400">
+            <span>{{ i18nService.translate('ENTITIES.HISTORY_ENABLED') }}</span>
+            <span [class.text-green-500]="def.historyEnabled" class="text-gray-600">{{ def.historyEnabled ? 'SI' : 'NO' }}</span>
+          </div>
         </div>
-      }
-    </div>
-  } @else {
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 animate-pulse">
-      @for (i of [1,2,3]; track i) {
-        <div class="h-64 card-soft bg-white/5 border-none shadow-none"></div>
-      }
-    </div>
-  }
+
+        <a [routerLink]="['/records', def.entityKey]" class="button-primary w-full mt-8 py-3 text-[10px] font-black uppercase tracking-widest bg-white/5 hover:bg-[rgb(var(--color-primary))] hover:text-[rgb(var(--color-bg-base))] border-none shadow-none">
+          {{ i18nService.translate('ENTITIES.MANAGE_DATA_BTN') }}
+        </a>
+      </div>
+    } @empty {
+      <div class="col-span-full py-32 text-center card-soft border-dashed border-2 border-white/5">
+        <i class="fa-solid fa-ghost text-5xl text-gray-700 mb-6"></i>
+        <p class="text-gray-500 font-black uppercase tracking-[0.3em]">{{ i18nService.translate('ENTITIES.NO_ENTITIES') }}</p>
+        <a routerLink="/entity-definitions/new" class="button-primary mt-8 px-12 uppercase tracking-widest">{{ i18nService.translate('ENTITIES.START_NOW') }}</a>
+      </div>
+    }
+  </div>
 </div>

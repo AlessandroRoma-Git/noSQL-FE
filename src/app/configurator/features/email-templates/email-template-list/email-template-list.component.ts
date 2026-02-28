@@ -1,37 +1,86 @@
-
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { Observable } from 'rxjs';
 import { EmailTemplate } from 'app/configurator/models/email-template.model';
 import { EmailTemplateService } from 'app/configurator/services/email-template.service';
 import { ModalService } from 'app/common/services/modal.service';
 import { I18nService } from 'app/common/services/i18n.service';
-import { filter } from 'rxjs/operators';
-import { EmailTestSendComponent } from '../email-test-send/email-test-send.component';
+import { filter, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { FilterCondition, FilterOperator } from 'app/consumer-app/services/filter.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-email-template-list',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './email-template-list.component.html',
-  styleUrls: ['./email-template-list.component.css']
 })
-export class EmailTemplateListComponent implements OnInit {
+export class EmailTemplateListComponent implements OnInit, OnDestroy {
   private emailTemplateService = inject(EmailTemplateService);
   private modalService = inject(ModalService);
+  private cdr = inject(ChangeDetectorRef);
   public i18nService = inject(I18nService);
-  public templates$!: Observable<EmailTemplate[]>;
+  private destroy$ = new Subject<void>();
+
+  public allTemplates: EmailTemplate[] = [];
+  public filteredTemplates: EmailTemplate[] = [];
+
+  // --- QUERY BUILDER ---
+  public showFilters = false;
+  public filterRows: FilterCondition[] = [];
+  public availableOperators: { label: string, value: FilterOperator }[] = [
+    { label: 'Uguale', value: 'eq' },
+    { label: 'Contiene', value: 'like' }
+  ];
+  public columns = [
+    { name: 'name', label: 'Nome Template' }
+  ];
 
   ngOnInit(): void {
-    this.templates$ = this.emailTemplateService.templates$;
+    this.emailTemplateService.templates$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(templates => {
+      this.allTemplates = templates;
+      this.applyLocalFilters();
+    });
+
     this.emailTemplateService.loadEmailTemplates().subscribe();
   }
 
-  /**
-   * Questo metodo apre una finestrella (Modal) che spiega all'utente
-   * cosa deve fare in questa pagina.
-   */
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  applyLocalFilters(): void {
+    if (this.filterRows.length === 0) {
+      this.filteredTemplates = [...this.allTemplates];
+    } else {
+      this.filteredTemplates = this.allTemplates.filter(t => {
+        return this.filterRows.every(row => {
+          if (!row.field || row.value === '') return true;
+          const val = String((t as any)[row.field] || '').toLowerCase();
+          const filterVal = String(row.value).toLowerCase();
+          if (row.op === 'eq') return val === filterVal;
+          if (row.op === 'like') return val.includes(filterVal);
+          return true;
+        });
+      });
+    }
+    this.cdr.detectChanges();
+  }
+
+  addFilterRow(): void {
+    this.filterRows.push({ field: 'name', op: 'like', value: '' });
+    this.showFilters = true;
+  }
+
+  removeFilterRow(index: number): void {
+    this.filterRows.splice(index, 1);
+    this.applyLocalFilters();
+  }
+
   showHelp(): void {
     const info = this.i18nService.translate('HELP.EMAIL_TEMPLATES');
     this.modalService.openInfo('Guida Rapida: Template Email', info);
@@ -39,39 +88,12 @@ export class EmailTemplateListComponent implements OnInit {
 
   onDelete(id: string, name: string): void {
     this.modalService.confirm(
-      'Confirm Deletion',
-      `Are you sure you want to delete the email template <strong>${name}</strong>?`
+      'Conferma Eliminazione',
+      `Sei sicuro di voler eliminare il template <strong>${name}</strong>?`
     ).pipe(
       filter(confirmed => confirmed)
     ).subscribe(() => {
       this.emailTemplateService.deleteEmailTemplate(id).subscribe();
     });
-  }
-
-  onTestSend(template: EmailTemplate): void {
-    this.modalService.openComponent(EmailTestSendComponent, { template: template });
-  }
-
-  showUsage(template: EmailTemplate): void {
-    const title = `API Usage for: ${template.name}`;
-    const samplePlaceholders = template.placeholders.reduce((acc, key) => {
-      acc[key] = 'sample value';
-      return acc;
-    }, {} as Record<string, string>);
-    const samplePayload = {
-      to: "recipient@example.com",
-      subject: "Sample Subject",
-      templateId: template.id,
-      placeholders: samplePlaceholders
-    };
-    const payloadString = JSON.stringify(samplePayload, null, 2);
-    const content = `
-      <p>Here is an example of how to send an email using the <strong>${template.name}</strong> template.</p>
-      <h4 class="mt-4 font-semibold text-[rgb(var(--color-primary))]">Send Email Endpoint</h4>
-      <p><code>POST /api/v1/email/send</code></p>
-      <h4 class="mt-4 font-semibold text-[rgb(var(--color-primary))]">Sample Payload</h4>
-      <pre class="bg-[rgb(var(--color-bg-base))] p-2 rounded-md text-sm text-[rgb(var(--color-text))]"><code>${payloadString}</code></pre>
-    `;
-    this.modalService.openInfo(title, content);
   }
 }

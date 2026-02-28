@@ -1,38 +1,123 @@
+<div class="container mx-auto p-4 max-w-7xl animate-soft-in">
+  
+  <!-- INTESTAZIONE -->
+  <div class="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+    <div>
+      <div class="flex items-center gap-3">
+        <h1 class="text-3xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">
+          {{ i18nService.translate('SIDEBAR.GROUPS') }}
+        </h1>
+        <button (click)="showHelp()" class="w-8 h-8 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm">
+          <i class="fa-solid fa-circle-info"></i>
+        </button>
+      </div>
+      <p class="text-gray-500 text-xs font-bold uppercase tracking-widest mt-1 opacity-60">Organizza i permessi e i ruoli</p>
+    </div>
 
-<div class="container mx-auto p-4">
-  <div class="flex justify-between items-center mb-4">
     <div class="flex items-center gap-3">
-      <h1 class="text-2xl font-bold text-[rgb(var(--color-primary))]">Gruppi e Permessi</h1>
-      <button (click)="showHelp()" class="w-6 h-6 rounded-full bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm" title="Aiuto">
-        <span class="font-serif italic font-bold text-xs">i</span>
+      <button (click)="showFilters = !showFilters" 
+              class="button-secondary flex items-center gap-3"
+              [class.bg-[rgb(var(--color-primary)/0.1)]]="showFilters">
+        <i class="fa-solid fa-filter"></i>
+        {{ filterRows.length > 0 ? 'Filtri (' + filterRows.length + ')' : 'Filtra' }}
       </button>
+
+      <a routerLink="/groups/new" class="button-primary flex items-center justify-center gap-3 px-8 shadow-lg">
+        <i class="fa-solid fa-plus"></i>
+        {{ i18nService.translate('COMMON.CREATE') }}
+      </a>
     </div>
-    <a routerLink="/groups/new" class="button-primary">
-      Nuovo Gruppo
-    </a>
   </div>
-  @if (groups$ | async; as groups) {
-    <div class="bg-bg-surface shadow-md rounded-lg">
-      @if (groups.length > 0) {
-        <ul class="divide-y divide-bg-base">
-          @for (group of groups; track group.id) {
-            <li class="p-4 flex justify-between items-center hover:bg-bg-base">
-              <div>
-                <p class="text-lg font-semibold text-primary">{{ group.name }}</p>
-                <p class="text-sm text-text-main/70">{{ group.description || 'No description' }}</p>
-              </div>
-              <div class="space-x-4">
-                <a [routerLink]="['/groups/edit', group.id]" class="text-accent hover:underline">Edit</a>
-                <button (click)="onDelete(group.id, group.name)" class="text-red-500 hover:underline">Delete</button>
-              </div>
-            </li>
-          }
-        </ul>
-      } @else {
-        <p class="p-4 text-text-main/70">No groups found. Click "Create New Group" to get started.</p>
-      }
+
+  <!-- QUERY BUILDER -->
+  @if (showFilters) {
+    <div class="card-soft p-8 bg-[rgb(var(--color-primary)/0.02)] border-[rgb(var(--color-primary)/0.1)] border-2 animate-soft-in space-y-6 mb-8">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-sm font-black uppercase tracking-widest text-gray-400">Ricerca Avanzata</h2>
+        <button (click)="addFilterRow()" class="text-[10px] font-black text-[rgb(var(--color-primary))] uppercase hover:underline">+ Aggiungi Riga</button>
+      </div>
+
+      <div class="space-y-3">
+        @for (row of filterRows; track $index; let i = $index) {
+          <div class="flex flex-col md:flex-row gap-3 items-center bg-black/20 p-4 rounded-2xl border border-white/5 animate-soft-in">
+            <div class="flex-1 w-full">
+              <select [(ngModel)]="row.field" class="input py-2 text-xs bg-transparent border-none">
+                @for (col of columns; track col.name) {
+                  <option [value]="col.name">{{ col.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="w-full md:w-40">
+              <select [(ngModel)]="row.op" class="input py-2 text-xs bg-transparent border-none">
+                @for (op of availableOperators; track op.value) {
+                  <option [value]="op.value">{{ op.label }}</option>
+                }
+              </select>
+            </div>
+            <div class="flex-[2] w-full">
+              <input type="text" [(ngModel)]="row.value" (keyup.enter)="applyLocalFilters()" class="input py-2 text-xs bg-transparent border-none focus:ring-1" placeholder="Cerca...">
+            </div>
+            <button (click)="removeFilterRow(i)" class="text-red-500/50 hover:text-red-500 p-2"><i class="fa-solid fa-trash-can"></i></button>
+          </div>
+        }
+      </div>
+
+      <div class="flex justify-end pt-6 border-t border-white/5">
+        <button (click)="applyLocalFilters()" class="button-primary px-16 py-3 bg-green-600 hover:bg-green-700 shadow-xl flex items-center gap-3">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          Applica
+        </button>
+      </div>
     </div>
-  } @else {
-    <p>Loading...</p>
   }
+
+  <!-- TABELLA GRUPPI -->
+  <div class="card-soft overflow-hidden">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="bg-black/20 border-b border-white/5">
+          <th class="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Nome Gruppo</th>
+          <th class="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Descrizione</th>
+          <th class="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest">Ruolo Sistema</th>
+          <th class="px-6 py-5 text-[10px] font-black text-gray-500 uppercase tracking-widest text-right">Azioni</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-white/5">
+        @for (group of filteredGroups; track group.id) {
+          <tr class="hover:bg-white/5 transition-colors group">
+            <td class="px-6 py-4">
+              <span class="text-sm font-bold text-[rgb(var(--color-primary))]">{{ group.name }}</span>
+            </td>
+            <td class="px-6 py-4 text-sm text-gray-400 max-w-md truncate">{{ group.description || '–' }}</td>
+            <td class="px-6 py-4">
+              @if (group.systemRole) {
+                <span class="px-3 py-1 rounded-full bg-amber-500/10 text-amber-500 text-[8px] font-black uppercase tracking-widest border border-amber-500/20">
+                  {{ group.systemRole }}
+                </span>
+              } @else {
+                <span class="text-[10px] text-gray-600 font-bold uppercase">Standard</span>
+              }
+            </td>
+            <td class="px-6 py-4 text-right">
+              <div class="flex items-center justify-end gap-2">
+                <a [routerLink]="['/groups/edit', group.id]" class="w-9 h-9 rounded-xl bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm">
+                  <i class="fa-solid fa-pen text-xs"></i>
+                </a>
+                <button (click)="onDelete(group.id, group.name)" class="w-9 h-9 rounded-xl bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm">
+                  <i class="fa-solid fa-trash text-xs"></i>
+                </button>
+              </div>
+            </td>
+          </tr>
+        } @empty {
+          <tr>
+            <td colspan="4" class="px-6 py-20 text-center text-gray-500 font-bold uppercase tracking-widest opacity-50">
+              <i class="fa-solid fa-layer-group text-4xl block mb-4"></i>
+              Nessun gruppo trovato.
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </div>
 </div>

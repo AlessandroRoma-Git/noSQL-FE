@@ -1,36 +1,87 @@
-
-import { Component, OnInit, inject } from '@angular/core';
+import { Component, OnInit, inject, ChangeDetectorRef, OnDestroy } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { EntityDefinitionService } from 'app/configurator/services/entity-definition.service';
-import { EntityDefinition } from 'app/configurator/models/entity-definition.model';
-import { Observable } from 'rxjs';
 import { RouterLink } from '@angular/router';
+import { EntityDefinition } from 'app/configurator/models/entity-definition.model';
+import { EntityDefinitionService } from 'app/configurator/services/entity-definition.service';
 import { ModalService } from 'app/common/services/modal.service';
 import { I18nService } from 'app/common/services/i18n.service';
-import { filter } from 'rxjs/operators';
+import { filter, takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
+import { FilterCondition, FilterOperator } from 'app/consumer-app/services/filter.service';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-entity-definition-list',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, FormsModule],
   templateUrl: './entity-definition-list.component.html',
-  styleUrls: ['./entity-definition-list.component.css']
 })
-export class EntityDefinitionListComponent implements OnInit {
+export class EntityDefinitionListComponent implements OnInit, OnDestroy {
   private entityDefinitionService = inject(EntityDefinitionService);
   private modalService = inject(ModalService);
+  private cdr = inject(ChangeDetectorRef);
   public i18nService = inject(I18nService);
-  public definitions$!: Observable<EntityDefinition[]>;
+  private destroy$ = new Subject<void>();
+
+  public allDefs: EntityDefinition[] = [];
+  public filteredDefs: EntityDefinition[] = [];
+
+  // --- QUERY BUILDER ---
+  public showFilters = false;
+  public filterRows: FilterCondition[] = [];
+  public availableOperators: { label: string, value: FilterOperator }[] = [
+    { label: 'Uguale', value: 'eq' },
+    { label: 'Contiene', value: 'like' }
+  ];
+  public columns = [
+    { name: 'entityKey', label: 'Tech Name' },
+    { name: 'label', label: 'Display Label' }
+  ];
 
   ngOnInit(): void {
-    this.definitions$ = this.entityDefinitionService.definitions$;
+    this.entityDefinitionService.definitions$.pipe(
+      takeUntil(this.destroy$)
+    ).subscribe(definitions => {
+      this.allDefs = definitions;
+      this.applyLocalFilters();
+    });
+
     this.entityDefinitionService.loadEntityDefinitions().subscribe();
   }
 
-  /**
-   * Questo metodo apre una finestrella (Modal) che spiega all'utente
-   * cosa deve fare in questa pagina.
-   */
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
+  applyLocalFilters(): void {
+    if (this.filterRows.length === 0) {
+      this.filteredDefs = [...this.allDefs];
+    } else {
+      this.filteredDefs = this.allDefs.filter(def => {
+        return this.filterRows.every(row => {
+          if (!row.field || row.value === '') return true;
+          const val = String((def as any)[row.field] || '').toLowerCase();
+          const filterVal = String(row.value).toLowerCase();
+          if (row.op === 'eq') return val === filterVal;
+          if (row.op === 'like') return val.includes(filterVal);
+          return true;
+        });
+      });
+    }
+    this.cdr.detectChanges();
+  }
+
+  addFilterRow(): void {
+    this.filterRows.push({ field: 'label', op: 'like', value: '' });
+    this.showFilters = true;
+  }
+
+  removeFilterRow(index: number): void {
+    this.filterRows.splice(index, 1);
+    this.applyLocalFilters();
+  }
+
   showHelp(): void {
     const info = this.i18nService.translate('HELP.ENTITIES');
     this.modalService.openInfo('Guida Rapida: Entità', info);
@@ -38,42 +89,12 @@ export class EntityDefinitionListComponent implements OnInit {
 
   onDelete(key: string): void {
     this.modalService.confirm(
-      'Confirm Deletion',
-      `Are you sure you want to delete the entity definition <strong>${key}</strong>? This action cannot be undone.`
+      'Conferma Eliminazione',
+      `Sei sicuro di voler eliminare l'entità <strong>${key}</strong>? I dati non verranno rimossi, ma non sarà più possibile gestirli.`
     ).pipe(
       filter(confirmed => confirmed)
     ).subscribe(() => {
       this.entityDefinitionService.deleteEntityDefinition(key).subscribe();
     });
-  }
-
-  showUsage(def: EntityDefinition): void {
-    const title = `API Usage for: ${def.label}`;
-    const samplePayload = def.fields.reduce((acc, field) => {
-      let value: any = '';
-      switch (field.type) {
-        case 'STRING': value = 'string value'; break;
-        case 'EMAIL': value = 'user@example.com'; break;
-        case 'NUMBER': value = field.min ?? 0; break;
-        case 'BOOLEAN': value = true; break;
-        case 'DATE': value = new Date().toISOString(); break;
-        case 'ENUM': value = field.enumValues?.[0] || 'enum_value'; break;
-        case 'REFERENCE': value = ['related_id_1', 'related_id_2']; break;
-      }
-      acc[field.name] = value;
-      return acc;
-    }, {} as Record<string, any>);
-
-    const payloadString = JSON.stringify({ data: samplePayload }, null, 2);
-
-    const content = `
-      <p>Here is an example of how to interact with the <strong>${def.entityKey}</strong> entity via the API.</p>
-      <h4 class="mt-4 font-semibold text-[rgb(var(--color-primary))]">Create Record Endpoint</h4>
-      <p><code>POST /api/v1/records/${def.entityKey}</code></p>
-      <h4 class="mt-4 font-semibold text-[rgb(var(--color-primary))]">Sample Payload</h4>
-      <pre class="bg-[rgb(var(--color-bg-base))] p-2 rounded-md text-sm text-[rgb(var(--color-text))]"><code>${payloadString}</code></pre>
-    `;
-
-    this.modalService.openInfo(title, content);
   }
 }
