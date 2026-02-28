@@ -61,7 +61,13 @@ export const authInterceptor: HttpInterceptorFn = (
           break;
         case 422:
           // 422 = Errore di validazione (es. hai scritto male un campo)
-          errorMessage = error.error?.message || 'I dati inseriti non sono validi.';
+          const validationMessage = error.error?.message || 'I dati inseriti non sono validi.';
+          const fieldErrors = error.error?.errors;
+          if (Array.isArray(fieldErrors) && fieldErrors.length > 0) {
+            errorMessage = `${validationMessage}\n${fieldErrors.map(e => `• ${e.field}: ${e.message}`).join('\n')}`;
+          } else {
+            errorMessage = validationMessage;
+          }
           break;
         case 500:
           // 500 = Il server è esploso (errore interno)

@@ -56,13 +56,34 @@ export class EntityDefinitionEditorComponent implements OnInit, OnDestroy {
       this.entityDefinitionService.getEntityDefinition(this.entityKey).subscribe(def => {
         this.fields.clear();
         this.editorForm.patchValue(def);
-        // Handle array-to-string conversion for 'to' field
-        if (def.notificationConfig?.to) {
-          this.editorForm.get('notificationConfig.to')?.setValue(def.notificationConfig.to.join(', '));
+        
+        // Handle notifications enabled state
+        if (def.notificationConfig) {
+          this.editorForm.get('notificationsEnabled')?.setValue(true);
+          if (def.notificationConfig.to) {
+            this.editorForm.get('notificationConfig.to')?.setValue(def.notificationConfig.to.join(', '));
+          }
+        } else {
+          this.editorForm.get('notificationsEnabled')?.setValue(false);
         }
+
         this.jsonContentControl.setValue(JSON.stringify(def, null, 2));
         def.fields.forEach(field => this.addField(field));
-        this.setAclControls(def.acl);
+        
+        // Transform ACL from lists to dictionaries for the form
+        if (def.acl) {
+          Object.keys(def.acl).forEach(action => {
+            const actionAcl = (def.acl as any)[action] as string[];
+            const actionGroup = this.editorForm.get(`acl.${action}`) as FormGroup;
+            if (actionGroup) {
+              const patches: any = {};
+              actionAcl.forEach(groupName => {
+                patches[groupName] = true;
+              });
+              actionGroup.patchValue(patches);
+            }
+          });
+        }
       });
     }
 
@@ -97,6 +118,7 @@ export class EntityDefinitionEditorComponent implements OnInit, OnDestroy {
         search: this.fb.group({})
       }),
       fields: this.fb.array([]),
+      notificationsEnabled: [false],
       notificationConfig: this.fb.group({
         to: [''],
         subject: [''],
@@ -127,16 +149,6 @@ export class EntityDefinitionEditorComponent implements OnInit, OnDestroy {
         aclDelete.addControl(group.name, this.fb.control(false));
         aclSearch.addControl(group.name, this.fb.control(false));
       });
-    });
-  }
-
-  private setAclControls(acl: any): void {
-    if (!acl) return;
-    Object.keys(acl).forEach(key => {
-      const group = this.editorForm.get(`acl.${key}`);
-      if (group) {
-        group.patchValue(acl[key]);
-      }
     });
   }
 
@@ -178,9 +190,22 @@ export class EntityDefinitionEditorComponent implements OnInit, OnDestroy {
 
     const formValue = this.activeTab === 'UI' ? this.editorForm.value : JSON.parse(this.jsonContentControl.value || '{}');
 
-    // Convert 'to' string back to array
-    if (formValue.notificationConfig?.to) {
-      formValue.notificationConfig.to = (formValue.notificationConfig.to as string).split(',').map(s => s.trim()).filter(s => s);
+    // Handle notifications logic
+    if (this.activeTab === 'UI') {
+      if (!formValue.notificationsEnabled) {
+        formValue.notificationConfig = null;
+      } else if (formValue.notificationConfig?.to) {
+        formValue.notificationConfig.to = (formValue.notificationConfig.to as string).split(',').map(s => s.trim()).filter(s => s);
+      }
+      delete formValue.notificationsEnabled;
+    }
+
+    // Convert ACL dictionaries to lists of group names
+    if (formValue.acl) {
+      Object.keys(formValue.acl).forEach(action => {
+        const actionDict = formValue.acl[action];
+        formValue.acl[action] = Object.keys(actionDict).filter(groupName => actionDict[groupName]);
+      });
     }
 
     const operation = this.isEditMode && this.entityKey

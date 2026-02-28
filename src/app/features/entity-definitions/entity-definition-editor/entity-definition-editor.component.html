@@ -137,68 +137,81 @@
       </div>
 
       <!-- Notifications -->
-      <div class="card-soft p-8" formGroupName="notificationConfig">
-        <h2 class="text-sm font-black uppercase tracking-[0.2em] text-[rgb(var(--color-primary))] opacity-70 mb-8">{{ i18nService.translate('ENTITIES.EMAIL_NOTIF') }}</h2>
-        <div class="space-y-6">
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <div>
-              <label class="label flex items-center gap-2">
-                {{ i18nService.translate('ENTITIES.RECIPIENTS') }}
-                <button type="button" (click)="i18nService.showFieldHelp('NOTIF_RECIPIENTS')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
-                  <i class="fa-solid fa-circle-info"></i>
-                </button>
-              </label>
-              <input formControlName="to" type="text" class="input" placeholder="admin@test.it, boss@test.it">
-            </div>
-            <div>
-              <label class="label flex items-center gap-2">
-                {{ i18nService.translate('ENTITIES.SUBJECT') }}
-                <button type="button" (click)="i18nService.showFieldHelp('NOTIF_SUBJECT')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
-                  <i class="fa-solid fa-circle-info"></i>
-                </button>
-              </label>
-              <input formControlName="subject" type="text" class="input" placeholder="New Record Created">
-            </div>
-          </div>
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div>
-              <label class="label text-[10px] flex items-center gap-2">
-                {{ i18nService.translate('ENTITIES.ON_CREATE') }}
-                <button type="button" (click)="i18nService.showFieldHelp('NOTIF_TEMPLATE')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
-                  <i class="fa-solid fa-circle-info"></i>
-                </button>
-              </label>
-              <select formControlName="createTemplateId" class="input text-xs">
-                <option [ngValue]="null">-- {{ i18nService.translate('ENTITIES.DISABLED') }} --</option>
-                @for (t of emailTemplates$ | async; track t.id) { <option [value]="t.id">{{ t.name }}</option> }
-              </select>
-            </div>
-            <div>
-              <label class="label text-[10px] flex items-center gap-2">
-                {{ i18nService.translate('ENTITIES.ON_UPDATE') }}
-                <button type="button" (click)="i18nService.showFieldHelp('NOTIF_TEMPLATE')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
-                  <i class="fa-solid fa-circle-info"></i>
-                </button>
-              </label>
-              <select formControlName="updateTemplateId" class="input text-xs">
-                <option [ngValue]="null">-- {{ i18nService.translate('ENTITIES.DISABLED') }} --</option>
-                @for (t of emailTemplates$ | async; track t.id) { <option [value]="t.id">{{ t.name }}</option> }
-              </select>
-            </div>
-            <div>
-              <label class="label text-[10px] flex items-center gap-2">
-                {{ i18nService.translate('ENTITIES.ON_DELETE') }}
-                <button type="button" (click)="i18nService.showFieldHelp('NOTIF_TEMPLATE')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
-                  <i class="fa-solid fa-circle-info"></i>
-                </button>
-              </label>
-              <select formControlName="deleteTemplateId" class="input text-xs">
-                <option [ngValue]="null">-- {{ i18nService.translate('ENTITIES.DISABLED') }} --</option>
-                @for (t of emailTemplates$ | async; track t.id) { <option [value]="t.id">{{ t.name }}</option> }
-              </select>
-            </div>
+      <div class="card-soft p-8">
+        <div class="flex items-center justify-between border-b border-white/5 pb-6 mb-8">
+          <h2 class="text-sm font-black uppercase tracking-[0.2em] text-[rgb(var(--color-primary))] opacity-70">{{ i18nService.translate('ENTITIES.EMAIL_NOTIF') }}</h2>
+          <div class="flex items-center gap-4 bg-black/20 px-6 py-3 rounded-2xl border border-white/5">
+            <span class="text-[10px] font-black uppercase text-gray-500 tracking-widest">{{ i18nService.translate('COMMON.STATUS') }}</span>
+            <app-toggle-switch formControlName="notificationsEnabled"></app-toggle-switch>
           </div>
         </div>
+
+        @if (editorForm.get('notificationsEnabled')?.value) {
+          <div formGroupName="notificationConfig" class="space-y-6 animate-soft-in">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div>
+                <label class="label flex items-center gap-2">
+                  {{ i18nService.translate('ENTITIES.RECIPIENTS') }}
+                  <button type="button" (click)="i18nService.showFieldHelp('NOTIF_RECIPIENTS')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
+                    <i class="fa-solid fa-circle-info"></i>
+                  </button>
+                </label>
+                <input formControlName="to" type="text" class="input" placeholder="admin@test.it, boss@test.it">
+              </div>
+              <div>
+                <label class="label flex items-center gap-2">
+                  {{ i18nService.translate('ENTITIES.SUBJECT') }}
+                  <button type="button" (click)="i18nService.showFieldHelp('NOTIF_SUBJECT')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
+                    <i class="fa-solid fa-circle-info"></i>
+                  </button>
+                </label>
+                <input formControlName="subject" type="text" class="input" placeholder="New Record Created">
+              </div>
+            </div>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div>
+                <label class="label text-[10px] flex items-center gap-2">
+                  {{ i18nService.translate('ENTITIES.ON_CREATE') }}
+                  <button type="button" (click)="i18nService.showFieldHelp('NOTIF_TEMPLATE')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
+                    <i class="fa-solid fa-circle-info"></i>
+                  </button>
+                </label>
+                <select formControlName="createTemplateId" class="input text-xs">
+                  <option [ngValue]="null">-- {{ i18nService.translate('ENTITIES.DISABLED') }} --</option>
+                  @for (t of emailTemplates$ | async; track t.id) { <option [value]="t.id">{{ t.name }}</option> }
+                </select>
+              </div>
+              <div>
+                <label class="label text-[10px] flex items-center gap-2">
+                  {{ i18nService.translate('ENTITIES.ON_UPDATE') }}
+                  <button type="button" (click)="i18nService.showFieldHelp('NOTIF_TEMPLATE')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
+                    <i class="fa-solid fa-circle-info"></i>
+                  </button>
+                </label>
+                <select formControlName="updateTemplateId" class="input text-xs">
+                  <option [ngValue]="null">-- {{ i18nService.translate('ENTITIES.DISABLED') }} --</option>
+                  @for (t of emailTemplates$ | async; track t.id) { <option [value]="t.id">{{ t.name }}</option> }
+                </select>
+              </div>
+              <div>
+                <label class="label text-[10px] flex items-center gap-2">
+                  {{ i18nService.translate('ENTITIES.ON_DELETE') }}
+                  <button type="button" (click)="i18nService.showFieldHelp('NOTIF_TEMPLATE')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
+                    <i class="fa-solid fa-circle-info"></i>
+                  </button>
+                </label>
+                <select formControlName="deleteTemplateId" class="input text-xs">
+                  <option [ngValue]="null">-- {{ i18nService.translate('ENTITIES.DISABLED') }} --</option>
+                  @for (t of emailTemplates$ | async; track t.id) { <option [value]="t.id">{{ t.name }}</option> }
+                </select>
+              </div>
+            </div>
+          </div>
+        } @else {
+          <div class="py-10 text-center bg-black/10 rounded-3xl border border-dashed border-white/5">
+            <p class="text-xs font-bold text-gray-500 uppercase tracking-widest opacity-50">{{ i18nService.translate('ENTITIES.DISABLED') }}</p>
+          </div>
+        }
       </div>
 
       <div class="flex justify-end pt-8 pb-12 gap-4">

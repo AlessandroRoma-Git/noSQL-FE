@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, of } from 'rxjs';
 import { FileMetadata } from '../models/file.model';
 
 @Injectable({
@@ -10,8 +10,12 @@ export class FileService {
   private readonly apiUrl = 'http://localhost:8088/api/v1/files';
   private http = inject(HttpClient);
 
+  /**
+   * NOTA: Il backend attualmente non supporta l'elenco dei file (GET /api/v1/files).
+   * Questa funzione restituisce un array vuoto per evitare errori nel frontend.
+   */
   getFiles(): Observable<FileMetadata[]> {
-    return this.http.get<FileMetadata[]>(this.apiUrl);
+    return of([]); // Ritorna una lista vuota 'finta'
   }
 
   uploadFile(file: File): Observable<FileMetadata> {
