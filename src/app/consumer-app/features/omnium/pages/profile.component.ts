@@ -1,12 +1,14 @@
-import { Component, inject, computed } from '@angular/core';
+import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { StoreService } from '../services/store.service';
+import { StoreService, User } from '../services/store.service';
+import { FormsModule } from '@angular/forms';
+import { ImagePickerComponent } from 'app/common/components/image-picker/image-picker.component';
 
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, FormsModule, ImagePickerComponent, RouterLink],
   template: `
     @if (user(); as u) {
       <div class="min-h-screen pb-20">
@@ -26,21 +28,32 @@ import { StoreService } from '../services/store.service';
               
               <!-- Avatar -->
               <div class="shrink-0 relative">
-                 <img [src]="u.avatar" class="w-32 h-32 md:w-48 md:h-48 rounded-2xl border-4 border-black/50 shadow-2xl object-cover bg-gray-800">
-                 <div class="absolute -bottom-3 -right-3 bg-black/80 p-2 rounded-lg border border-white/10 backdrop-blur-sm">
-                    <span class="text-xs font-bold uppercase tracking-widest" 
-                          [class.text-cyan-400]="u.role === 'player'"
-                          [class.text-fuchsia-400]="u.role === 'caster'"
-                          [class.text-red-400]="u.role === 'admin'">
-                       {{ u.role }}
-                    </span>
-                 </div>
+                 @if (isEditing()) {
+                    <div class="w-32 h-32 md:w-48 md:h-48 rounded-2xl overflow-hidden border-2 border-cyan-500 shadow-[0_0_20px_rgba(6,182,212,0.3)]">
+                       <app-image-picker [ngModel]="editAvatar" (ngModelChange)="editAvatar = $event"></app-image-picker>
+                    </div>
+                 } @else {
+                    <img [src]="u.avatar" class="w-32 h-32 md:w-48 md:h-48 rounded-2xl border-4 border-black/50 shadow-2xl object-cover bg-gray-800">
+                    <div class="absolute -bottom-3 -right-3 bg-black/80 p-2 rounded-lg border border-white/10 backdrop-blur-sm">
+                        <span class="text-xs font-bold uppercase tracking-widest" 
+                              [class.text-cyan-400]="u.role === 'player'"
+                              [class.text-fuchsia-400]="u.role === 'caster'"
+                              [class.text-red-400]="u.role === 'admin'">
+                           {{ u.role }}
+                        </span>
+                    </div>
+                 }
               </div>
 
               <!-- Info -->
               <div class="flex-grow text-center md:text-left space-y-2 pb-2">
                  <h1 class="text-4xl md:text-6xl font-bold text-white gaming-font tracking-wide leading-none">{{ u.name }}</h1>
-                 <p class="text-gray-400 max-w-lg mx-auto md:mx-0 text-sm md:text-base">{{ u.description || 'No bio available for this user.' }}</p>
+                 
+                 @if (isEditing()) {
+                    <textarea [(ngModel)]="editDescription" class="w-full bg-black/40 border border-white/10 rounded-xl p-4 text-white text-sm focus:border-cyan-500 focus:outline-none mt-4" rows="3" placeholder="Scrivi qualcosa su di te..."></textarea>
+                 } @else {
+                    <p class="text-gray-400 max-w-lg mx-auto md:mx-0 text-sm md:text-base">{{ u.description || 'No bio available for this user.' }}</p>
+                 }
                  
                  <!-- Badges / Team -->
                  <div class="flex flex-wrap justify-center md:justify-start gap-2 pt-2">
@@ -58,12 +71,21 @@ import { StoreService } from '../services/store.service';
               <!-- Actions (Right Side) -->
               <div class="flex flex-col sm:flex-row gap-3 w-full md:w-auto shrink-0 mt-4 md:mt-0">
                  @if (isCurrentUser()) {
-                    <button routerLink="/app/dashboard" class="flex-1 md:flex-none px-6 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold uppercase tracking-wider transition-all shadow-lg shadow-cyan-900/20 text-sm">
-                       Dashboard
-                    </button>
-                    <button (click)="logout()" class="flex-1 md:flex-none px-6 py-3 rounded-xl bg-white/5 hover:bg-red-500/20 text-gray-300 hover:text-red-400 border border-white/10 hover:border-red-500/30 font-bold uppercase tracking-wider transition-all text-sm">
-                       Logout
-                    </button>
+                    @if (isEditing()) {
+                       <button (click)="saveProfile()" class="flex-1 md:flex-none px-8 py-3 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white font-bold uppercase tracking-wider transition-all shadow-lg shadow-cyan-900/20 text-sm">
+                          Salva
+                       </button>
+                       <button (click)="isEditing.set(false)" class="flex-1 md:flex-none px-8 py-3 rounded-xl bg-white/5 text-gray-400 font-bold uppercase tracking-wider hover:bg-white/10 transition-all text-sm">
+                          Annulla
+                       </button>
+                    } @else {
+                       <button (click)="startEditing(u)" class="flex-1 md:flex-none px-8 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/10 font-bold uppercase tracking-wider transition-all text-sm">
+                          Modifica Profilo
+                       </button>
+                       <button (click)="logout()" class="flex-1 md:flex-none px-6 py-3 rounded-xl bg-white/5 hover:bg-red-500/20 text-gray-300 hover:text-red-400 border border-white/10 hover:border-red-500/30 font-bold uppercase tracking-wider transition-all text-sm">
+                          Logout
+                       </button>
+                    }
                  } @else {
                     <!-- Public Actions -->
                     <button class="flex-1 md:flex-none px-8 py-3 rounded-xl bg-white text-black font-bold uppercase tracking-wider hover:scale-105 transition-transform text-sm">
@@ -197,7 +219,6 @@ export class ProfileComponent {
   store = inject(StoreService);
 
   userId = computed(() => this.route.snapshot.paramMap.get('id') || '');
-  
   user = computed(() => this.store.getUserById(this.userId())());
   reviews = computed(() => this.store.getReviewsByCasterId(this.userId())());
 
@@ -206,6 +227,25 @@ export class ProfileComponent {
      const pageUser = this.user();
      return currentUser && pageUser && currentUser.id === pageUser.id;
   });
+
+  // Editing State
+  isEditing = signal(false);
+  editAvatar = '';
+  editDescription = '';
+
+  startEditing(user: User) {
+     this.editAvatar = user.avatar;
+     this.editDescription = user.description || '';
+     this.isEditing.set(true);
+  }
+
+  saveProfile() {
+     this.store.updateUserProfile(this.userId(), {
+        avatar: this.editAvatar,
+        description: this.editDescription
+     });
+     this.isEditing.set(false);
+  }
 
   logout() {
      this.store.logout();

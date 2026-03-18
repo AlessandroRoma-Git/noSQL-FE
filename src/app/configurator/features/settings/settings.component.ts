@@ -12,6 +12,8 @@ import { ModalService } from 'app/common/services/modal.service';
 import { I18nService } from 'app/common/services/i18n.service';
 import { ToastService } from 'app/common/services/toast.service';
 
+import { ImagePickerComponent } from 'app/common/components/image-picker/image-picker.component';
+
 /**
  * @class SettingsComponent
  * @description Pannello di controllo Admin per branding e configurazioni di sistema.
@@ -19,7 +21,7 @@ import { ToastService } from 'app/common/services/toast.service';
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, FormsModule],
+  imports: [CommonModule, ReactiveFormsModule, FormsModule, ImagePickerComponent],
   templateUrl: './settings.component.html',
 })
 export class SettingsComponent implements OnInit {

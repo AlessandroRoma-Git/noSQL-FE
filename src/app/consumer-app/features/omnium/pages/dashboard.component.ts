@@ -3,11 +3,12 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { StoreService, UserRole, User, Review, TournamentFormat, CompetitionRule, Competition } from '../services/store.service';
 import { RouterLink } from '@angular/router';
+import { ImagePickerComponent } from 'app/common/components/image-picker/image-picker.component';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule],
+  imports: [CommonModule, RouterLink, FormsModule, ImagePickerComponent],
   template: `
     <div class="min-h-screen w-full px-6 pb-20">
       
@@ -193,8 +194,8 @@ import { RouterLink } from '@angular/router';
                             <input type="text" [(ngModel)]="newCompName" placeholder="Es. Winter Championship 2024" class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-cyan-500 focus:outline-none">
                          </div>
                          <div>
-                            <label class="text-xs text-gray-500 uppercase font-bold block mb-2">Immagine Copertina (URL)</label>
-                            <input type="text" [(ngModel)]="newCompImage" placeholder="https://example.com/banner.jpg" class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-cyan-500 focus:outline-none">
+                            <label class="text-xs text-gray-500 uppercase font-bold block mb-2">Immagine Copertina</label>
+                            <app-image-picker [ngModel]="newCompImage" (ngModelChange)="newCompImage = $event"></app-image-picker>
                          </div>
                          <div class="grid grid-cols-2 gap-4">
                             <div>
@@ -412,8 +413,8 @@ import { RouterLink } from '@angular/router';
                             </div>
                          </div>
                          <div>
-                            <label class="text-xs text-gray-500 uppercase font-bold block mb-2">Immagine (URL)</label>
-                            <input type="text" [(ngModel)]="newTitleImage" placeholder="https://..." class="w-full bg-black/40 border border-white/10 rounded-lg p-3 text-white focus:border-fuchsia-500 focus:outline-none">
+                            <label class="text-xs text-gray-500 uppercase font-bold block mb-2">Immagine</label>
+                            <app-image-picker [ngModel]="newTitleImage" (ngModelChange)="newTitleImage = $event"></app-image-picker>
                          </div>
                          <div>
                             <label class="text-xs text-gray-500 uppercase font-bold block mb-2">Descrizione</label>

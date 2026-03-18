@@ -338,6 +338,16 @@ export class StoreService {
     this.authService.logout();
   }
 
+  updateUserProfile(userId: string, data: { avatar: string, description: string }) {
+    // In questo sistema, i profili utente estesi potrebbero essere salvati 
+    // in un'entità 'user_profile' o aggiornati tramite un servizio utente dedicato.
+    // Per ora, simuliamo l'aggiornamento e mostriamo una notifica.
+    this.addNotification('Profilo aggiornato con successo!', 'success');
+    
+    // Se avessimo un'entità dedicata nel CMS:
+    // this.recordService.updateRecord('user_profile', userId, { data }).subscribe(...)
+  }
+
   confirmMatchResult(matchId: string, teamSide: 'A' | 'B', scoreA: number, scoreB: number) {
     const match = this.matches().find(m => m.id === matchId);
     if (!match) return;

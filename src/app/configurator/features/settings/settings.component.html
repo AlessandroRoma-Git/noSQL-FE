@@ -30,7 +30,7 @@
               {{ i18nService.translate('SETTINGS.LOGO_URL') }}
               <button type="button" (click)="i18nService.showFieldHelp('LOGO_URL')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
             </label>
-            <input id="logoUrl" formControlName="logoUrl" type="text" class="input" placeholder="assets/logo.svg">
+            <app-image-picker formControlName="logoUrl"></app-image-picker>
           </div>
           <div>
             <label for="themeId" class="label flex items-center gap-2">
