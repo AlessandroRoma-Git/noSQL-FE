@@ -105,6 +105,21 @@ export class ConsumerRecordEditorComponent implements OnInit {
     return Object.keys(obj || {});
   }
 
+  public getFieldIcon(fieldName: string, type?: string): string {
+    const name = fieldName.toLowerCase();
+    if (type === 'EMAIL' || name.includes('email')) return 'fa-envelope';
+    if (type === 'DATE' || name.includes('date')) return 'fa-calendar';
+    if (type === 'NUMBER' || name.includes('price') || name.includes('amount')) return 'fa-hashtag';
+    if (name.includes('name') || name.includes('title')) return 'fa-signature';
+    if (name.includes('desc') || name.includes('bio')) return 'fa-align-left';
+    if (name.includes('user') || name.includes('member')) return 'fa-user';
+    if (name.includes('team')) return 'fa-users-rays';
+    if (name.includes('link') || name.includes('url') || name.includes('site')) return 'fa-link';
+    if (this.isImageField(fieldName)) return 'fa-image';
+    
+    return 'fa-circle-dot'; // Default
+  }
+
   public isImageField(fieldName: string): boolean {
     const name = fieldName.toLowerCase();
     return name.includes('image') || 

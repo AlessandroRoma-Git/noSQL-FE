@@ -476,14 +476,14 @@ export class StoreService {
       });
   }
 
-  createTeam(name: string, description: string) {
+  createTeam(name: string, description: string, logo: string) {
     const user = this.currentUser();
     if (!user) return;
 
     const data = {
       name,
       description,
-      logo: 'https://picsum.photos/seed/' + name + '/100/100',
+      logo: logo || 'https://picsum.photos/seed/' + name + '/100/100',
       founded: new Date().getFullYear().toString(),
       wins: 0,
       losses: 0,
