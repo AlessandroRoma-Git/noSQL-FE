@@ -45,6 +45,7 @@ export class App implements OnInit {
   public whiteLabelConfig$: Observable<WhiteLabelConfig>;
   public userMenuItems$: Observable<MenuItem[]>;
   public isAdmin$: Observable<boolean>;
+  public isAppArea$: Observable<boolean>;
 
   constructor() {
     this.themes = this.themeService.getThemes();
@@ -53,6 +54,13 @@ export class App implements OnInit {
     this.userMenuItems$ = this.menuService.userMenuItems$;
     this.isAdmin$ = this.authService.systemRoles$.pipe(
       map(roles => roles.includes('ADMIN') || roles.includes('SUPER_ADMIN'))
+    );
+
+    this.isAppArea$ = this.router.events.pipe(
+      filter(event => event instanceof NavigationEnd),
+      map(event => (event as NavigationEnd).urlAfterRedirects.startsWith('/app')),
+      // Initial value
+      map(isApp => isApp || this.router.url.startsWith('/app'))
     );
 
     // Se l'utente clicca su un link da cellulare, chiudiamo automaticamente il menu

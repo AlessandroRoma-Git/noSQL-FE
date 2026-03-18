@@ -5,63 +5,33 @@ import { publicGuard } from 'app/common/guards/public.guard';
 
 /**
  * @description
- * Abbiamo implementato il Lazy Loading! 
- * Invece di caricare tutto il sito all'inizio, Angular caricherà solo i pezzi
- * che l'utente sta effettivamente guardando. Questo rende l'avvio fulmineo.
+ * Configurazione principale delle rotte.
+ * Gestisce l'accesso differenziato tra SuperAdmin e Utenti Consumer.
  */
 export const routes: Routes = [
-  // Public routes (Auth)
+  // 1. ROTTE PUBBLICHE
   {
     path: 'login',
-    loadComponent: () => import('app/consumer-app/features/auth/login/login.component').then(m => m.LoginComponent),
-    canActivate: [publicGuard]
-  },
-  {
-    path: 'recover-password',
-    loadComponent: () => import('app/consumer-app/features/auth/recover-password/recover-password.component').then(m => m.RecoverPasswordComponent),
+    loadComponent: () => import('app/consumer-app/features/omnium/pages/login.component').then(m => m.LoginComponent),
     canActivate: [publicGuard]
   },
 
-  // Protected routes
+  // 2. ROTTE PROTETTE
   {
     path: '',
     canActivate: [authGuard],
     children: [
-      { 
-        path: 'dashboard', 
-        loadComponent: () => import('app/consumer-app/features/dashboard/dashboard.component').then(m => m.DashboardComponent) 
-      },
-      { 
-        path: 'files', 
-        loadComponent: () => import('app/consumer-app/features/files/file-list.component').then(m => m.FileListComponent) 
-      },
-      { 
-        path: 'change-password', 
-        loadComponent: () => import('app/consumer-app/features/auth/change-password/change-password.component').then(m => m.ChangePasswordComponent) 
-      },
+      // AREA CONSUMER (Omnium)
       {
-        path: 'records/:entityKey',
-        children: [
-          { 
-            path: '', 
-            loadComponent: () => import('app/consumer-app/features/records/admin-view/record-list.component').then(m => m.RecordListComponent) 
-          },
-          { 
-            path: 'new', 
-            loadComponent: () => import('app/consumer-app/features/records/admin-view/record-editor.component').then(m => m.RecordEditorComponent) 
-          },
-          { 
-            path: 'edit/:id', 
-            loadComponent: () => import('app/consumer-app/features/records/admin-view/record-editor.component').then(m => m.RecordEditorComponent) 
-          }
-        ]
+        path: 'app',
+        loadChildren: () => import('app/consumer-app/features/omnium/omnium.routes').then(m => m.routes)
       },
 
-      // Admin Routes (Configurator)
+      // AREA ADMIN (Configuratore)
       {
         path: 'settings',
-        loadComponent: () => import('app/configurator/features/settings/settings.component').then(m => m.SettingsComponent),
-        canActivate: [roleGuard]
+        canActivate: [roleGuard],
+        loadComponent: () => import('app/configurator/features/settings/settings.component').then(m => m.SettingsComponent)
       },
       {
         path: 'entity-definitions',
@@ -154,16 +124,22 @@ export const routes: Routes = [
         ]
       },
       {
+        path: 'change-password',
+        loadComponent: () => import('app/consumer-app/features/auth/change-password/change-password.component').then(m => m.ChangePasswordComponent)
+      },
+      
+      // Root Redirect
+      {
         path: '',
-        redirectTo: 'dashboard',
-        pathMatch: 'full'
+        pathMatch: 'full',
+        redirectTo: 'app'
       }
     ]
   },
 
-  // Fallback route
+  // 3. FALLBACK
   {
     path: '**',
-    redirectTo: ''
+    redirectTo: 'app'
   }
 ];

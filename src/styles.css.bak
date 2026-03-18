@@ -1,0 +1,122 @@
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@300;500;700&display=swap');
+
+@import "tailwindcss";
+
+/*
+  UI MORBIDA (SOFT UI) & GAMING AESTHETIC
+*/
+:root {
+  --color-primary: 6, 182, 212; /* Cyan 500 */
+  --color-accent: 217, 70, 239;  /* Fuchsia 500 */
+  --color-text: 220, 220, 220;
+  --color-bg-base: 5, 5, 5;
+  --color-bg-surface: 10, 10, 15;
+}
+
+body {
+  @apply bg-[#050505] text-gray-200 antialiased selection:bg-cyan-500/30 selection:text-cyan-400;
+  min-height: 100vh;
+  position: relative;
+  overflow-x: hidden;
+}
+
+/* Global Gaming Background Orbs - Applied only for Omnium Theme */
+body.theme-omnium::before {
+  content: "";
+  position: fixed;
+  top: -20%;
+  left: -10%;
+  width: 50%;
+  height: 50%;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.08) 0%, transparent 70%);
+  filter: blur(100px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+body.theme-omnium::after {
+  content: "";
+  position: fixed;
+  bottom: -10%;
+  right: -10%;
+  width: 50%;
+  height: 50%;
+  background: radial-gradient(circle, rgba(217, 70, 239, 0.05) 0%, transparent 70%);
+  filter: blur(100px);
+  z-index: -1;
+  pointer-events: none;
+}
+
+body.theme-omnium .gaming-font {
+  font-family: 'Orbitron', sans-serif;
+  letter-spacing: 0.05em;
+}
+
+body.theme-omnium .glass-panel {
+  @apply bg-white/5 backdrop-blur-xl border border-white/10 shadow-2xl;
+}
+
+@tailwind utilities;
+
+@layer components {
+  /* Classi base con bordi più arrotondati e ombre soffuse */
+  
+  .label {
+    @apply block text-sm font-bold text-gray-400 mb-2 px-1 tracking-wide;
+  }
+
+  .input {
+    @apply block w-full px-4 py-3 border-none bg-white/5 text-white rounded-2xl shadow-inner focus:ring-2 focus:ring-[rgb(var(--color-primary))] transition-all placeholder:text-gray-600;
+  }
+
+  .button-primary {
+    @apply px-6 py-3 text-sm font-black text-[rgb(var(--color-bg-base))] bg-[rgb(var(--color-primary))] rounded-2xl hover:scale-[1.02] active:scale-95 shadow-lg transition-all cursor-pointer uppercase tracking-wider;
+  }
+
+  .button-secondary {
+    @apply px-6 py-3 text-sm font-bold text-white bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all cursor-pointer;
+  }
+
+  .button-danger-sm {
+    @apply px-3 py-1.5 text-xs font-bold text-white bg-red-500/20 text-red-500 border border-red-500/30 rounded-xl hover:bg-red-500 hover:text-white transition-all;
+  }
+
+  .button-secondary-sm {
+    @apply px-3 py-1.5 text-xs font-bold text-gray-300 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all;
+  }
+
+  /* Link del menu con effetto "pillola" morbida */
+  .nav-link {
+    @apply flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-gray-400 hover:bg-white/5 hover:text-white transition-all duration-300;
+  }
+
+  .active-link {
+    @apply bg-white/5 text-[rgb(var(--color-primary))] shadow-sm;
+  }
+
+  /* Card e contenitori morbidi */
+  .card-soft {
+    @apply bg-white/5 backdrop-blur-md border border-white/5 rounded-[2.5rem] shadow-2xl;
+  }
+
+  /* Scrollbar personalizzata e "morbida" */
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-white/10 rounded-full hover:bg-white/20;
+  }
+}
+
+/* Animazioni morbide */
+.animate-soft-in {
+  animation: soft-in 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes soft-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}

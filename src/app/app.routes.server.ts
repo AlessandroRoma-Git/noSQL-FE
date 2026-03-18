@@ -13,10 +13,6 @@ export const serverRoutes: ServerRoute[] = [
     path: 'login',
     renderMode: RenderMode.Prerender
   },
-  {
-    path: 'recover-password',
-    renderMode: RenderMode.Prerender
-  },
   // Tutte le altre pagine (Dashboard, Records, ecc.) vengono caricate nel browser
   // Questo evita errori di build perché quelle pagine sono dinamiche e dipendono dall'utente.
   {
