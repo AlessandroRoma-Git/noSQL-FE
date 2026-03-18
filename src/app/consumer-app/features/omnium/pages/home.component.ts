@@ -35,7 +35,7 @@ import { RouterLink } from '@angular/router';
         </div>
       </header>
 
-      <div class="max-w-7xl mx-auto px-6 py-24 space-y-32">
+      <div class="w-full px-6 py-24 space-y-32">
         
         <!-- Games Section -->
         <section>

@@ -15,7 +15,7 @@ import { StoreService } from './services/store.service';
     </div>
 
     <!-- Main Content Area -->
-    <main class="relative z-0 min-h-screen flex flex-col pt-20 container mx-auto px-4 flex-1">
+    <main class="relative z-0 min-h-screen flex flex-col flex-1">
       <router-outlet></router-outlet>
     </main>
 

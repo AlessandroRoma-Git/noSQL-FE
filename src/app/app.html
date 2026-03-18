@@ -1,7 +1,7 @@
 <div class="flex h-screen bg-base overflow-hidden relative text-[rgb(var(--color-text))]">
   
   <!-- VARIANTI DI LAYOUT DINAMICHE -->
-  @if ((authService.isAuthenticated$ | async) && !(authService.isFirstAccess$ | async) && !(isAppArea$ | async)) {
+  @if ((authService.isAuthenticated$ | async) && !(authService.isFirstAccess$ | async)) {
     
     @let config = (whiteLabelConfig$ | async);
 
@@ -102,12 +102,12 @@
 
   <!-- AREA CONTENUTO PRINCIPALE -->
   <div class="flex-1 flex flex-col transition-all duration-500 ease-in-out relative overflow-hidden"
-       [class.md:ml-72]="isSidebarOpen && (whiteLabelConfig$ | async)?.layoutMode === 'sidebar' && (authService.isAuthenticated$ | async) && !(authService.isFirstAccess$ | async) && !(isAppArea$ | async)"
+       [class.md:ml-72]="isSidebarOpen && (whiteLabelConfig$ | async)?.layoutMode === 'sidebar' && (authService.isAuthenticated$ | async) && !(authService.isFirstAccess$ | async)"
        [class.pt-20]="(whiteLabelConfig$ | async)?.layoutMode === 'navbar'"
        [class.pt-32]="(whiteLabelConfig$ | async)?.layoutMode === 'tabs'"
        [class.pb-24]="(whiteLabelConfig$ | async)?.layoutMode === 'bottom-nav'">
 
-    @if ((authService.isAuthenticated$ | async) && !(authService.isFirstAccess$ | async) && ((whiteLabelConfig$ | async)?.layoutMode === 'sidebar' || !(whiteLabelConfig$ | async)?.layoutMode) && !(isAppArea$ | async)) {
+    @if ((authService.isAuthenticated$ | async) && !(authService.isFirstAccess$ | async) && ((whiteLabelConfig$ | async)?.layoutMode === 'sidebar' || !(whiteLabelConfig$ | async)?.layoutMode)) {
       <button 
         (click)="toggleSidebar()" 
         class="fixed top-6 z-50 p-3 rounded-2xl bg-surface border border-white/10 text-[rgb(var(--color-primary))] shadow-2xl transition-all duration-500" 

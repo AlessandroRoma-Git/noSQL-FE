@@ -9,10 +9,10 @@ import { RouterLink } from '@angular/router';
   standalone: true,
   imports: [CommonModule, RouterLink, FormsModule],
   template: `
-    <div class="min-h-screen pt-10 px-6 max-w-7xl mx-auto pb-20">
+    <div class="min-h-screen w-full px-6 pb-20">
       
       <!-- Dashboard Header -->
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6 pt-10">
         <div>
           <h1 class="text-4xl gaming-font text-white mb-2">
             DASHBOARD
