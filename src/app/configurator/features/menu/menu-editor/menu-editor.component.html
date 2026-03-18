@@ -13,7 +13,7 @@
     
     <!-- Info Base del Menu -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-      <div>
+      <div class="md:col-span-2">
         <label for="label" class="label flex items-center gap-2">
           Label
           <button type="button" (click)="i18nService.showFieldHelp('MENU_LABEL')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
@@ -32,6 +32,15 @@
             <option [value]="entity.entityKey">{{ entity.label }}</option>
           }
         </select>
+      </div>
+
+      <div>
+        <label for="customRoute" class="label flex items-center gap-2">
+          Custom Route
+          <button type="button" (click)="i18nService.showFieldHelp('CUSTOM_ROUTE')" class="text-[rgb(var(--color-primary))] opacity-50 hover:opacity-100 font-serif italic text-xs">(i)</button>
+        </label>
+        <input formControlName="customRoute" id="customRoute" type="text" class="input" placeholder="es: /app/dashboard">
+        <p class="text-[10px] text-gray-500 italic mt-1">* Se inserita, sovrascrive l'entità (es: per la dashboard dell'app).</p>
       </div>
     </div>
 

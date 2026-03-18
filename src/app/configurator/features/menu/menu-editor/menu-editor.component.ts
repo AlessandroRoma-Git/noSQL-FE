@@ -54,6 +54,7 @@ export class MenuEditorComponent implements OnInit {
     this.editorForm = this.fb.group({
       label: ['', Validators.required],
       entityKey: [''],
+      customRoute: [''],
       icon: ['fa-house'], // Default FA icon
       position: [0, Validators.required],
       parentId: [null],

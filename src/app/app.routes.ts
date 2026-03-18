@@ -29,6 +29,10 @@ export const routes: Routes = [
 
       // AREA ADMIN (Configuratore)
       {
+        path: 'dashboard',
+        loadComponent: () => import('app/consumer-app/features/dashboard/dashboard.component').then(m => m.DashboardComponent)
+      },
+      {
         path: 'settings',
         canActivate: [roleGuard],
         loadComponent: () => import('app/configurator/features/settings/settings.component').then(m => m.SettingsComponent)
@@ -132,7 +136,7 @@ export const routes: Routes = [
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'app'
+        redirectTo: 'dashboard'
       }
     ]
   },
@@ -140,6 +144,6 @@ export const routes: Routes = [
   // 3. FALLBACK
   {
     path: '**',
-    redirectTo: 'app'
+    redirectTo: 'dashboard'
   }
 ];

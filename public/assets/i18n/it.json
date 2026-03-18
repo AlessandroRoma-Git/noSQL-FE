@@ -225,6 +225,7 @@
     "MENU_POSITION": "L'ordine in cui apparirà (numeri bassi in alto, numeri alti in basso).",
     "MENU_ICON": "Scegli un'icona per rendere il menu più bello e facile da riconoscere.",
     "MENU_PARENT": "Se vuoi che questa voce stia 'dentro' un'altra (come un sottomenu), sceglila qui.",
+    "CUSTOM_ROUTE": "Inserisci un percorso personalizzato (es: /app/dashboard) se vuoi che questa voce porti a una pagina speciale invece che a una tabella dati.",
     "SEARCH_ICONS": "Cerca icone (es: home, user, cog)...",
     "SELECT_ICON_TITLE": "Seleziona Icona",
     "ACTION_SAVE": "Clicca qui per salvare tutte le modifiche che hai fatto.",

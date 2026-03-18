@@ -3,6 +3,7 @@ export interface MenuItem {
   id: string;
   label: string;
   entityKey?: string;
+  customRoute?: string;
   icon?: string;
   position: number;
   parentId?: string;
@@ -14,6 +15,7 @@ export interface MenuItem {
 export interface CreateMenuItemRequest {
   label: string;
   entityKey?: string;
+  customRoute?: string;
   icon?: string;
   position?: number;
   parentId?: string;
