@@ -40,7 +40,7 @@
               <div class="flex flex-col">
                 <label [for]="field.name" class="label flex items-center justify-between gap-2">
                   <div class="flex items-center gap-1">
-                    {{ field.name }}
+                    {{ i18nService.prettifyLabel(field.name) }}
                     @if (field.required) { <span class="text-red-500">*</span> }
                   </div>
                   <button type="button" (click)="i18nService.showFieldHelp('DATA_TYPE')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
@@ -49,8 +49,20 @@
                 </label>
 
                 @switch (field.type) {
-                  @case ('STRING') { <input [id]="field.name" [formControlName]="field.name" type="text" class="input" [placeholder]="field.name"> }
-                  @case ('EMAIL') { <input [id]="field.name" [formControlName]="field.name" type="email" class="input" placeholder="esempio@mail.com"> }
+                  @case ('STRING') { 
+                    @if (isImageField(field)) {
+                      <app-image-picker [formControlName]="field.name"></app-image-picker>
+                    } @else {
+                      <input [id]="field.name" [formControlName]="field.name" type="text" class="input" [placeholder]="field.name">
+                    }
+                  }
+                  @case ('EMAIL') {
+                    @if (isImageField(field)) {
+                      <app-image-picker [formControlName]="field.name"></app-image-picker>
+                    } @else {
+                      <input [id]="field.name" [formControlName]="field.name" type="email" class="input" placeholder="esempio@mail.com">
+                    }
+                  }
                   @case ('NUMBER') { <input [id]="field.name" [formControlName]="field.name" type="number" class="input"> }
                   @case ('BOOLEAN') {
                     <div class="flex items-center h-12">

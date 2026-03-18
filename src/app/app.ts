@@ -45,6 +45,7 @@ export class App implements OnInit {
   public whiteLabelConfig$: Observable<WhiteLabelConfig>;
   public userMenuItems$: Observable<MenuItem[]>;
   public isAdmin$: Observable<boolean>;
+  public isSuperAdmin$: Observable<boolean>;
   public isAppArea$: Observable<boolean>;
 
   constructor() {
@@ -54,6 +55,9 @@ export class App implements OnInit {
     this.userMenuItems$ = this.menuService.userMenuItems$;
     this.isAdmin$ = this.authService.systemRoles$.pipe(
       map(roles => roles.includes('ADMIN') || roles.includes('SUPER_ADMIN'))
+    );
+    this.isSuperAdmin$ = this.authService.systemRoles$.pipe(
+      map(roles => roles.includes('SUPER_ADMIN'))
     );
 
     this.isAppArea$ = this.router.events.pipe(

@@ -1,4 +1,4 @@
-import { Component, OnInit, inject, OnDestroy } from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, ValidatorFn } from '@angular/forms';
@@ -8,6 +8,7 @@ import { ToastService } from 'app/common/services/toast.service';
 import { I18nService } from 'app/common/services/i18n.service';
 import { EntityDefinition, Field } from 'app/configurator/models/entity-definition.model';
 import { ReferenceSearchComponent } from 'app/common/components/reference-search/reference-search.component';
+import { ImagePickerComponent } from 'app/common/components/image-picker/image-picker.component';
 import { RecordHistoryComponent } from '../record-history/record-history.component';
 import { AuthService } from 'app/common/services/auth.service';
 import { map, take } from 'rxjs/operators';
@@ -22,7 +23,7 @@ import { ConsumerRecordEditorComponent } from '../consumer-view/consumer-record-
 @Component({
   selector: 'app-record-editor',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule, ReferenceSearchComponent, RecordHistoryComponent, ConsumerRecordEditorComponent],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule, ReferenceSearchComponent, ImagePickerComponent, RecordHistoryComponent, ConsumerRecordEditorComponent],
   templateUrl: './record-editor.component.html',
 })
 export class RecordEditorComponent implements OnInit {
@@ -84,6 +85,17 @@ export class RecordEditorComponent implements OnInit {
         this.editorForm.patchValue(record.data);
       });
     }
+  }
+
+  public isImageField(field: Field): boolean {
+    const name = field.name.toLowerCase();
+    return (field.type === 'STRING' || field.type === 'EMAIL') && (
+      name.includes('image') || 
+      name.includes('logo') || 
+      name.includes('avatar') || 
+      name.includes('cover') || 
+      name.endsWith('url')
+    );
   }
 
   public hasError(fieldName: string, errorType: string): boolean {

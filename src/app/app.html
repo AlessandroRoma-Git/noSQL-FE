@@ -142,7 +142,9 @@
       <img *ngIf="(whiteLabelConfig$ | async)?.logoUrl" [src]="(whiteLabelConfig$ | async)?.logoUrl" class="h-8 w-auto" alt="Logo">
       <div class="flex flex-col overflow-hidden">
         <span class="text-lg font-black text-[rgb(var(--color-primary))] truncate uppercase tracking-tighter leading-none">{{ (whiteLabelConfig$ | async)?.appName }}</span>
-        <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">{{ i18nService.translate('SIDEBAR.ADMIN_PANEL') }}</span>
+        @if (isAdmin$ | async) {
+          <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">{{ i18nService.translate('SIDEBAR.ADMIN_PANEL') }}</span>
+        }
       </div>
     </div>
     <nav class="flex-grow p-4 space-y-1 overflow-y-auto custom-scrollbar">
@@ -155,17 +157,21 @@
 </ng-template>
 
 <ng-template #fullSidebarLinks>
-  <a routerLink="/dashboard" routerLinkActive="active-link" class="nav-link flex justify-between">
-    <div class="flex items-center gap-3">
-      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-      Dashboard CMS
-    </div>
-  </a>
+  @if (isSuperAdmin$ | async) {
+    <a routerLink="/dashboard" routerLinkActive="active-link" class="nav-link flex justify-between">
+      <div class="flex items-center gap-3">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+        Dashboard CMS
+      </div>
+    </a>
+  }
 
   <div class="pt-6 pb-2">
-    <p class="px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 opacity-50">{{ i18nService.translate('SIDEBAR.YOUR_DATA') }}</p>
+    @if (isSuperAdmin$ | async) {
+      <p class="px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 opacity-50">{{ i18nService.translate('SIDEBAR.YOUR_DATA') }}</p>
+    }
     @for (item of userMenuItems$ | async; track item.id) {
-      <a [routerLink]="item.customRoute ? item.customRoute : ['/records', item.entityKey]" routerLinkActive="active-link" class="nav-link">
+      <a [routerLink]="item.customRoute ? item.customRoute : (item.entityKey?.startsWith('/') ? item.entityKey : ['/records', item.entityKey])" routerLinkActive="active-link" class="nav-link">
         @if (item.icon && item.icon.startsWith('fa-')) {
           <i class="fa-solid {{ item.icon }} w-5 text-center"></i>
         } @else if (item.icon) {
@@ -178,7 +184,7 @@
     }
   </div>
 
-  @if (isAdmin$ | async) {
+  @if (isSuperAdmin$ | async) {
     <div class="pt-6 border-t border-white/5">
       <p class="px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 opacity-50">{{ i18nService.translate('SIDEBAR.CONFIGURATION') }}</p>
       <a routerLink="/entity-definitions" routerLinkActive="active-link" class="nav-link">
@@ -215,16 +221,18 @@
 
 <ng-template #horizontalLinks>
   <div class="flex items-center gap-1">
-    <a routerLink="/dashboard" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-sm font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all whitespace-nowrap">Dashboard CMS</a>
+    @if (isSuperAdmin$ | async) {
+      <a routerLink="/dashboard" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-sm font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all whitespace-nowrap">Dashboard CMS</a>
+    }
     @for (item of userMenuItems$ | async; track item.id) {
-      <a [routerLink]="item.customRoute ? item.customRoute : ['/records', item.entityKey]" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-sm font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all whitespace-nowrap flex items-center gap-2">
+      <a [routerLink]="item.customRoute ? item.customRoute : (item.entityKey?.startsWith('/') ? item.entityKey : ['/records', item.entityKey])" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-sm font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all whitespace-nowrap flex items-center gap-2">
         @if (item.icon && item.icon.startsWith('fa-')) {
           <i class="fa-solid {{ item.icon }} text-xs"></i>
         }
         {{ item.label }}
       </a>
     }
-    @if (isAdmin$ | async) {
+    @if (isSuperAdmin$ | async) {
       <div class="h-6 w-px bg-white/10 mx-2"></div>
       <a routerLink="/entity-definitions" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-xs font-bold text-gray-500 hover:text-white transition-all whitespace-nowrap">{{ i18nService.translate('SIDEBAR.ENTITIES') }}</a>
       <a routerLink="/email-templates" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-xs font-bold text-gray-500 hover:text-white transition-all whitespace-nowrap">Emails</a>
@@ -238,12 +246,14 @@
 </ng-template>
 
 <ng-template #bottomNavIcons>
-  <a routerLink="/dashboard" routerLinkActive="text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.1)]" class="flex flex-col items-center justify-center gap-1 text-gray-500 transition-all w-16 h-16 rounded-2xl">
-    <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
-    <span class="text-[9px] font-black uppercase tracking-tighter">Dashboard CMS</span>
-  </a>
+  @if (isAdmin$ | async) {
+    <a routerLink="/dashboard" routerLinkActive="text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.1)]" class="flex flex-col items-center justify-center gap-1 text-gray-500 transition-all w-16 h-16 rounded-2xl">
+      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>
+      <span class="text-[9px] font-black uppercase tracking-tighter">Dashboard CMS</span>
+    </a>
+  }
   @for (item of (userMenuItems$ | async)?.slice(0, 3); track item.id) {
-    <a [routerLink]="item.customRoute ? item.customRoute : ['/records', item.entityKey]" routerLinkActive="text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.1)]" class="flex flex-col items-center justify-center gap-1 text-gray-500 transition-all w-16 h-16 rounded-2xl">
+    <a [routerLink]="item.customRoute ? item.customRoute : (item.entityKey?.startsWith('/') ? item.entityKey : ['/records', item.entityKey])" routerLinkActive="text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.1)]" class="flex flex-col items-center justify-center gap-1 text-gray-500 transition-all w-16 h-16 rounded-2xl">
       @if (item.icon && item.icon.startsWith('fa-')) {
         <i class="fa-solid {{ item.icon }} text-lg"></i>
       } @else {

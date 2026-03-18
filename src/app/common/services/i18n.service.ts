@@ -59,6 +59,25 @@ export class I18nService {
   }
 
   /**
+   * Rende leggibile un nome tecnico di un campo (es: 'imageUrl' -> 'Image Url').
+   * Se esiste una traduzione in FIELDS.nomecampo, usa quella.
+   */
+  prettifyLabel(fieldName: string): string {
+    // 1. Cerchiamo se esiste una traduzione specifica
+    const translated = this.translate(`FIELDS.${fieldName}`);
+    if (translated !== `FIELDS.${fieldName}`) {
+      return translated;
+    }
+
+    // 2. Altrimenti formattiamo il nome tecnico (es: CamelCase o snake_case)
+    return fieldName
+      .replace(/([A-Z])/g, ' $1') // Aggiunge spazio prima delle maiuscole
+      .replace(/[_-]/g, ' ')      // Sostituisce trattini e underscore con spazi
+      .replace(/^\w/, (c) => c.toUpperCase()) // Maiuscola la prima lettera
+      .trim();
+  }
+
+  /**
    * Mostra una spiegazione "For Dummies" per un campo specifico.
    * @param fieldKey La chiave dentro FIELDS_HELP (es: 'ENTITY_KEY')
    */

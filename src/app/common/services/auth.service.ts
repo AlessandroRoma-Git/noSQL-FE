@@ -109,7 +109,12 @@ export class AuthService {
         if (response.firstAccess) {
           this.router.navigate(['/change-password']);
         } else {
-          this.router.navigate(['/dashboard']);
+          const roles = userState.systemRoles;
+          if (roles && (roles.includes('ADMIN') || roles.includes('SUPER_ADMIN'))) {
+            this.router.navigate(['/dashboard']);
+          } else {
+            this.router.navigate(['/app']);
+          }
         }
       })
     );

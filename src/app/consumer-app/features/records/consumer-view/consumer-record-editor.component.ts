@@ -8,6 +8,7 @@ import { ToastService } from 'app/common/services/toast.service';
 import { I18nService } from 'app/common/services/i18n.service';
 import { EntityDefinition } from 'app/configurator/models/entity-definition.model';
 import { ReferenceSearchComponent } from 'app/common/components/reference-search/reference-search.component';
+import { ImagePickerComponent } from 'app/common/components/image-picker/image-picker.component';
 
 /**
  * @class ConsumerRecordEditorComponent
@@ -17,7 +18,7 @@ import { ReferenceSearchComponent } from 'app/common/components/reference-search
 @Component({
   selector: 'app-consumer-record-editor',
   standalone: true,
-  imports: [CommonModule, RouterLink, ReactiveFormsModule, ReferenceSearchComponent],
+  imports: [CommonModule, RouterLink, ReactiveFormsModule, ReferenceSearchComponent, ImagePickerComponent],
   templateUrl: './consumer-record-editor.component.html',
 })
 export class ConsumerRecordEditorComponent implements OnInit {
@@ -102,6 +103,15 @@ export class ConsumerRecordEditorComponent implements OnInit {
 
   public getKeys(obj: any): string[] {
     return Object.keys(obj || {});
+  }
+
+  public isImageField(fieldName: string): boolean {
+    const name = fieldName.toLowerCase();
+    return name.includes('image') || 
+           name.includes('logo') || 
+           name.includes('avatar') || 
+           name.includes('cover') || 
+           name.endsWith('url');
   }
 
   onSubmit(): void {

@@ -36,12 +36,24 @@
           @for (field of definition.fields; track field.name) {
             <div class="flex flex-col">
               <label [for]="field.name" class="label text-[10px] font-black uppercase text-gray-500 mb-2 block tracking-widest">
-                {{ field.name }} @if (field.required) { <span class="text-red-500">*</span> }
+                {{ i18nService.prettifyLabel(field.name) }} @if (field.required) { <span class="text-red-500">*</span> }
               </label>
 
               @switch (field.type) {
-                @case ('STRING') { <input [id]="field.name" [formControlName]="field.name" type="text" class="input"> }
-                @case ('EMAIL') { <input [id]="field.name" [formControlName]="field.name" type="email" class="input"> }
+                @case ('STRING') {
+                  @if (isImageField(field.name)) {
+                    <app-image-picker [formControlName]="field.name"></app-image-picker>
+                  } @else {
+                    <input [id]="field.name" [formControlName]="field.name" type="text" class="input">
+                  }
+                }
+                @case ('EMAIL') {
+                  @if (isImageField(field.name)) {
+                    <app-image-picker [formControlName]="field.name"></app-image-picker>
+                  } @else {
+                    <input [id]="field.name" [formControlName]="field.name" type="email" class="input">
+                  }
+                }
                 @case ('NUMBER') { <input [id]="field.name" [formControlName]="field.name" type="number" class="input"> }
                 @case ('BOOLEAN') {
                   <input [id]="field.name" [formControlName]="field.name" type="checkbox" class="h-6 w-6 rounded-xl border-none bg-white/5 text-[rgb(var(--color-primary))] focus:ring-0 cursor-pointer">
@@ -63,8 +75,14 @@
         @else {
           @for (key of getKeys(editorForm.value); track key) {
             <div class="flex flex-col">
-              <label [for]="key" class="label text-[10px] font-black uppercase text-gray-500 mb-2 block tracking-widest">{{ key }}</label>
-              <input [id]="key" [formControlName]="key" type="text" class="input">
+              <label [for]="key" class="label text-[10px] font-black uppercase text-gray-500 mb-2 block tracking-widest">
+                {{ i18nService.prettifyLabel(key) }}
+              </label>
+              @if (isImageField(key)) {
+                <app-image-picker [formControlName]="key"></app-image-picker>
+              } @else {
+                <input [id]="key" [formControlName]="key" type="text" class="input">
+              }
             </div>
           }
         }

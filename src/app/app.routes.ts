@@ -30,6 +30,7 @@ export const routes: Routes = [
       // AREA ADMIN (Configuratore)
       {
         path: 'dashboard',
+        canActivate: [roleGuard],
         loadComponent: () => import('app/consumer-app/features/dashboard/dashboard.component').then(m => m.DashboardComponent)
       },
       {
@@ -136,7 +137,7 @@ export const routes: Routes = [
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'dashboard'
+        redirectTo: 'app'
       }
     ]
   },
@@ -144,6 +145,6 @@ export const routes: Routes = [
   // 3. FALLBACK
   {
     path: '**',
-    redirectTo: 'dashboard'
+    redirectTo: 'app'
   }
 ];
