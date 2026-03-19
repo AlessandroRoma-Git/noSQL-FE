@@ -1,5 +1,5 @@
 import { Component, inject } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
+import { CommonModule } from '@angular/common';
 import { StoreService } from '../services/store.service';
 
 @Component({
@@ -7,40 +7,61 @@ import { StoreService } from '../services/store.service';
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="min-h-screen pt-32 px-6 max-w-7xl mx-auto pb-20">
+    <div class="min-h-screen bg-[#050505] p-6 md:p-12 space-y-16 animate-soft-in">
       
-      <div class="text-center mb-16">
-        <h1 class="text-6xl gaming-font text-white mb-4">LATEST INTEL</h1>
-        <p class="text-gray-400">Aggiornamenti dal fronte, patch notes e highlights della community.</p>
-      </div>
+      <!-- HERO HEADER -->
+      <header class="max-w-7xl mx-auto space-y-6 pt-10 text-center md:text-left">
+        <div class="flex items-center justify-center md:justify-start gap-3">
+          <span class="w-2 h-2 rounded-full bg-cyan-400 shadow-[0_0_15px_#22d3ee] animate-pulse"></span>
+          <span class="text-cyan-400 font-black text-xs tracking-[0.4em] uppercase">Intelligence Feed</span>
+        </div>
+        <h1 class="text-6xl md:text-9xl font-black gaming-font leading-none uppercase tracking-tighter italic text-white">
+          LATEST <span class="text-transparent bg-clip-text bg-gradient-to-b from-white to-white/20">INTEL</span>
+        </h1>
+        <p class="text-gray-500 text-lg max-w-2xl font-medium italic mx-auto md:mx-0">
+          Field reports, tactical updates, and community highlights from the front lines of the OMNIUM arena.
+        </p>
+      </header>
 
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+      <!-- NEWS GRID -->
+      <section class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 pb-32">
         @for (item of store.news(); track item.id) {
-          <div class="glass-panel p-1 rounded-2xl group hover:border-cyan-500/30 transition-all duration-300">
-             <div class="bg-black/40 rounded-xl overflow-hidden h-full flex flex-col">
-                <div class="relative h-48 overflow-hidden">
-                   <img [src]="item.image" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700 opacity-80 group-hover:opacity-100" alt="News Image">
-                   <div class="absolute top-4 left-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-lg text-xs font-mono text-cyan-400 border border-cyan-500/20">
-                      {{ item.date }}
-                   </div>
+          <div class="group bg-[#0a0a0f] border border-white/5 rounded-[2.5rem] overflow-hidden hover:bg-white/[0.05] hover:border-cyan-500/30 transition-all duration-500 shadow-2xl flex flex-col">
+            
+            <!-- Hero Image -->
+            <div class="relative h-64 overflow-hidden shrink-0">
+              <img [src]="item.image" class="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110 opacity-60 group-hover:opacity-100" [alt]="item.title">
+              <div class="absolute inset-0 bg-gradient-to-t from-[#0a0a0f] via-transparent to-transparent"></div>
+              
+              <!-- Date Badge -->
+              <div class="absolute top-6 left-6">
+                <div class="bg-black/60 backdrop-blur-xl px-4 py-2 rounded-xl border border-white/10 text-[10px] font-black text-cyan-400 font-mono tracking-widest uppercase shadow-lg">
+                  {{ item.date }}
                 </div>
-                
-                <div class="p-6 flex flex-col flex-grow">
-                   <h2 class="text-2xl gaming-font text-white mb-3 group-hover:text-cyan-400 transition-colors leading-tight">
-                      {{ item.title }}
-                   </h2>
-                   <p class="text-gray-400 text-sm leading-relaxed mb-6 flex-grow">
-                      {{ item.excerpt }}
-                   </p>
-                   
-                   <button class="w-full py-3 rounded-lg border border-white/10 hover:bg-white/5 text-gray-300 hover:text-white text-xs font-bold uppercase tracking-widest transition-all">
-                      Read More
-                   </button>
-                </div>
-             </div>
+              </div>
+            </div>
+            
+            <!-- Content -->
+            <div class="p-10 flex flex-col flex-grow space-y-6">
+              <h2 class="text-3xl font-black text-white uppercase tracking-tighter leading-tight italic group-hover:text-cyan-400 transition-colors">
+                {{ item.title }}
+              </h2>
+              <p class="text-gray-500 text-base font-medium italic leading-relaxed flex-grow">
+                {{ item.excerpt }}
+              </p>
+              
+              <button class="w-full h-14 bg-white/5 border border-white/10 text-white rounded-2xl font-black uppercase text-[10px] tracking-[0.3em] hover:bg-white hover:text-black transition-all shadow-xl">
+                Access Full Report
+              </button>
+            </div>
+          </div>
+        } @empty {
+          <div class="col-span-full py-40 text-center card-soft border-dashed border-2 border-white/5 opacity-30 rounded-[3rem]">
+            <i class="fa-solid fa-satellite-dish text-5xl mb-6 text-gray-700"></i>
+            <p class="text-gray-500 font-black uppercase tracking-[0.3em] text-sm italic">Signal lost. No field reports currently available.</p>
           </div>
         }
-      </div>
+      </section>
 
     </div>
   `

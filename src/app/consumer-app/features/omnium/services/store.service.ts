@@ -397,8 +397,15 @@ export class StoreService {
   }
   deleteMatch(id: string) { this.recordService.deleteRecord('match', id).subscribe(() => this.loadAllRecords()); }
   deleteTitle(id: string) { this.recordService.deleteRecord('title', id).subscribe(() => this.loadAllRecords()); }
-  deleteCompetition(id: string) { this.recordService.deleteRecord('competition', id).subscribe(() => this.loadAllRecords()); }
-  deleteReview(id: string) { this.recordService.deleteRecord('review', id).subscribe(() => this.loadAllRecords()); }
+  addSponsor(name: string, description: string, logo: string, siteUrl: string) {
+    this.recordService.createRecord('sponsor', { data: { name, description, logo, siteUrl } }).subscribe(() => this.loadAllRecords());
+  }
+  updateSponsor(id: string, data: any) {
+    const payload = { ...data };
+    delete payload.id;
+    this.recordService.updateRecord('sponsor', id, { data: payload }).subscribe(() => this.loadAllRecords());
+  }
+  deleteSponsor(id: string) { this.recordService.deleteRecord('sponsor', id).subscribe(() => this.loadAllRecords()); }
   respondToRequest(id: string, app: boolean) { this.recordService.updateRecord('join_request', id, { data: { status: app ? 'accepted' : 'rejected' } }).subscribe(() => this.loadAllRecords()); }
   requestJoinTeam(teamId: string) {
     const user = this.currentUser();

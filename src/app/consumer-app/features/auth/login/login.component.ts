@@ -1,4 +1,4 @@
-import { Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -8,12 +8,6 @@ import { WhiteLabelService, WhiteLabelConfig } from 'app/common/services/white-l
 import { I18nService } from 'app/common/services/i18n.service';
 import { Observable } from 'rxjs';
 
-/**
- * @class LoginComponent
- * @description
- * Questa è la pagina dove gli utenti "bussano alla porta" per entrare.
- * Chiede nome utente e password e controlla se sono giusti.
- */
 @Component({
   selector: 'app-login',
   standalone: true,
@@ -22,55 +16,47 @@ import { Observable } from 'rxjs';
   styleUrls: ['./login.component.css']
 })
 export class LoginComponent implements OnInit {
-  // --- STRUMENTI ---
-  private fb = inject(FormBuilder); // Serve per creare il modulo (form) del login
-  private authService = inject(AuthService); // Serve per inviare i dati al server
-  private whiteLabelService = inject(WhiteLabelService); // Serve per sapere il nome del sito e il logo
-  public i18nService = inject(I18nService); // Serve per tradurre i testi della pagina
+  private fb = inject(FormBuilder);
+  private authService = inject(AuthService);
+  private whiteLabelService = inject(WhiteLabelService);
+  public i18nService = inject(I18nService);
 
-  // --- DATI ---
-  public config$!: Observable<WhiteLabelConfig>; // Qui salviamo le info sulla "marca" (logo, nome)
+  public config$!: Observable<WhiteLabelConfig>;
+  showStaffLogin = signal(false);
 
-  // Il nostro modulo dove l'utente scrive nome e password
   loginForm: FormGroup<{
     username: FormControl<string>;
     password: FormControl<string>;
   }>;
 
-  errorMessage: string | null = null; // Messaggio che appare se sbagli la password
+  errorMessage: string | null = null;
 
   constructor() {
-    // Prepariamo i campi del login (vuoti e obbligatori)
     this.loginForm = this.fb.nonNullable.group({
       username: ['', Validators.required],
       password: ['', Validators.required]
     });
   }
 
-  /**
-   * Quando la pagina si carica, iniziamo a "ascoltare" la configurazione del brand.
-   */
   ngOnInit() {
     this.config$ = this.whiteLabelService.config$;
   }
 
-  /**
-   * Questo metodo viene eseguito quando clicchi sul bottone "Login".
-   */
   onSubmit(): void {
     if (this.loginForm.valid) {
-      // Prendiamo quello che l'utente ha scritto
       const credentials = this.loginForm.getRawValue() as LoginRequest;
-      
-      // Proviamo a entrare
       this.authService.login(credentials).subscribe({
         error: (err) => {
-          // Se il server dice di no, mostriamo un errore (potrebbe essere tradotto pure questo!)
-          this.errorMessage = 'Credenziali non valide. Riprova.';
+          this.errorMessage = 'Access Denied. Check credentials.';
           console.error(err);
         }
-        // Se va bene, il servizio ci sposterà automaticamente nella Dashboard
       });
     }
+  }
+
+  loginWithDiscord(): void {
+    // Reindirizza all'endpoint del backend che gestisce Discord OAuth
+    // Esempio: window.location.href = 'http://localhost:8088/api/v1/auth/discord';
+    alert('Discord OAuth Integration: Redirecting to authorization server...');
   }
 }

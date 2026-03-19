@@ -1,18 +1,24 @@
+@import url('https://fonts.googleapis.com/css2?family=Archivo+Black&family=Inter:wght@400;700;900&display=swap');
 @import "tailwindcss";
 
 /*
-  UI MORBIDA (SOFT UI)
-  - Arrotondamenti ampi (rounded-2xl, 3xl)
-  - Ombre sfumate e sottili
-  - Effetti Glassmorphism (vetro trasparente)
-  - Colori meno aggressivi
+  UI OMNIUM - PRO GAMING
 */
 :root {
-  --color-primary: 115, 239, 105; /* Verde Acido */
-  --color-accent: 219, 39, 119;  /* Magenta Elettrico */
-  --color-text: 220, 220, 220;   /* Grigio Chiaro Morbido */
-  --color-bg-base: 15, 15, 20;     /* Nero Profondo ma non assoluto */
-  --color-bg-surface: 25, 25, 35;  /* Grigio Superficie morbido */
+  --color-primary: 34, 211, 238; /* Cyan 400 */
+  --color-accent: 217, 70, 239;  /* Fuchsia 500 */
+  --color-text: 220, 220, 220;
+  --color-bg-base: 5, 5, 5;      /* Deepest Black */
+  --color-bg-surface: 10, 10, 15; /* Slate Black */
+}
+
+.gaming-font {
+  font-family: 'Archivo Black', sans-serif;
+  letter-spacing: -0.05em;
+}
+
+body {
+  font-family: 'Inter', sans-serif;
 }
 
 @tailwind utilities;

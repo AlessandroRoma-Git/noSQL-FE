@@ -18,10 +18,10 @@
     <!-- 2. NAVBAR MODE -->
     @if (config?.layoutMode === 'navbar') {
       <header class="fixed top-0 left-0 w-full h-20 bg-surface/80 backdrop-blur-xl border-b border-white/5 z-40 flex items-center px-6 shadow-2xl">
-        <div class="flex items-center gap-3 mr-8 min-w-max">
-          <img *ngIf="config?.logoUrl" [src]="config?.logoUrl" class="h-8 w-auto" alt="Logo">
-          <span class="text-lg font-black text-[rgb(var(--color-primary))] tracking-tighter uppercase leading-none">{{ config?.appName }}</span>
-        </div>
+        <a routerLink="/app" class="flex items-center gap-3 mr-8 min-w-max group">
+          <img *ngIf="config?.logoUrl" [src]="config?.logoUrl" class="h-8 w-auto group-hover:scale-110 transition-transform" alt="Logo">
+          <span class="text-lg font-black text-[rgb(var(--color-primary))] tracking-tighter uppercase leading-none group-hover:text-white transition-colors">{{ config?.appName }}</span>
+        </a>
         <nav class="flex items-center gap-1 overflow-x-auto no-scrollbar flex-grow py-2">
           <ng-container *ngTemplateOutlet="horizontalLinks"></ng-container>
         </nav>
@@ -57,10 +57,10 @@
     @if (config?.layoutMode === 'tabs') {
       <header class="fixed top-0 left-0 w-full bg-surface z-40 border-b border-white/5 shadow-lg">
         <div class="h-16 flex items-center px-6 justify-between border-b border-white/5">
-          <div class="flex items-center gap-3">
-            <img *ngIf="config?.logoUrl" [src]="config?.logoUrl" class="h-8 w-auto" alt="Logo">
-            <span class="font-black text-[rgb(var(--color-primary))] uppercase leading-none">{{ config?.appName }}</span>
-          </div>
+          <a routerLink="/app" class="flex items-center gap-3 group">
+            <img *ngIf="config?.logoUrl" [src]="config?.logoUrl" class="h-8 w-auto group-hover:scale-110 transition-transform" alt="Logo">
+            <span class="font-black text-[rgb(var(--color-primary))] uppercase leading-none group-hover:text-white transition-colors">{{ config?.appName }}</span>
+          </a>
           <ng-container *ngTemplateOutlet="userActions"></ng-container>
         </div>
         <nav class="flex gap-1 p-2 overflow-x-auto no-scrollbar bg-black/10">
@@ -138,15 +138,15 @@
 
 <ng-template #fullSidebarContent>
   <div class="flex flex-col h-full">
-    <div class="flex items-center gap-3 h-20 px-6 border-b border-white/5 bg-black/10">
-      <img *ngIf="(whiteLabelConfig$ | async)?.logoUrl" [src]="(whiteLabelConfig$ | async)?.logoUrl" class="h-8 w-auto" alt="Logo">
+    <a routerLink="/app" class="flex items-center gap-3 h-20 px-6 border-b border-white/5 bg-black/10 hover:bg-black/20 transition-colors group">
+      <img *ngIf="(whiteLabelConfig$ | async)?.logoUrl" [src]="(whiteLabelConfig$ | async)?.logoUrl" class="h-8 w-auto group-hover:scale-110 transition-transform" alt="Logo">
       <div class="flex flex-col overflow-hidden">
-        <span class="text-lg font-black text-[rgb(var(--color-primary))] truncate uppercase tracking-tighter leading-none">{{ (whiteLabelConfig$ | async)?.appName }}</span>
+        <span class="text-lg font-black text-[rgb(var(--color-primary))] truncate uppercase tracking-tighter leading-none group-hover:text-white transition-colors">{{ (whiteLabelConfig$ | async)?.appName }}</span>
         @if (isAdmin$ | async) {
           <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">{{ i18nService.translate('SIDEBAR.ADMIN_PANEL') }}</span>
         }
       </div>
-    </div>
+    </a>
     <nav class="flex-grow p-4 space-y-1 overflow-y-auto custom-scrollbar">
       <ng-container *ngTemplateOutlet="fullSidebarLinks"></ng-container>
     </nav>
@@ -170,6 +170,12 @@
     @if (isSuperAdmin$ | async) {
       <p class="px-4 text-[10px] font-black text-gray-500 uppercase tracking-widest mb-2 opacity-50">{{ i18nService.translate('SIDEBAR.YOUR_DATA') }}</p>
     }
+    
+    <a routerLink="/app" routerLinkActive="active-link" [routerLinkActiveOptions]="{exact: true}" class="nav-link">
+      <i class="fa-solid fa-house w-5 text-center"></i>
+      {{ i18nService.translate('COMMON.HOME') || 'Home' }}
+    </a>
+
     @for (item of userMenuItems$ | async; track item.id) {
       <a [routerLink]="item.customRoute ? item.customRoute : (item.entityKey?.startsWith('/') ? item.entityKey : ['/records', item.entityKey])" routerLinkActive="active-link" class="nav-link">
         @if (item.icon && item.icon.startsWith('fa-')) {
@@ -224,6 +230,12 @@
     @if (isSuperAdmin$ | async) {
       <a routerLink="/dashboard" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-sm font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all whitespace-nowrap">Dashboard CMS</a>
     }
+
+    <a routerLink="/app" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" [routerLinkActiveOptions]="{exact: true}" class="px-4 py-2 rounded-2xl text-sm font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all whitespace-nowrap flex items-center gap-2">
+      <i class="fa-solid fa-house text-xs"></i>
+      {{ i18nService.translate('COMMON.HOME') || 'Home' }}
+    </a>
+
     @for (item of userMenuItems$ | async; track item.id) {
       <a [routerLink]="item.customRoute ? item.customRoute : (item.entityKey?.startsWith('/') ? item.entityKey : ['/records', item.entityKey])" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-sm font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all whitespace-nowrap flex items-center gap-2">
         @if (item.icon && item.icon.startsWith('fa-')) {
@@ -246,6 +258,10 @@
 </ng-template>
 
 <ng-template #bottomNavIcons>
+  <a routerLink="/app" routerLinkActive="text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.1)]" [routerLinkActiveOptions]="{exact: true}" class="flex flex-col items-center justify-center gap-1 text-gray-500 transition-all w-16 h-16 rounded-2xl">
+    <i class="fa-solid fa-house text-lg"></i>
+    <span class="text-[9px] font-black uppercase tracking-tighter">{{ i18nService.translate('COMMON.HOME') || 'Home' }}</span>
+  </a>
   @if (isAdmin$ | async) {
     <a routerLink="/dashboard" routerLinkActive="text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.1)]" class="flex flex-col items-center justify-center gap-1 text-gray-500 transition-all w-16 h-16 rounded-2xl">
       <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" /></svg>

@@ -1,162 +1,136 @@
-import { Component, inject, signal, computed } from '@angular/core';
-import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { StoreService } from '../services/store.service';
+import { Component, inject, computed, signal } from '@angular/core';
+import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
+import { StoreService, Team } from '../services/store.service';
 import { FormsModule } from '@angular/forms';
-import { ImagePickerComponent } from 'app/common/components/image-picker/image-picker.component';
 
 @Component({
   selector: 'app-teams',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, ImagePickerComponent],
+  imports: [CommonModule, RouterLink, FormsModule],
   template: `
-    <div class="min-h-screen pt-10 px-6 w-full pb-20 relative animate-soft-in">
+    <div class="min-h-screen bg-[#050505] p-6 md:p-12 space-y-16 animate-soft-in">
       
-      <!-- Header -->
-      <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-16 gap-8">
-        <div class="space-y-2">
-          <h1 class="text-7xl font-black text-white tracking-tighter gaming-font leading-none">TEAMS</h1>
-          <div class="flex items-center gap-3">
-            <div class="w-12 h-[2px] bg-fuchsia-500"></div>
-            <p class="text-gray-500 font-bold uppercase tracking-[0.2em] text-xs">Elite squads competing for eternal glory</p>
-          </div>
+      <!-- HERO HEADER -->
+      <header class="max-w-7xl mx-auto space-y-6 pt-10 text-center md:text-left">
+        <div class="flex items-center justify-center md:justify-start gap-3">
+          <span class="w-2 h-2 rounded-full bg-fuchsia-500 shadow-[0_0_15px_#d946ef] animate-pulse"></span>
+          <span class="text-fuchsia-500 font-black text-xs tracking-[0.4em] uppercase">Squad Directory</span>
         </div>
-        
-        <div class="flex flex-col md:flex-row gap-4 w-full md:w-auto">
-          @if (canCreateTeam()) {
-             <button (click)="isCreating.set(true)" class="button-primary h-14 px-10 !bg-fuchsia-600 !text-white shadow-[0_0_30px_rgba(192,38,211,0.3)]">
-                <i class="fa-solid fa-shield-halved mr-3"></i> FONDA IL TUO TEAM
-             </button>
-          }
+        <h1 class="text-6xl md:text-9xl font-black gaming-font leading-none uppercase tracking-tighter italic text-white">
+          TEAM <span class="text-transparent bg-clip-text bg-gradient-to-b from-white to-white/20">ELITE</span>
+        </h1>
+        <p class="text-gray-500 text-lg max-w-2xl font-medium italic mx-auto md:mx-0">
+          Discover the top organizations and rising squads. Join a team or build your own legend.
+        </p>
+      </header>
 
-          <div class="relative w-full md:w-80 group">
-            <i class="fa-solid fa-magnifying-glass absolute left-5 top-1/2 -translate-y-1/2 text-gray-600 group-focus-within:text-fuchsia-500 transition-colors text-sm"></i>
-            <input 
-              type="text" 
-              [ngModel]="searchQuery()" 
-              (ngModelChange)="searchQuery.set($event)"
-              placeholder="Cerca per nome..." 
-              class="input pl-14 h-14 !rounded-full bg-white/5 border-white/5 focus:bg-white/10 transition-all font-bold">
-          </div>
+      <!-- TOOLS BAR -->
+      <div class="max-w-7xl mx-auto flex flex-col md:flex-row gap-6 items-center justify-between px-4">
+        <div class="relative w-full md:w-96 group">
+          <i class="fa-solid fa-magnifying-glass absolute left-6 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within:text-fuchsia-500 transition-colors"></i>
+          <input type="text" [(ngModel)]="searchQuery" placeholder="Search squads..." 
+                 class="w-full bg-white/5 border border-white/10 rounded-full py-4 pl-14 pr-6 text-sm font-bold focus:outline-none focus:border-fuchsia-500/50 transition-all placeholder:text-gray-600 italic shadow-inner text-white">
         </div>
+
+        <button (click)="openCreateModal()" class="w-full md:w-auto px-10 h-14 bg-fuchsia-600 text-white rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-fuchsia-500 transition-all shadow-[0_0_30px_rgba(217,70,239,0.3)]">
+          <i class="fa-solid fa-plus mr-3"></i> Create Your Squad
+        </button>
       </div>
 
-      <!-- Grid -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+      <!-- TEAMS GRID -->
+      <section class="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8 pb-32">
         @for (team of filteredTeams(); track team.id) {
-          <div [routerLink]="['/app/teams', team.id]" class="card-soft p-8 group hover:border-fuchsia-500/30 transition-all duration-500 relative overflow-hidden cursor-pointer flex flex-col h-full border-white/5 bg-gradient-to-br from-white/[0.03] to-transparent">
-            <!-- Glass Overlay -->
-            <div class="absolute inset-0 bg-white/[0.01] opacity-0 group-hover:opacity-100 transition-opacity"></div>
+          <div class="group bg-[#0a0a0f] border border-white/5 rounded-[2.5rem] p-8 hover:bg-white/[0.05] hover:border-fuchsia-500/30 transition-all duration-500 shadow-2xl relative overflow-hidden">
+            <!-- Glass Decorative Element -->
+            <div class="absolute top-0 right-0 w-32 h-32 bg-fuchsia-500/5 blur-[60px] -z-10 group-hover:bg-fuchsia-500/10 transition-colors"></div>
             
-            <div class="flex flex-col items-center text-center mb-8 relative z-10">
-              <div class="relative mb-6">
-                 <div class="absolute inset-0 bg-fuchsia-500/20 blur-2xl rounded-full scale-0 group-hover:scale-150 transition-transform duration-700"></div>
-                 <img [src]="team.logo" class="w-24 h-24 rounded-3xl object-cover shadow-2xl relative z-10 border-2 border-white/5 group-hover:border-fuchsia-500/50 transition-all duration-500">
+            <div class="flex flex-col items-center text-center space-y-6">
+              <div class="relative">
+                <div class="w-24 h-24 rounded-[2rem] bg-white/5 p-4 border border-white/10 group-hover:scale-110 group-hover:border-fuchsia-500/50 transition-all duration-500">
+                  <img [src]="team.logo" class="w-full h-full object-contain" [alt]="team.name">
+                </div>
+                <div class="absolute -bottom-2 -right-2 px-3 py-1 bg-fuchsia-600 text-white text-[8px] font-black uppercase tracking-widest rounded-lg shadow-lg">
+                  {{ team.members.length }} Active
+                </div>
               </div>
-              <h2 class="text-3xl font-black text-white leading-none mb-2 uppercase tracking-tighter gaming-font">{{ team.name }}</h2>
-              <div class="flex items-center gap-2">
-                 <span class="text-[9px] text-gray-500 uppercase tracking-[0.2em] font-black">Established</span>
-                 <span class="text-[10px] text-fuchsia-400 font-mono font-bold">{{ team.founded }}</span>
+
+              <div class="space-y-1">
+                <h3 class="text-2xl font-black text-white uppercase tracking-tighter group-hover:text-fuchsia-400 transition-colors">{{ team.name }}</h3>
+                <p class="text-gray-500 text-[10px] font-black uppercase tracking-widest italic">Founded {{ team.founded }}</p>
               </div>
-            </div>
 
-            <div class="grid grid-cols-2 gap-4 mb-8 relative z-10">
-               <div class="p-4 rounded-2xl bg-black/40 border border-white/5 text-center group-hover:border-fuchsia-500/20 transition-colors">
-                 <div class="text-[8px] text-gray-600 uppercase font-black tracking-widest mb-1">Win Rate</div>
-                 <div class="text-2xl font-black text-white gaming-font">{{ (team.wins / (team.wins + team.losses || 1) * 100) | number:'1.0-0' }}%</div>
-               </div>
-               <div class="p-4 rounded-2xl bg-black/40 border border-white/5 text-center group-hover:border-fuchsia-500/20 transition-colors">
-                 <div class="text-[8px] text-gray-600 uppercase font-black tracking-widest mb-1">Total Matches</div>
-                 <div class="text-2xl font-black text-white gaming-font">{{ team.wins + team.losses }}</div>
-               </div>
-            </div>
+              <div class="w-full grid grid-cols-2 gap-3">
+                <div class="bg-black/40 rounded-xl p-3 border border-white/5">
+                  <div class="text-[8px] text-gray-600 font-black uppercase mb-1">Wins</div>
+                  <div class="text-xl font-black text-green-400 font-mono leading-none">{{ team.wins }}</div>
+                </div>
+                <div class="bg-black/40 rounded-xl p-3 border border-white/5">
+                  <div class="text-[8px] text-gray-600 font-black uppercase mb-1">Losses</div>
+                  <div class="text-xl font-black text-red-500/50 font-mono leading-none">{{ team.losses }}</div>
+                </div>
+              </div>
 
-            <div class="mt-auto pt-6 border-t border-white/5 relative z-10 flex items-center justify-between">
-               <div class="flex -space-x-3 overflow-hidden">
-                 @for (member of team.members.slice(0, 4); track member) {
-                   <div class="w-8 h-8 rounded-full bg-white/10 border-2 border-[#0f0f14] flex items-center justify-center text-[10px] font-black text-gray-400 uppercase" [title]="member">
-                      {{ member.charAt(0) }}
-                   </div>
-                 }
-                 @if (team.members.length > 4) {
-                    <div class="w-8 h-8 rounded-full bg-fuchsia-500/20 border-2 border-[#0f0f14] flex items-center justify-center text-[8px] font-black text-fuchsia-400">
-                       +{{ team.members.length - 4 }}
-                    </div>
-                 }
-               </div>
-               <span class="text-[9px] font-black text-gray-600 uppercase tracking-widest group-hover:text-white transition-colors">View Profile &rarr;</span>
+              <div class="w-full pt-4 space-y-3">
+                <a [routerLink]="['/app/teams', team.id]" class="block w-full py-3 bg-white/5 border border-white/10 text-white rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-white hover:text-black transition-all">
+                  Squad Profile
+                </a>
+                @if (canJoin(team)) {
+                  <button (click)="requestJoin(team.id)" class="w-full py-3 bg-fuchsia-500/10 border border-fuchsia-500/20 text-fuchsia-400 rounded-xl font-black uppercase text-[9px] tracking-widest hover:bg-fuchsia-500 hover:text-white transition-all shadow-lg">
+                    Request Entry
+                  </button>
+                }
+              </div>
             </div>
           </div>
+        } @empty {
+          <div class="col-span-full py-40 text-center card-soft border-dashed border-2 border-white/5 opacity-30 rounded-[3rem]">
+            <i class="fa-solid fa-users-slash text-5xl mb-6 text-gray-700"></i>
+            <p class="text-gray-500 font-black uppercase tracking-[0.3em] text-sm italic">No organizations found in this sector.</p>
+          </div>
         }
-        @if (filteredTeams().length === 0) {
-           <div class="col-span-full py-40 text-center card-soft border-dashed border-2 border-white/5 flex flex-col items-center">
-              <div class="w-20 h-20 rounded-[2.5rem] bg-white/5 flex items-center justify-center text-3xl text-gray-800 mb-6">
-                 <i class="fa-solid fa-users-slash"></i>
+      </section>
+
+      <!-- CREATE TEAM MODAL -->
+      @if (showCreateModal()) {
+        <div class="fixed inset-0 z-[500] flex items-center justify-center p-6 bg-black/98 backdrop-blur-3xl animate-soft-in">
+          <div class="card-soft w-full max-w-2xl overflow-hidden border-fuchsia-500/30 shadow-[0_0_100px_rgba(217,70,239,0.2)] rounded-[3rem]">
+            <div class="bg-white/[0.02] border-b border-white/10 p-10 flex justify-between items-center relative">
+              <div class="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-fuchsia-500 to-transparent"></div>
+              <div class="space-y-1">
+                <h3 class="text-3xl font-black text-white uppercase tracking-tighter gaming-font leading-none italic">
+                  Found <span class="text-fuchsia-400 italic">New Squad</span>
+                </h3>
+                <p class="text-[10px] text-gray-500 font-black uppercase tracking-[0.4em]">Establish your competitive identity</p>
               </div>
-              <p class="text-gray-500 font-black uppercase tracking-[0.3em] text-sm">Nessun team trovato nei record correnti.</p>
-           </div>
-        }
-      </div>
-
-      <!-- Creation Modal -->
-      @if (isCreating()) {
-         <div class="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/95 backdrop-blur-md animate-soft-in">
-            <div class="card-soft w-full max-w-2xl overflow-hidden shadow-[0_0_100px_rgba(0,0,0,0.5)] border-white/10">
-               
-               <!-- Modal Header -->
-               <div class="bg-white/[0.02] border-b border-white/5 p-8 flex justify-between items-center">
-                  <div class="flex items-center gap-4">
-                     <div class="w-12 h-12 rounded-2xl bg-fuchsia-500/10 text-fuchsia-500 flex items-center justify-center text-xl shadow-inner border border-fuchsia-500/20">
-                        <i class="fa-solid fa-shield-halved"></i>
-                     </div>
-                     <div>
-                        <h3 class="text-3xl font-black text-white uppercase tracking-tighter gaming-font leading-none">Crea Team</h3>
-                        <p class="text-[10px] text-gray-500 font-black uppercase tracking-widest mt-2 opacity-60">Inizia il tuo viaggio verso la vetta</p>
-                     </div>
-                  </div>
-                  <button (click)="isCreating.set(false)" class="w-12 h-12 rounded-2xl bg-white/5 text-gray-500 hover:bg-white/10 hover:text-white transition-all flex items-center justify-center border border-white/5">
-                     <i class="fa-solid fa-xmark text-lg"></i>
-                  </button>
-               </div>
-
-               <div class="p-8 md:p-12 space-y-12">
-                  <!-- Riga 1: Logo (Centrale e grande) -->
-                  <div class="space-y-4">
-                     <label class="label text-[10px] uppercase font-black tracking-widest text-fuchsia-500 text-center block">Emblema della Squadra</label>
-                     <div class="w-48 h-48 mx-auto rounded-[3rem] overflow-hidden shadow-2xl border-2 border-white/5 group-hover:border-fuchsia-500/50 transition-all">
-                        <app-image-picker [ngModel]="newTeamLogo" (ngModelChange)="newTeamLogo = $event"></app-image-picker>
-                     </div>
-                     <p class="text-[9px] text-gray-600 italic text-center px-10">Il logo è il cuore del tuo brand. Carica un'immagine quadrata ad alta risoluzione.</p>
-                  </div>
-
-                  <!-- Riga 2: Nome Team -->
-                  <div class="space-y-4 pt-10 border-t border-white/5">
-                     <label class="label text-[10px] uppercase font-black tracking-widest flex items-center gap-2">
-                        <i class="fa-solid fa-signature opacity-30 text-fuchsia-500"></i> Nome Ufficiale
-                     </label>
-                     <input type="text" [(ngModel)]="newTeamName" class="input h-16 text-xl font-black uppercase tracking-tight" placeholder="Es. SHADOW HUNTERS">
-                  </div>
-
-                  <!-- Riga 3: Descrizione -->
-                  <div class="space-y-4 pt-10 border-t border-white/5">
-                     <label class="label text-[10px] uppercase font-black tracking-widest flex items-center gap-2">
-                        <i class="fa-solid fa-quote-left opacity-30 text-fuchsia-500"></i> Storia & Missione
-                     </label>
-                     <textarea [(ngModel)]="newTeamDesc" rows="5" class="input p-6 text-sm leading-relaxed" placeholder="Racconta chi siete, quali sono i vostri obiettivi e perché i player dovrebbero unirsi a voi..."></textarea>
-                  </div>
-               </div>
-               
-               <!-- Modal Footer -->
-               <div class="bg-black/20 border-t border-white/5 p-8 md:p-10 flex flex-col md:flex-row justify-end gap-4">
-                  <button (click)="isCreating.set(false)" class="button-secondary px-10 h-14 flex items-center justify-center uppercase font-black tracking-widest text-xs min-w-[150px]">
-                     Annulla
-                  </button>
-                  <button (click)="confirmCreate()" class="button-primary px-16 h-14 flex items-center justify-center uppercase font-black tracking-widest text-sm min-w-[250px] !bg-fuchsia-600 !text-white shadow-[0_0_40px_rgba(192,38,211,0.3)]">
-                     <i class="fa-solid fa-flag-checkered mr-3"></i> FONDA SQUADRA
-                  </button>
-               </div>
+              <button (click)="showCreateModal.set(false)" class="w-12 h-12 rounded-full bg-white/5 text-gray-500 hover:text-white transition-all flex items-center justify-center border border-white/5"><i class="fa-solid fa-xmark text-xl"></i></button>
             </div>
-         </div>
+            
+            <div class="p-10 space-y-10 bg-[#0a0a0f]">
+              <div class="space-y-8">
+                <div class="space-y-4 text-left">
+                  <label class="label text-[10px] uppercase font-black tracking-widest text-gray-600 italic ml-4">Organization Name</label>
+                  <input type="text" [(ngModel)]="newTeam.name" class="input h-16 text-xl font-black !rounded-2xl border-white/10 shadow-inner italic focus:border-fuchsia-500 text-white" placeholder="Team Name">
+                </div>
+
+                <div class="space-y-4 text-left">
+                  <label class="label text-[10px] uppercase font-black tracking-widest text-gray-600 italic ml-4">Visual Identity (Logo)</label>
+                  <input type="text" [(ngModel)]="newTeam.logo" class="input h-14 text-sm font-bold !rounded-2xl border-white/10 shadow-inner italic focus:border-fuchsia-500 text-white" placeholder="Logo URL">
+                </div>
+
+                <div class="space-y-4 text-left">
+                  <label class="label text-[10px] uppercase font-black tracking-widest text-gray-600 italic ml-4">Squad Philosophy</label>
+                  <textarea [(ngModel)]="newTeam.description" class="input min-h-[120px] py-4 text-sm font-medium !rounded-2xl border-white/10 shadow-inner italic focus:border-fuchsia-500 text-white" placeholder="Describe your team's goals and values..."></textarea>
+                </div>
+              </div>
+            </div>
+
+            <div class="bg-black/80 border-t border-white/10 p-10 flex justify-end gap-6">
+              <button (click)="showCreateModal.set(false)" class="px-10 h-14 text-[10px] font-black uppercase text-gray-500 hover:text-white transition-all tracking-[0.2em] italic">Abort</button>
+              <button (click)="saveTeam()" class="button-primary px-16 h-14 !bg-fuchsia-600 !text-white text-[11px] font-black uppercase shadow-2xl !rounded-2xl tracking-[0.3em]">Initialize Squad</button>
+            </div>
+          </div>
+        </div>
       }
 
     </div>
@@ -164,34 +138,37 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
 })
 export class TeamsComponent {
   store = inject(StoreService);
-  searchQuery = signal('');
-  
-  // Creation State
-  isCreating = signal(false);
-  newTeamName = '';
-  newTeamDesc = '';
-  newTeamLogo = '';
+  searchQuery = '';
+  showCreateModal = signal(false);
+  newTeam = { name: '', logo: '', description: '' };
 
   filteredTeams = computed(() => {
-    const query = this.searchQuery().toLowerCase();
-    return this.store.teams().filter(t => t.name.toLowerCase().includes(query));
+    const list = this.store.teams();
+    if (!this.searchQuery) return list;
+    const q = this.searchQuery.toLowerCase();
+    return list.filter(t => t.name.toLowerCase().includes(q));
   });
 
-  canCreateTeam = computed(() => {
-     const user = this.store.currentUser();
-     return user && user.role === 'player' && !user.teamId;
-  });
+  canJoin(team: Team): boolean {
+    const user = this.store.currentUser();
+    if (!user) return false;
+    // Non può unirsi se ha già una richiesta pendente o è già membro
+    return !this.store.hasPendingRequest(team.id)() && !team.members.includes(user.name);
+  }
 
-  confirmCreate() {
-     if (this.newTeamName.trim()) {
-        // We pass the new logo to the store action
-        this.store.createTeam(this.newTeamName, this.newTeamDesc, this.newTeamLogo);
-        this.isCreating.set(false);
-        this.newTeamName = '';
-        this.newTeamDesc = '';
-        this.newTeamLogo = '';
-     } else {
-        this.store.addNotification('Il nome del team è obbligatorio', 'warning');
-     }
+  openCreateModal() {
+    this.newTeam = { name: '', logo: '', description: '' };
+    this.showCreateModal.set(true);
+  }
+
+  saveTeam() {
+    if (this.newTeam.name) {
+      this.store.createTeam(this.newTeam.name, this.newTeam.description, this.newTeam.logo);
+      this.showCreateModal.set(false);
+    }
+  }
+
+  requestJoin(teamId: string) {
+    this.store.requestJoinTeam(teamId);
   }
 }
