@@ -26,25 +26,32 @@ import { Match } from '../services/store.service';
                 <div [style.height.px]="slotHeight * Math.pow(2, rIdx)" class="flex items-center relative px-8">
                   
                   <!-- Match Card -->
-                  <div class="w-full glass-panel !p-0 overflow-hidden border-white/10 hover:border-cyan-500/50 transition-all duration-500 group shadow-2xl relative z-10 bg-[#0a0a0f]/95 backdrop-blur-3xl rounded-2xl">
-                    <div class="flex justify-between items-center h-16 px-6 border-b border-white/5" 
-                         [class.bg-cyan-500/10]="match.scoreA > match.scoreB && match.status === 'completed'">
+                  <div class="w-full glass-panel !p-0 overflow-hidden border-white/10 hover:border-cyan-500/50 transition-all duration-500 group shadow-2xl relative z-10 bg-[#0a0a0f]/95 backdrop-blur-3xl rounded-2xl"
+                       [class.opacity-40]="match.teamA === 'BYE' || match.teamB === 'BYE'">
+                    
+                    <!-- Squad 1 -->
+                    <div class="flex justify-between items-center h-16 px-6 border-b border-white/5 transition-all" 
+                         [class.bg-cyan-500/10]="match.scoreA > match.scoreB && match.status === 'completed'"
+                         [class.text-cyan-400]="match.scoreA > match.scoreB && match.status === 'completed'">
                       <span class="text-sm font-black uppercase tracking-widest truncate flex-1" 
-                            [class.text-gray-700]="match.teamA === 'TBD'">{{ match.teamA }}</span>
-                      <span class="text-2xl font-mono font-black border-l border-white/10 pl-6 ml-4 w-12 text-center text-cyan-400 italic">
-                        {{ match.scoreA }}
-                      </span>
-                    </div>
-                    <div class="flex justify-between items-center h-16 px-6" 
-                         [class.bg-cyan-500/10]="match.scoreB > match.scoreA && match.status === 'completed'">
-                      <span class="text-sm font-black uppercase tracking-widest truncate flex-1" 
-                            [class.text-gray-700]="match.teamB === 'TBD'">{{ match.teamB }}</span>
-                      <span class="text-2xl font-mono font-black border-l border-white/10 pl-6 ml-4 w-12 text-center text-cyan-400 italic">
-                        {{ match.scoreB }}
+                            [class.text-gray-700]="match.teamA === 'TBD' || match.teamA === 'BYE'">{{ match.teamA }}</span>
+                      <span class="text-2xl font-mono font-black border-l border-white/10 pl-6 ml-4 w-12 text-center italic">
+                        {{ match.teamA === 'BYE' ? '-' : match.scoreA }}
                       </span>
                     </div>
 
-                    @if (canEdit) {
+                    <!-- Squad 2 -->
+                    <div class="flex justify-between items-center h-16 px-6 transition-all" 
+                         [class.bg-cyan-500/10]="match.scoreB > match.scoreA && match.status === 'completed'"
+                         [class.text-cyan-400]="match.scoreB > match.scoreA && match.status === 'completed'">
+                      <span class="text-sm font-black uppercase tracking-widest truncate flex-1" 
+                            [class.text-gray-700]="match.teamB === 'TBD' || match.teamB === 'BYE'">{{ match.teamB }}</span>
+                      <span class="text-2xl font-mono font-black border-l border-white/10 pl-6 ml-4 w-12 text-center italic">
+                        {{ match.teamB === 'BYE' ? '-' : match.scoreB }}
+                      </span>
+                    </div>
+
+                    @if (canEdit && match.teamA !== 'BYE' && match.teamB !== 'BYE') {
                       <button (click)="onEdit.emit(match)" class="absolute top-1/2 right-[-15px] -translate-y-1/2 w-10 h-10 rounded-full bg-cyan-500 text-black shadow-2xl opacity-0 group-hover:opacity-100 transition-all z-20 flex items-center justify-center hover:scale-110">
                         <i class="fa-solid fa-bolt-lightning text-xs"></i>
                       </button>

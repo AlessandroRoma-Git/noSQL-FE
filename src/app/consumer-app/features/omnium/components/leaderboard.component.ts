@@ -109,19 +109,28 @@ export class LeaderboardComponent {
 
     this.matches.forEach(m => {
       if (m.status === 'completed') {
-        if (!stats[m.teamA]) stats[m.teamA] = { played: 0, w: 0, l: 0, pts: 0 };
-        if (!stats[m.teamB]) stats[m.teamB] = { played: 0, w: 0, l: 0, pts: 0 };
-        
-        stats[m.teamA].played++; stats[m.teamB].played++;
+        // Ignora entità non reali (TBD, BYE)
+        const isRealA = m.teamA !== 'TBD' && m.teamA !== 'BYE';
+        const isRealB = m.teamB !== 'TBD' && m.teamB !== 'BYE';
+
+        if (isRealA) {
+          if (!stats[m.teamA]) stats[m.teamA] = { played: 0, w: 0, l: 0, pts: 0 };
+          stats[m.teamA].played++;
+        }
+        if (isRealB) {
+          if (!stats[m.teamB]) stats[m.teamB] = { played: 0, w: 0, l: 0, pts: 0 };
+          stats[m.teamB].played++;
+        }
         
         if (m.scoreA > m.scoreB) {
-          stats[m.teamA].w++; stats[m.teamA].pts += 3;
-          stats[m.teamB].l++;
+          if (isRealA) { stats[m.teamA].w++; stats[m.teamA].pts += 3; }
+          if (isRealB) { stats[m.teamB].l++; }
         } else if (m.scoreB > m.scoreA) {
-          stats[m.teamB].w++; stats[m.teamB].pts += 3;
-          stats[m.teamA].l++;
+          if (isRealB) { stats[m.teamB].w++; stats[m.teamB].pts += 3; }
+          if (isRealA) { stats[m.teamA].l++; }
         } else {
-          stats[m.teamA].pts += 1; stats[m.teamB].pts += 1;
+          if (isRealA) stats[m.teamA].pts += 1;
+          if (isRealB) stats[m.teamB].pts += 1;
         }
       }
     });

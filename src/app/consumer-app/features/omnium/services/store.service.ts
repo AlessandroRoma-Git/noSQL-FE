@@ -171,7 +171,16 @@ export class StoreService {
       else if (state.groups.includes('moderators')) role = 'moderator';
       else if (state.groups.includes('sponsors')) role = 'sponsor';
       else if (state.groups.includes('players')) role = 'player';
-      return { id: state.username || 'unknown', name: state.username || 'User', role, avatar: 'https://picsum.photos/seed/' + state.username + '/100/100', status: 'active', elo: 1200 } as User;
+      
+      // Map properties safely from the state (which only has token/username/roles)
+      return { 
+        id: state.username || 'unknown', 
+        name: state.username || 'User', 
+        role, 
+        avatar: '', // To be filled from user record if needed
+        status: 'active',
+        elo: 0 
+      } as User;
     })
   ));
 
@@ -287,24 +296,56 @@ export class StoreService {
              }
            }
         } else {
-           let currentRoundTeams = maxTeams;
+           // CALCOLO ROUND E BYE
+           const numRounds = Math.ceil(Math.log2(maxTeams));
+           const totalSlots = Math.pow(2, numRounds);
+           
            let roundNames = ['Round 1', 'Round of 16', 'Round of 8', 'Quarterfinals', 'Semifinals', 'Grand Final'];
-           let roundIdx = 5 - Math.log2(currentRoundTeams) + 1;
+           let roundIdx = 5 - (numRounds - 1);
            if (roundIdx < 0) roundIdx = 0;
+
+           let currentTeams = [...virtualTeams];
+           // Riempiamo i buchi con i BYE per arrivare alla potenza di 2
+           while(currentTeams.length < totalSlots) {
+              currentTeams.push('BYE');
+           }
+
            let roundCounter = roundIdx;
-           while (currentRoundTeams >= 2) {
-              const roundName = roundNames[Math.floor(roundCounter)] || `Round ${currentRoundTeams}`;
-              const numMatches = currentRoundTeams / 2;
+           let teamsToProcess = [...currentTeams];
+
+           for (let r = 0; r < numRounds; r++) {
+              const roundName = roundNames[roundCounter] || `Round ${teamsToProcess.length}`;
+              const numMatches = teamsToProcess.length / 2;
+              const nextRoundTeams: string[] = [];
+
               for (let m = 0; m < numMatches; m++) {
-                 const isFirstRound = currentRoundTeams === maxTeams;
+                 const teamA = teamsToProcess[m * 2];
+                 const teamB = teamsToProcess[m * 2 + 1];
+                 
+                 // Se uno dei due è BYE, il match è pre-completato
+                 const isByeMatch = teamA === 'BYE' || teamB === 'BYE';
+                 const winner = teamA === 'BYE' ? teamB : teamA;
+
                  matches.push({
                     competitionId: compId,
-                    teamA: isFirstRound ? virtualTeams[m * 2] : 'TBD',
-                    teamB: isFirstRound ? virtualTeams[m * 2 + 1] : 'TBD',
-                    scoreA: 0, scoreB: 0, date: nextTime(), status: 'scheduled', confirmedByA: false, confirmedByB: false, round: roundName
+                    teamA,
+                    teamB,
+                    scoreA: teamB === 'BYE' ? 1 : 0,
+                    scoreB: teamA === 'BYE' ? 1 : 0,
+                    date: nextTime(),
+                    status: isByeMatch ? 'completed' : 'scheduled',
+                    confirmedByA: isByeMatch,
+                    confirmedByB: isByeMatch,
+                    round: roundName
                  });
+                 
+                 // Prepariamo i team per il prossimo round
+                 if (r < numRounds - 1) {
+                    if (isByeMatch) nextRoundTeams.push(winner);
+                    else nextRoundTeams.push('TBD');
+                 }
               }
-              currentRoundTeams /= 2;
+              teamsToProcess = nextRoundTeams;
               roundCounter++;
            }
         }
@@ -334,14 +375,26 @@ export class StoreService {
   }
 
   addTitle(n: string, p: string, d: string, i: string, l: any[]) { this.recordService.createRecord('title', { data: { name: n, publisher: p, description: d, image: i, downloadLinks: JSON.stringify(l) } }).subscribe(() => this.loadAllRecords()); }
-  createCompetition(n: string, tid: string, p: string, sel: string[], dr: boolean, det: any) { this.recordService.createRecord('competition', { data: { ...det, name: n, titleId: tid, prizePool: p, status: dr ? 'draft' : 'upcoming', startDate: new Date(det.startDate).toISOString(), endDate: new Date(det.endDate).toISOString(), playDays: JSON.stringify(det.playDays || []), rules: JSON.stringify(det.rules || []), registeredTeams: JSON.stringify(sel || []) } }).subscribe(() => this.loadAllRecords()); }
-  updateCompetition(id: string, n: string, tid: string, p: string, sel: string[], dr: boolean, det: any) { this.recordService.updateRecord('competition', id, { data: { ...det, name: n, titleId: tid, prizePool: p, status: dr ? 'draft' : 'upcoming', startDate: new Date(det.startDate).toISOString(), endDate: new Date(det.endDate).toISOString(), playDays: JSON.stringify(det.playDays || []), rules: JSON.stringify(det.rules || []), registeredTeams: JSON.stringify(sel || []) } }).subscribe(() => this.loadAllRecords()); }
+  createCompetition(n: string, tid: string, p: string, sel: string[], dr: boolean, det: any) {
+    const payload = { ...det };
+    delete payload.id;
+    this.recordService.createRecord('competition', { data: { ...payload, name: n, titleId: tid, prizePool: p, status: dr ? 'draft' : 'upcoming', startDate: new Date(det.startDate).toISOString(), endDate: new Date(det.endDate).toISOString(), playDays: JSON.stringify(det.playDays || []), rules: JSON.stringify(det.rules || []), registeredTeams: JSON.stringify(sel || []) } }).subscribe(() => this.loadAllRecords());
+  }
+  updateCompetition(id: string, n: string, tid: string, p: string, sel: string[], dr: boolean, det: any) {
+    const payload = { ...det };
+    delete payload.id;
+    this.recordService.updateRecord('competition', id, { data: { ...payload, name: n, titleId: tid, prizePool: p, status: dr ? 'draft' : 'upcoming', startDate: new Date(det.startDate).toISOString(), endDate: new Date(det.endDate).toISOString(), playDays: JSON.stringify(det.playDays || []), rules: JSON.stringify(det.rules || []), registeredTeams: JSON.stringify(sel || []) } }).subscribe(() => this.loadAllRecords());
+  }
   createTeam(name: string, description: string, logo: string) {
     const user = this.currentUser();
     if (!user) return;
     this.recordService.createRecord('team', { data: { name, description, logo, founded: new Date().getFullYear().toString(), wins: 0, losses: 0, captainId: user.id, members: JSON.stringify([user.name]) } }).subscribe(() => this.loadAllRecords());
   }
-  updateMatch(id: string, data: any) { this.recordService.updateRecord('match', id, { data }).subscribe(() => this.loadAllRecords()); }
+  updateMatch(id: string, data: any) {
+    const payload = { ...data };
+    delete payload.id;
+    this.recordService.updateRecord('match', id, { data: payload }).subscribe(() => this.loadAllRecords());
+  }
   deleteMatch(id: string) { this.recordService.deleteRecord('match', id).subscribe(() => this.loadAllRecords()); }
   deleteTitle(id: string) { this.recordService.deleteRecord('title', id).subscribe(() => this.loadAllRecords()); }
   deleteCompetition(id: string) { this.recordService.deleteRecord('competition', id).subscribe(() => this.loadAllRecords()); }
@@ -365,8 +418,20 @@ export class StoreService {
   getUserById(id: string) { return computed(() => this.users().find(u => u.id === id)); }
   getReviewsByCasterId(id: string) { return computed(() => this.reviews().filter(r => r.casterId === id)); }
   
-  banUser(userId: string) { this.addNotification('Ban simulato.', 'warning'); }
-  updateUserProfile(userId: string, data: any) { this.addNotification('Profilo aggiornato.', 'success'); }
+  banUser(userId: string) { 
+    this.recordService.updateRecord('user', userId, { data: { status: 'banned' } }).subscribe(() => {
+      this.addNotification('User status updated to BANNED.', 'warning');
+      this.loadAllRecords();
+    });
+  }
+  updateUserProfile(userId: string, data: any) { 
+    const payload = { ...data };
+    delete payload.id;
+    this.recordService.updateRecord('user', userId, { data: payload }).subscribe(() => {
+      this.addNotification('Profile synchronized successfully.', 'success');
+      this.loadAllRecords();
+    });
+  }
   logout() { this.authService.logout(); }
   login(r: any) {} 
 }
