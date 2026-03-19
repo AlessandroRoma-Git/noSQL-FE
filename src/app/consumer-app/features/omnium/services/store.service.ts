@@ -388,6 +388,45 @@ export class StoreService {
     const newMembers = (team.members || []).filter(m => m !== memberName);
     this.recordService.updateRecord('team', teamId, { data: { members: JSON.stringify(newMembers) } }).subscribe(() => this.loadAllRecords());
   }
+
+  proposeResult(matchId: string, scoreA: number, scoreB: number, proposingTeamName: string) {
+    const match = this.matches().find(m => m.id === matchId);
+    if (!match) return;
+
+    const proposingSide = match.teamA === proposingTeamName ? 'A' : 'B';
+    const payload: any = {
+      status: 'disputed' 
+    };
+
+    if (proposingSide === 'A') payload.proposedScoreA = JSON.stringify({ a: scoreA, b: scoreB });
+    else payload.proposedScoreB = JSON.stringify({ a: scoreA, b: scoreB });
+    
+    this.recordService.updateRecord('match', matchId, { data: payload }).subscribe(() => {
+      this.addNotification('Result proposed. Awaiting opponent confirmation.', 'info');
+      this.loadAllRecords();
+    });
+  }
+
+  confirmResult(matchId: string) {
+    const match = this.matches().find(m => m.id === matchId);
+    if (!match || (!match.proposedScoreA && !match.proposedScoreB)) return;
+
+    const finalScore = match.proposedScoreA || match.proposedScoreB;
+    if (!finalScore) return;
+
+    this.recordService.updateRecord('match', matchId, { data: { status: 'completed', scoreA: finalScore.a, scoreB: finalScore.b } }).subscribe(() => {
+      this.addNotification('Result Confirmed!', 'success');
+      this.loadAllRecords();
+    });
+  }
+  
+  forceResult(matchId: string, scoreA: number, scoreB: number) {
+    this.recordService.updateRecord('match', matchId, { data: { status: 'completed', scoreA, scoreB, proposedScoreA: null, proposedScoreB: null } }).subscribe(() => {
+      this.addNotification('Match result has been overridden by an Admin.', 'warning');
+      this.loadAllRecords();
+    });
+  }
+
   updateMatch(id: string, data: any) {
     const payload = { ...data };
     delete payload.id;
