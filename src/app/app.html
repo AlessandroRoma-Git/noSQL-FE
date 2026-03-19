@@ -176,6 +176,11 @@
       {{ i18nService.translate('COMMON.HOME') || 'Home' }}
     </a>
 
+    <a [routerLink]="['/app/profile', (authService.userState$ | async)?.username || 'me']" routerLinkActive="active-link" class="nav-link">
+      <i class="fa-solid fa-id-card-clip w-5 text-center"></i>
+      OPERATIVE ID
+    </a>
+
     @for (item of userMenuItems$ | async; track item.id) {
       <a [routerLink]="item.customRoute ? item.customRoute : (item.entityKey?.startsWith('/') ? item.entityKey : ['/records', item.entityKey])" routerLinkActive="active-link" class="nav-link">
         @if (item.icon && item.icon.startsWith('fa-')) {
@@ -236,6 +241,11 @@
       {{ i18nService.translate('COMMON.HOME') || 'Home' }}
     </a>
 
+    <a [routerLink]="['/app/profile', (authService.userState$ | async)?.username || 'me']" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-sm font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all whitespace-nowrap flex items-center gap-2">
+      <i class="fa-solid fa-id-card-clip text-xs"></i>
+      OPERATIVE ID
+    </a>
+
     @for (item of userMenuItems$ | async; track item.id) {
       <a [routerLink]="item.customRoute ? item.customRoute : (item.entityKey?.startsWith('/') ? item.entityKey : ['/records', item.entityKey])" routerLinkActive="bg-white/10 text-[rgb(var(--color-primary))]" class="px-4 py-2 rounded-2xl text-sm font-black uppercase tracking-widest text-gray-400 hover:text-white transition-all whitespace-nowrap flex items-center gap-2">
         @if (item.icon && item.icon.startsWith('fa-')) {
@@ -261,6 +271,10 @@
   <a routerLink="/app" routerLinkActive="text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.1)]" [routerLinkActiveOptions]="{exact: true}" class="flex flex-col items-center justify-center gap-1 text-gray-500 transition-all w-16 h-16 rounded-2xl">
     <i class="fa-solid fa-house text-lg"></i>
     <span class="text-[9px] font-black uppercase tracking-tighter">{{ i18nService.translate('COMMON.HOME') || 'Home' }}</span>
+  </a>
+  <a [routerLink]="['/app/profile', (authService.userState$ | async)?.username || 'me']" routerLinkActive="text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.1)]" class="flex flex-col items-center justify-center gap-1 text-gray-500 transition-all w-16 h-16 rounded-2xl">
+    <i class="fa-solid fa-id-card-clip text-lg"></i>
+    <span class="text-[9px] font-black uppercase tracking-tighter">OPERATIVE ID</span>
   </a>
   @if (isAdmin$ | async) {
     <a routerLink="/dashboard" routerLinkActive="text-[rgb(var(--color-primary))] bg-[rgb(var(--color-primary)/0.1)]" class="flex flex-col items-center justify-center gap-1 text-gray-500 transition-all w-16 h-16 rounded-2xl">

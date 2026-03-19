@@ -172,12 +172,11 @@ export class StoreService {
       else if (state.groups.includes('sponsors')) role = 'sponsor';
       else if (state.groups.includes('players')) role = 'player';
       
-      // Map properties safely from the state (which only has token/username/roles)
       return { 
         id: state.username || 'unknown', 
         name: state.username || 'User', 
         role, 
-        avatar: '', // To be filled from user record if needed
+        avatar: '',
         status: 'active',
         elo: 0 
       } as User;
@@ -213,6 +212,9 @@ export class StoreService {
   }
 
   public loadAllRecords() {
+    this.recordService.searchRecords('user').subscribe(res => {
+      this.users.set((res.content as any[]).map(u => ({ ...u.data, id: u.id })));
+    });
     this.recordService.searchRecords('title').subscribe(res => {
       this.titles.set((res.content as any[]).map(t => {
         let links = [];
@@ -296,50 +298,32 @@ export class StoreService {
              }
            }
         } else {
-           // CALCOLO ROUND E BYE
            const numRounds = Math.ceil(Math.log2(maxTeams));
            const totalSlots = Math.pow(2, numRounds);
-           
            let roundNames = ['Round 1', 'Round of 16', 'Round of 8', 'Quarterfinals', 'Semifinals', 'Grand Final'];
            let roundIdx = 5 - (numRounds - 1);
            if (roundIdx < 0) roundIdx = 0;
-
            let currentTeams = [...virtualTeams];
-           // Riempiamo i buchi con i BYE per arrivare alla potenza di 2
            while(currentTeams.length < totalSlots) {
               currentTeams.push('BYE');
            }
-
            let roundCounter = roundIdx;
            let teamsToProcess = [...currentTeams];
-
            for (let r = 0; r < numRounds; r++) {
               const roundName = roundNames[roundCounter] || `Round ${teamsToProcess.length}`;
               const numMatches = teamsToProcess.length / 2;
               const nextRoundTeams: string[] = [];
-
               for (let m = 0; m < numMatches; m++) {
                  const teamA = teamsToProcess[m * 2];
                  const teamB = teamsToProcess[m * 2 + 1];
-                 
-                 // Se uno dei due è BYE, il match è pre-completato
                  const isByeMatch = teamA === 'BYE' || teamB === 'BYE';
                  const winner = teamA === 'BYE' ? teamB : teamA;
-
                  matches.push({
-                    competitionId: compId,
-                    teamA,
-                    teamB,
-                    scoreA: teamB === 'BYE' ? 1 : 0,
-                    scoreB: teamA === 'BYE' ? 1 : 0,
-                    date: nextTime(),
-                    status: isByeMatch ? 'completed' : 'scheduled',
-                    confirmedByA: isByeMatch,
-                    confirmedByB: isByeMatch,
-                    round: roundName
+                    competitionId: compId, teamA, teamB,
+                    scoreA: teamB === 'BYE' ? 1 : 0, scoreB: teamA === 'BYE' ? 1 : 0,
+                    date: nextTime(), status: isByeMatch ? 'completed' : 'scheduled',
+                    confirmedByA: isByeMatch, confirmedByB: isByeMatch, round: roundName
                  });
-                 
-                 // Prepariamo i team per il prossimo round
                  if (r < numRounds - 1) {
                     if (isByeMatch) nextRoundTeams.push(winner);
                     else nextRoundTeams.push('TBD');
@@ -390,6 +374,20 @@ export class StoreService {
     if (!user) return;
     this.recordService.createRecord('team', { data: { name, description, logo, founded: new Date().getFullYear().toString(), wins: 0, losses: 0, captainId: user.id, members: JSON.stringify([user.name]) } }).subscribe(() => this.loadAllRecords());
   }
+  addMemberToTeam(teamId: string, memberName: string) {
+    const team = this.teams().find(t => t.id === teamId);
+    if (!team) return;
+    const currentMembers = team.members || [];
+    if (currentMembers.includes(memberName)) return;
+    const newMembers = [...currentMembers, memberName];
+    this.recordService.updateRecord('team', teamId, { data: { members: JSON.stringify(newMembers) } }).subscribe(() => this.loadAllRecords());
+  }
+  removeMemberFromTeam(teamId: string, memberName: string) {
+    const team = this.teams().find(t => t.id === teamId);
+    if (!team) return;
+    const newMembers = (team.members || []).filter(m => m !== memberName);
+    this.recordService.updateRecord('team', teamId, { data: { members: JSON.stringify(newMembers) } }).subscribe(() => this.loadAllRecords());
+  }
   updateMatch(id: string, data: any) {
     const payload = { ...data };
     delete payload.id;
@@ -397,6 +395,21 @@ export class StoreService {
   }
   deleteMatch(id: string) { this.recordService.deleteRecord('match', id).subscribe(() => this.loadAllRecords()); }
   deleteTitle(id: string) { this.recordService.deleteRecord('title', id).subscribe(() => this.loadAllRecords()); }
+  updateTitle(id: string, data: any) {
+    const payload = { ...data };
+    delete payload.id;
+    this.recordService.updateRecord('title', id, { data: { ...payload, downloadLinks: JSON.stringify(payload.downloadLinks || []) } }).subscribe(() => this.loadAllRecords());
+  }
+  deleteCompetition(id: string) { this.recordService.deleteRecord('competition', id).subscribe(() => this.loadAllRecords()); }
+  addNews(title: string, date: string, excerpt: string, image: string) {
+    this.recordService.createRecord('news', { data: { title, date, excerpt, image } }).subscribe(() => this.loadAllRecords());
+  }
+  updateNews(id: string, data: any) {
+    const payload = { ...data };
+    delete payload.id;
+    this.recordService.updateRecord('news', id, { data: payload }).subscribe(() => this.loadAllRecords());
+  }
+  deleteNews(id: string) { this.recordService.deleteRecord('news', id).subscribe(() => this.loadAllRecords()); }
   addSponsor(name: string, description: string, logo: string, siteUrl: string) {
     this.recordService.createRecord('sponsor', { data: { name, description, logo, siteUrl } }).subscribe(() => this.loadAllRecords());
   }
@@ -414,7 +427,6 @@ export class StoreService {
   }
   assignCaster(id: string) { this.recordService.updateRecord('match', id, { data: { casterId: this.currentUser()?.id } }).subscribe(() => this.loadAllRecords()); }
   
-  // Helpers
   getCompetitionById(id: string) { return computed(() => this.competitions().find(c => c.id === id)); }
   getTitleById(id: string) { return computed(() => this.titles().find(t => t.id === id)); }
   getTeamById(id: string) { return computed(() => this.teams().find(t => t.id === id)); }

@@ -210,7 +210,12 @@ export class ProfileComponent {
   route: ActivatedRoute = inject(ActivatedRoute);
   store = inject(StoreService);
 
-  userId = computed(() => this.route.snapshot.paramMap.get('id') || '');
+  userId = computed(() => {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id === 'me') return this.store.currentUser()?.id || '';
+    return id || '';
+  });
+
   user = computed(() => this.store.getUserById(this.userId())());
   reviews = computed(() => this.store.getReviewsByCasterId(this.userId())());
 
