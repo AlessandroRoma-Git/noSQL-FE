@@ -62,9 +62,12 @@ export class App implements OnInit {
 
     this.isAppArea$ = this.router.events.pipe(
       filter(event => event instanceof NavigationEnd),
-      map(event => (event as NavigationEnd).urlAfterRedirects.startsWith('/app')),
-      // Initial value
-      map(isApp => isApp || this.router.url.startsWith('/app'))
+      map(event => {
+        const url = (event as NavigationEnd).urlAfterRedirects;
+        return url.startsWith('/app') || url.startsWith('/login') || url.startsWith('/change-password');
+      }),
+      // Initial value check
+      map(isApp => isApp || this.router.url.startsWith('/app') || this.router.url.startsWith('/login') || this.router.url.startsWith('/change-password'))
     );
 
     // Se l'utente clicca su un link da cellulare, chiudiamo automaticamente il menu
