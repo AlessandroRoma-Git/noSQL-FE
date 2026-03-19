@@ -15,18 +15,18 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
       <!-- Dashboard Header -->
       <div class="flex flex-col md:flex-row justify-between items-start md:items-end mb-12 gap-6 pt-10">
         <div class="space-y-1">
-          <h1 class="text-5xl font-black gaming-font text-white tracking-tighter">
+          <h1 class="text-5xl font-black gaming-font text-white tracking-tighter uppercase">
             DASHBOARD
           </h1>
           <div class="flex items-center gap-3">
             <div class="w-2 h-2 rounded-full bg-[rgb(var(--color-primary))] animate-pulse"></div>
-            <p class="text-gray-500 font-bold uppercase tracking-[0.2em] text-[10px]">Welcome back, <span class="text-white">{{ store.currentUser()?.name }}</span></p>
+            <p class="text-gray-500 font-bold uppercase tracking-[0.2em] text-[10px]">Active Session: <span class="text-white">{{ store.currentUser()?.name }}</span></p>
           </div>
         </div>
         
         <div class="px-6 py-3 bg-white/5 rounded-2xl border border-white/10 backdrop-blur-xl flex items-center gap-4 group">
            <div class="flex flex-col items-end">
-              <span class="text-[9px] text-gray-500 font-black uppercase tracking-widest leading-none">Security Level</span>
+              <span class="text-[9px] text-gray-500 font-black uppercase tracking-widest leading-none">Access Level</span>
               <span class="text-xs text-cyan-400 font-black uppercase tracking-tighter">{{ store.currentUser()?.role }}</span>
            </div>
            <div class="w-10 h-10 rounded-xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center border border-cyan-500/20 shadow-inner group-hover:bg-cyan-500 group-hover:text-black transition-all">
@@ -145,15 +145,19 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
                             <tr>
                                <th class="px-6 py-4">Nome Torneo</th>
                                <th class="px-6 py-4">Titolo</th>
+                               <th class="px-6 py-4 text-center">Iscritti</th>
                                <th class="px-6 py-4">Stato</th>
                                <th class="px-6 py-4 text-right">Azioni</th>
                             </tr>
                          </thead>
                          <tbody class="divide-y divide-white/5">
                             @for (comp of store.competitions(); track comp.id) {
-                               <tr class="group hover:bg-white/[0.03] transition-colors">
+                               <tr class="hover:bg-white/[0.03] transition-colors group">
                                   <td class="px-6 py-6 font-black text-white text-sm uppercase tracking-tight">{{ comp.name }}</td>
                                   <td class="px-6 py-6 text-sm text-gray-400 font-bold uppercase tracking-widest">{{ getTitleName(comp.titleId) }}</td>
+                                  <td class="px-6 py-6 text-center">
+                                     <span class="px-3 py-1 rounded-lg bg-white/5 text-white font-mono text-xs">{{ comp.registeredTeams?.length || 0 }}</span>
+                                  </td>
                                   <td class="px-6 py-6">
                                      <span [class]="getStatusColor(comp.status)" class="px-3 py-1.5 rounded-xl text-[9px] font-black uppercase border tracking-tighter">
                                         {{ comp.status }}
@@ -161,10 +165,26 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
                                   </td>
                                   <td class="px-6 py-6 text-right">
                                      <div class="flex justify-end gap-2">
-                                        <button (click)="editCompetition(comp)" class="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500 hover:text-black transition-all">
+                                        @if (comp.status === 'upcoming' || comp.status === 'draft') {
+                                           <button 
+                                              (click)="store.generateMatches(comp.id)" 
+                                              [disabled]="store.isGeneratingMatches() === comp.id"
+                                              class="p-2 rounded-lg bg-purple-500/10 text-purple-400 hover:bg-purple-500 hover:text-white transition-all disabled:opacity-50 disabled:cursor-wait" 
+                                              title="Genera Calendario (anche con TBD)">
+                                              @if (store.isGeneratingMatches() === comp.id) {
+                                                 <i class="fa-solid fa-circle-notch animate-spin text-xs"></i>
+                                              } @else {
+                                                 <i class="fa-solid fa-wand-sparkles text-xs"></i>
+                                              }
+                                           </button>
+                                        }
+                                        <a [routerLink]="['/app/competitions', comp.id]" class="p-2 rounded-lg bg-white/5 text-white hover:bg-white/10 transition-colors" title="Visualizza">
+                                           <i class="fa-solid fa-eye text-xs"></i>
+                                        </a>
+                                        <button (click)="editCompetition(comp)" class="p-2 rounded-lg bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500 hover:text-black transition-all" title="Modifica">
                                            <i class="fa-solid fa-pen-to-square text-xs"></i>
                                         </button>
-                                        <button (click)="deleteCompetition(comp.id)" class="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all">
+                                        <button (click)="deleteCompetition(comp.id)" class="p-2 rounded-lg bg-red-500/10 text-red-500 hover:bg-red-500 hover:text-white transition-all" title="Elimina">
                                            <i class="fa-solid fa-trash-can text-xs"></i>
                                         </button>
                                      </div>
@@ -280,10 +300,10 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
              </div>
           }
 
-          <!-- COMPETITION MODAL (Linear Rows) -->
+          <!-- COMPETITION MODAL -->
           @if (showCompModal()) {
-             <div class="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/90 backdrop-blur-md animate-soft-in">
-                <div class="card-soft w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar relative border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)]">
+             <div class="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-6 bg-black/90 backdrop-blur-md animate-soft-in">
+                <div class="card-soft w-full max-w-4xl h-full md:h-auto max-h-[95vh] overflow-y-auto custom-scrollbar relative border-white/10 shadow-[0_0_100px_rgba(0,0,0,0.5)]">
                    
                    <div class="sticky top-0 z-50 bg-[#0f0f14]/80 backdrop-blur-xl border-b border-white/5 p-8 flex justify-between items-center">
                       <div class="flex items-center gap-4">
@@ -300,7 +320,6 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
                    </div>
                    
                    <div class="p-8 md:p-12 space-y-16">
-                      <!-- Riga 1: Nome e Titolo -->
                       <div class="space-y-10">
                          <div class="group">
                             <label class="label text-[10px] uppercase font-black tracking-widest flex items-center gap-2 mb-4 text-cyan-400">
@@ -316,44 +335,79 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
                             <div class="relative">
                                <select [(ngModel)]="newCompTitleId" class="input h-20 appearance-none font-black text-xl !pl-8 bg-white/[0.07] border-none shadow-2xl">
                                   <option value="" disabled>-- Scegli il gioco dal catalogo --</option>
-                                  <option *ngFor="let t of store.titles()" [value]="t.id">{{ t.name }}</option>
+                                  @for (t of store.titles(); track t.id) {
+                                     <option [value]="t.id">{{ t.name }}</option>
+                                  }
                                </select>
                                <i class="fa-solid fa-chevron-down absolute right-8 top-1/2 -translate-y-1/2 text-cyan-500 text-xl pointer-events-none"></i>
                             </div>
                          </div>
                       </div>
 
-                      <!-- Riga 2: Visual -->
                       <div class="space-y-6 pt-10 border-t border-white/5 text-center">
                          <label class="label text-[10px] uppercase font-black tracking-widest text-cyan-400 mb-6">Copertina del Torneo (16:9)</label>
                          <app-image-picker [ngModel]="newCompImage" (ngModelChange)="newCompImage = $event"></app-image-picker>
                       </div>
 
-                      <!-- Riga 3: Dettagli -->
-                      <div class="grid grid-cols-1 md:grid-cols-2 gap-12 pt-10 border-t border-white/5">
-                         <div>
-                            <label class="label text-[10px] uppercase font-black tracking-widest mb-4">Montepremi</label>
-                            <div class="relative">
-                               <i class="fa-solid fa-sack-dollar absolute left-6 top-1/2 -translate-y-1/2 text-green-500 text-xl"></i>
-                               <input type="text" [(ngModel)]="newCompPrize" placeholder="$ 0.00" class="input h-16 !pl-16 text-2xl font-black text-green-400">
+                      <div class="space-y-12 pt-10 border-t border-white/5">
+                         <label class="label text-xs uppercase font-black tracking-widest text-cyan-400 mb-8 block">Configurazione Match & Player</label>
+                         <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                            <div class="space-y-8">
+                               <div>
+                                  <label class="label text-[10px] uppercase font-black tracking-widest mb-4">Montepremi</label>
+                                  <div class="relative">
+                                     <i class="fa-solid fa-sack-dollar absolute left-6 top-1/2 -translate-y-1/2 text-green-500 text-xl"></i>
+                                     <input type="text" [(ngModel)]="newCompPrize" placeholder="$ 0.00" class="input h-16 !pl-16 text-2xl font-black text-green-400">
+                                  </div>
+                               </div>
+                               <div>
+                                  <label class="label text-[10px] uppercase font-black tracking-widest mb-4">Formato</label>
+                                  <select [(ngModel)]="newCompFormat" class="input h-16 font-black uppercase text-sm">
+                                     <option value="single_elimination">Eliminazione Diretta</option>
+                                     <option value="double_elimination">Doppia Eliminazione</option>
+                                     <option value="round_robin">Round Robin (Girone)</option>
+                                     <option value="swiss">Swiss System</option>
+                                  </select>
+                               </div>
+                               @if (newCompFormat === 'round_robin') {
+                                  <div class="animate-soft-in">
+                                     <label class="label text-[10px] uppercase font-black tracking-widest mb-4 text-fuchsia-400">Tipo Girone</label>
+                                     <select [(ngModel)]="newCompRoundRobinType" class="input h-16 font-bold">
+                                        <option value="single">Sola Andata</option>
+                                        <option value="double">Andata e Ritorno</option>
+                                     </select>
+                                  </div>
+                               }
                             </div>
-                         </div>
-                         <div>
-                            <label class="label text-[10px] uppercase font-black tracking-widest mb-4">Formato</label>
-                            <select [(ngModel)]="newCompFormat" class="input h-16 font-black uppercase text-sm">
-                               <option value="single_elimination">Eliminazione Diretta</option>
-                               <option value="double_elimination">Doppia Eliminazione</option>
-                               <option value="round_robin">Round Robin (Girone)</option>
-                               <option value="swiss">Swiss System</option>
-                            </select>
+                            <div class="space-y-8 bg-white/[0.02] p-8 rounded-[2rem] border border-white/5">
+                               <div class="grid grid-cols-2 gap-6">
+                                  <div>
+                                     <label class="label text-[9px] uppercase font-black mb-3">Best Of (Match)</label>
+                                     <input type="number" [(ngModel)]="newCompRules" class="input h-14 font-mono text-center text-lg">
+                                  </div>
+                                  <div>
+                                     <label class="label text-[9px] uppercase font-black mb-3">Max Team</label>
+                                     <input type="number" [(ngModel)]="newCompMaxTeams" class="input h-14 font-mono text-center text-lg">
+                                  </div>
+                               </div>
+                               <div class="grid grid-cols-2 gap-6 pt-4 border-t border-white/5">
+                                  <div>
+                                     <label class="label text-[9px] uppercase font-black mb-3">Min Player/Team</label>
+                                     <input type="number" [(ngModel)]="newCompMinPlayers" class="input h-14 font-mono text-center text-lg">
+                                  </div>
+                                  <div>
+                                     <label class="label text-[9px] uppercase font-black mb-3">Max Player/Team</label>
+                                     <input type="number" [(ngModel)]="newCompMaxPlayers" class="input h-14 font-mono text-center text-lg">
+                                  </div>
+                               </div>
+                            </div>
                          </div>
                       </div>
 
-                      <!-- Riga 4: Calendario -->
                       <div class="space-y-12 pt-10 border-t border-white/5">
                          <div>
-                            <label class="label text-[10px] uppercase font-black tracking-widest mb-6 text-orange-400">Scheduling</label>
-                            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                            <label class="label text-[10px] uppercase font-black tracking-widest mb-6 text-orange-400">Scheduling Avanzato</label>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
                                <div class="space-y-2">
                                   <span class="text-[9px] font-black text-gray-600 uppercase ml-2">DATA INIZIO</span>
                                   <input type="date" [(ngModel)]="newCompStartDate" class="input h-14 font-mono">
@@ -363,23 +417,34 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
                                   <input type="date" [(ngModel)]="newCompEndDate" class="input h-14 font-mono">
                                </div>
                                <div class="space-y-2">
-                                  <span class="text-[9px] font-black text-gray-600 uppercase ml-2">ORARIO MATCH</span>
+                                  <span class="text-[9px] font-black text-gray-600 uppercase ml-2">ORARIO INIZIO MATCH</span>
                                   <input type="time" [(ngModel)]="newCompStartTime" class="input h-14 font-mono text-center">
                                </div>
                             </div>
-                         </div>
-
-                         <div>
-                            <label class="label text-[10px] uppercase font-black tracking-widest mb-6">Attività Settimanale</label>
-                            <div class="flex flex-wrap gap-3">
-                               @for (day of daysOfWeek; track $index) {
-                                  <button (click)="toggleDay($index)"
-                                     [class.bg-cyan-500]="newCompPlayDays.includes($index)"
-                                     [class.text-black]="newCompPlayDays.includes($index)"
-                                     class="flex-1 min-w-[80px] h-16 rounded-[1.5rem] text-[10px] font-black uppercase transition-all border border-white/10">
-                                     {{ day }}
-                                  </button>
-                               }
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+                               <div>
+                                  <label class="label text-[10px] uppercase font-black tracking-widest mb-6">Attività Settimanale</label>
+                                  <div class="flex flex-wrap gap-3">
+                                     @for (day of daysOfWeek; track $index) {
+                                        <button (click)="toggleDay($index)"
+                                           [class.bg-cyan-500]="newCompPlayDays.includes($index)"
+                                           [class.text-black]="newCompPlayDays.includes($index)"
+                                           class="w-14 h-14 rounded-2xl text-[10px] font-black uppercase transition-all border border-white/10">
+                                           {{ day }}
+                                        </button>
+                                     }
+                                  </div>
+                               </div>
+                               <div class="grid grid-cols-2 gap-6">
+                                  <div>
+                                     <label class="label text-[9px] uppercase font-black mb-3">Match/Giorno</label>
+                                     <input type="number" [(ngModel)]="newCompMatchesPerDay" class="input h-14 font-mono text-center">
+                                  </div>
+                                  <div>
+                                     <label class="label text-[9px] uppercase font-black mb-3">Durata (Min)</label>
+                                     <input type="number" [(ngModel)]="newCompRoundDuration" class="input h-14 font-mono text-center">
+                                  </div>
+                               </div>
                             </div>
                          </div>
                       </div>
@@ -396,10 +461,10 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
              </div>
           }
 
-          <!-- TITLE MODAL (Linear Rows) -->
+          <!-- TITLE MODAL -->
           @if (showTitleModal()) {
-             <div class="fixed inset-0 z-[200] flex items-center justify-center p-6 bg-black/95 backdrop-blur-md animate-soft-in">
-                <div class="card-soft w-full max-w-3xl overflow-hidden shadow-2xl border-white/10">
+             <div class="fixed inset-0 z-[200] flex items-center justify-center p-4 md:p-6 bg-black/95 backdrop-blur-md animate-soft-in">
+                <div class="card-soft w-full max-w-3xl h-full md:h-auto max-h-[95vh] overflow-y-auto custom-scrollbar relative border-white/10 shadow-2xl">
                    <div class="p-8 md:p-12 space-y-12">
                       <div class="flex justify-between items-center mb-6">
                          <h3 class="text-3xl font-black text-white uppercase tracking-tighter gaming-font leading-none border-l-4 border-fuchsia-500 pl-6">
@@ -407,14 +472,10 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
                          </h3>
                          <button (click)="closeTitleModal()" class="text-gray-600 hover:text-white transition-colors"><i class="fa-solid fa-xmark text-2xl"></i></button>
                       </div>
-
-                      <!-- Visual -->
                       <div class="space-y-4">
                          <label class="label text-[10px] uppercase font-black tracking-widest text-fuchsia-400 text-center block">Cover Art</label>
                          <app-image-picker [ngModel]="newTitleImage" (ngModelChange)="newTitleImage = $event"></app-image-picker>
                       </div>
-
-                      <!-- Info -->
                       <div class="space-y-8 pt-10 border-t border-white/5">
                          <div class="group">
                             <label class="label text-[10px] uppercase font-black mb-3">Nome del Gioco</label>
@@ -425,13 +486,10 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
                             <input type="text" [(ngModel)]="newTitlePublisher" placeholder="Es. Riot Games" class="input h-16 text-lg font-bold">
                          </div>
                       </div>
-
-                      <!-- Descrizione -->
                       <div class="space-y-4 pt-10 border-t border-white/5">
                          <label class="label text-[10px] uppercase font-black tracking-widest">Descrizione & Bio</label>
                          <textarea [(ngModel)]="newTitleDesc" rows="5" class="input p-6 text-sm leading-relaxed" placeholder="Scrivi una breve presentazione del titolo..."></textarea>
                       </div>
-
                       <div class="flex justify-end gap-4 pt-10 border-t border-white/5">
                          <button (click)="closeTitleModal()" class="button-secondary h-14 px-10 font-black text-xs uppercase tracking-widest">Annulla</button>
                          <button (click)="createTitle()" class="button-primary h-14 px-16 font-black text-sm uppercase tracking-widest !bg-fuchsia-600 !text-white shadow-[0_0_30px_rgba(192,38,211,0.2)]">AGGIUNGI TITOLO</button>
@@ -465,7 +523,6 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
                     }
                  </div>
               </div>
-
               <div>
                  <h2 class="text-2xl font-black text-white mb-8 pl-4 border-l-4 border-red-500 gaming-font uppercase tracking-tighter">Reports</h2>
                  <div class="card-soft p-10 text-center bg-gradient-to-b from-red-500/5 to-transparent">
@@ -484,7 +541,6 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
             <div class="lg:col-span-1 space-y-8">
                <div class="card-soft p-10 text-center relative overflow-hidden group border-white/10">
                   <div class="absolute inset-0 bg-gradient-to-b from-cyan-500/10 via-transparent to-black/40"></div>
-                  
                   <div class="relative z-10">
                     <div class="relative w-32 h-32 mx-auto mb-8">
                        <img [src]="store.currentUser()?.avatar" class="w-full h-full rounded-[2.5rem] border-4 border-white/10 object-cover shadow-2xl group-hover:scale-105 transition-transform duration-700">
@@ -492,21 +548,18 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
                           <i class="fa-solid fa-bolt"></i>
                        </div>
                     </div>
-                    
                     <h2 class="text-4xl font-black text-white mb-2 tracking-tighter gaming-font uppercase">{{ store.currentUser()?.name }}</h2>
                     <p class="text-cyan-400 text-[10px] font-black uppercase tracking-[0.25em] mb-10">Team: <span class="text-white">{{ getMyTeamName() || 'No Team' }}</span></p>
-                    
                     <div class="grid grid-cols-2 gap-4 mb-10">
                       <div class="bg-black/40 rounded-2xl p-4 border border-white/5 shadow-inner">
-                        <div class="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-1">ELO Rating</div>
+                        <div class="text-[9px] text-gray-500 uppercase tracking-widest font-black mb-1">ELO Rating</div>
                         <div class="text-3xl font-black text-white gaming-font">{{ store.currentUser()?.elo }}</div>
                       </div>
                       <div class="bg-black/40 rounded-2xl p-4 border border-white/5 shadow-inner">
-                        <div class="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-1">Winrate</div>
+                        <div class="text-[9px] text-gray-500 uppercase tracking-widest font-black mb-1">Winrate</div>
                         <div class="text-3xl font-black text-green-400 gaming-font">68%</div>
                       </div>
                     </div>
-                    
                     @if(store.currentUser()?.teamId) {
                       <button [routerLink]="['/app/teams', store.currentUser()?.teamId]" class="button-primary w-full h-14 !bg-white !text-black shadow-[0_0_30px_rgba(255,255,255,0.1)]">TEAM PROFILE</button>
                     } @else {
@@ -514,7 +567,6 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
                     }
                   </div>
                </div>
-
                <!-- RECRUITMENT -->
                @if (store.myTeamRequests().length > 0) {
                    <div class="card-soft p-8 border-yellow-500/20 bg-gradient-to-br from-yellow-500/5 to-transparent">
@@ -542,14 +594,12 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
                    </div>
                }
             </div>
-
             <!-- Matches Section -->
             <div class="lg:col-span-2 space-y-10">
                <div class="flex items-center gap-4">
                   <div class="w-1 h-8 bg-cyan-500 rounded-full"></div>
                   <h3 class="text-2xl font-black text-white uppercase tracking-tighter gaming-font">Upcoming Matches</h3>
                </div>
-               
                @if (store.myMatches().length === 0) {
                  <div class="p-20 rounded-[3rem] border-2 border-dashed border-white/5 text-center flex flex-col items-center">
                    <div class="w-20 h-20 rounded-[2.5rem] bg-white/5 flex items-center justify-center text-3xl text-gray-700 mb-6 shadow-inner">
@@ -558,7 +608,6 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
                    <p class="text-gray-500 font-black uppercase tracking-[0.2em] text-xs">No matches scheduled at the moment.</p>
                  </div>
                }
-
                <div class="grid grid-cols-1 gap-6">
                   @for (match of store.myMatches(); track match.id) {
                     <div class="card-soft p-10 flex flex-col gap-10 group hover:border-cyan-500/30 transition-all border-white/5">
@@ -567,7 +616,6 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
                             <span class="text-[10px] text-gray-500 font-black uppercase tracking-widest mb-1">Nov</span>
                             <span class="text-4xl font-black text-white gaming-font leading-none uppercase">20</span>
                           </div>
-                          
                           <div class="flex flex-col md:flex-row items-center gap-8 flex-grow justify-center py-4 px-10 bg-black/40 rounded-[3rem] border border-white/5">
                              <div class="text-center md:text-right flex-1">
                                 <span class="font-black text-2xl uppercase tracking-tighter transition-all" [class.text-cyan-400]="match.teamA === getMyTeamName()" [class.text-white]="match.teamA !== getMyTeamName()">{{ match.teamA }}</span>
@@ -581,7 +629,6 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
                              </div>
                           </div>
                        </div>
-
                        @if (match.status === 'scheduled' || match.status === 'live') {
                           <div class="w-full bg-cyan-500/5 p-8 rounded-[2.5rem] border border-cyan-500/10 flex flex-col md:flex-row items-center justify-between gap-8 animate-soft-in">
                               <div class="flex items-center gap-4">
@@ -593,7 +640,6 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
                                     <span class="text-xs text-white font-black uppercase tracking-tight">Report Match Results</span>
                                  </div>
                               </div>
-                              
                               @if (!isConfirmed(match)) {
                                  <div class="flex items-center gap-6">
                                    <div class="flex items-center gap-3">
@@ -642,13 +688,11 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
                        <span class="text-[9px] text-gray-600 font-black uppercase tracking-widest">Rating</span>
                     </div>
                  </div>
-                 
                  <div class="space-y-4">
                     <div class="p-6 bg-black/40 rounded-3xl border border-white/5 shadow-inner">
                         <div class="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-2">Total Casts</div>
                         <div class="text-4xl font-black text-white gaming-font leading-none uppercase">124</div>
                     </div>
-                    
                     <div class="pt-4">
                        <div class="text-[9px] text-gray-500 uppercase font-black tracking-widest mb-4 px-1">Badges</div>
                        <div class="flex flex-wrap gap-2">
@@ -658,13 +702,11 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
                     </div>
                  </div>
               </div>
-
               <div class="lg:col-span-2 space-y-8">
                  <div class="flex items-center gap-4">
                     <div class="w-1 h-8 bg-fuchsia-500 rounded-full"></div>
                     <h3 class="text-2xl font-black text-white uppercase tracking-tighter gaming-font">Open Casting Slots</h3>
                  </div>
-                 
                  <div class="space-y-4">
                     @for (match of store.availableCasts(); track match.id) {
                        <div class="card-soft p-8 flex flex-col sm:flex-row justify-between items-center gap-8 hover:border-fuchsia-500/30 transition-all group">
@@ -851,6 +893,15 @@ export class DashboardComponent {
       this.selectedTeams = comp.registeredTeams || [];
       
       this.showCompModal.set(true);
+  }
+
+  // --- Match Action ---
+  tryGenerateMatches(comp: Competition) {
+      if (!comp.registeredTeams || comp.registeredTeams.length < 2) {
+          this.store.addNotification(`Team insufficienti (${comp.registeredTeams?.length || 0}/2). Iscrivi più team prima di generare.`, 'warning');
+          return;
+      }
+      this.store.generateMatches(comp.id);
   }
 
   // --- Player Match Logic ---

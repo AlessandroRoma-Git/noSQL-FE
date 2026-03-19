@@ -1,6 +1,6 @@
 import { Component, inject, computed, signal } from '@angular/core';
 import { CommonModule, NgOptimizedImage } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { StoreService, User } from '../services/store.service';
 import { FormsModule } from '@angular/forms';
 import { ImagePickerComponent } from 'app/common/components/image-picker/image-picker.component';
@@ -8,7 +8,7 @@ import { ImagePickerComponent } from 'app/common/components/image-picker/image-p
 @Component({
   selector: 'app-profile',
   standalone: true,
-  imports: [CommonModule, FormsModule, ImagePickerComponent, RouterLink],
+  imports: [CommonModule, FormsModule, ImagePickerComponent],
   template: `
     @if (user(); as u) {
       <div class="min-h-screen pb-20">
