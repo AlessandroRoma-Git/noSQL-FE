@@ -8,10 +8,10 @@ import { ImagePickerComponent } from '../../../../common/components/image-picker
 @Component({
   selector: 'app-dashboard',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, ImagePickerComponent],
+  imports: [CommonModule, FormsModule, ImagePickerComponent],
   template: `
     <div class="min-h-screen bg-[#050505] text-white p-6 md:p-12 space-y-12 animate-soft-in">
-      
+
       <!-- HERO HEADER -->
       <header class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-8 pt-6">
         <div class="space-y-4 text-center md:text-left">
@@ -21,7 +21,7 @@ import { ImagePickerComponent } from '../../../../common/components/image-picker
           </div>
           <h1 class="text-6xl md:text-8xl font-black gaming-font leading-none uppercase tracking-tighter italic text-white text-left">Dashboard</h1>
         </div>
-        
+
         <div class="flex bg-white/5 p-1.5 rounded-full border border-white/5 backdrop-blur-xl shrink-0 shadow-2xl overflow-x-auto no-scrollbar max-w-full text-left font-black">
           <button (click)="activeTab.set('overview')" [class]="getTabClass('overview')">Overview</button>
           <button (click)="activeTab.set('titles')" [class]="getTabClass('titles')">Game Titles</button>
@@ -32,7 +32,7 @@ import { ImagePickerComponent } from '../../../../common/components/image-picker
       </header>
 
       <div class="max-w-7xl mx-auto">
-        
+
         <!-- SECTION: OVERVIEW -->
         @if (activeTab() === 'overview') {
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 animate-soft-in italic font-black">
@@ -294,11 +294,11 @@ export class DashboardComponent {
   // Arena State
   showArenaModal = signal(false);
   editingArenaId: string | null = null;
-  arenaForm: any = { 
-    name: '', titleId: '', prizePool: '', format: 'single_elimination', 
+  arenaForm: any = {
+    name: '', titleId: '', prizePool: '', format: 'single_elimination',
     maxTeams: 8, image: '', startDate: '', endDate: '', startTime: '20:00',
     matchesPerDay: 4, roundDuration: 60, matchRules: 3, description: '',
-    playDays: [1,2,3,4,5], rules: [] 
+    playDays: [1,2,3,4,5], rules: []
   };
 
   // Sponsor State
