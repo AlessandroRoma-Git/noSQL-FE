@@ -211,7 +211,7 @@ export class EntityDefinitionEditorComponent implements OnInit, OnDestroy {
     const operation = this.isEditMode && this.entityKey
       ? this.entityDefinitionService.updateEntityDefinition(this.entityKey, formValue)
       : this.entityDefinitionService.createEntityDefinition(formValue);
-    operation.subscribe(() => this.router.navigate(['/entity-definitions']));
+    operation.subscribe(() => this.router.navigate(['/configurator/entity-definitions']));
   }
 
   showUsage(): void {

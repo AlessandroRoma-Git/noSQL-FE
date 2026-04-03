@@ -13,7 +13,7 @@ export const roleGuard: CanActivateFn = (_route, _state) => {
       if (roles && (roles.includes('ADMIN') || roles.includes('SUPER_ADMIN'))) {
         return true; // User has required role
       } else {
-        router.navigate(['/dashboard']); // Redirect to a safe page
+        router.navigate(['/consumer-app']); // Redirect to consumer-app
         return false;
       }
     })

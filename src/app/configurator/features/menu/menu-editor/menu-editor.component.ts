@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { forkJoin } from 'rxjs';
-import { MenuService } from 'app/configurator/services/menu.service';
+import { MenuService } from 'app/common/services/menu.service';
 import { GroupService } from 'app/configurator/services/group.service';
 import { EntityDefinitionService } from 'app/configurator/services/entity-definition.service';
 import { Group } from 'app/configurator/models/group.model';
@@ -119,6 +119,6 @@ export class MenuEditorComponent implements OnInit {
       ? this.menuService.updateMenuItem(this.itemId, payload)
       : this.menuService.createMenuItem(payload);
 
-    operation.subscribe(() => this.router.navigate(['/menu']));
+    operation.subscribe(() => this.router.navigate(['/configurator/menu']));
   }
 }

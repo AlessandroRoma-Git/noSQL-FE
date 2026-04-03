@@ -122,7 +122,7 @@
     @case ('JSON') {
       <div class="card-soft p-8 space-y-6">
         <h2 class="text-sm font-black uppercase tracking-widest text-[rgb(var(--color-primary))] opacity-70 mb-4">JSON Configuration</h2>
-        <textarea [formControl]="jsonContentControl" class="w-full h-[500px] bg-black/20 text-green-400 font-mono text-xs p-6 rounded-3xl border border-white/5 focus:ring-1 focus:ring-green-500 outline-none resize-none custom-scrollbar"></textarea>
+        <textarea [formControl]="jsonContentControl" class="w-full h-[500px] bg-black/20 text-primary font-mono text-xs p-6 rounded-3xl border border-white/5 focus:ring-1 focus:ring-primary outline-none resize-none custom-scrollbar"></textarea>
         @if (jsonError) {
           <div class="text-red-500 text-xs font-bold uppercase tracking-widest">{{ jsonError }}</div>
         }

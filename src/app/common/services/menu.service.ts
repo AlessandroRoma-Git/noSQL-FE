@@ -4,6 +4,7 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { MenuItem, CreateMenuItemRequest, UpdateMenuItemRequest } from 'app/common/models/menu-item.model';
+import { AuthService } from './auth.service';
 
 /**
  * @class MenuService
@@ -18,6 +19,7 @@ export class MenuService {
   private readonly manageApiUrl = environment.apiUrl + '/menu/manage';
   private readonly publicApiUrl = environment.apiUrl + '/menu';
   private http = inject(HttpClient);
+  private authService = inject(AuthService);
 
   private menuItemsSubject = new BehaviorSubject<MenuItem[]>([]);
   private userMenuItemsSubject = new BehaviorSubject<MenuItem[]>([]);
@@ -31,6 +33,16 @@ export class MenuService {
    * Observable stream of the list of menu items for the current user.
    */
   public userMenuItems$: Observable<MenuItem[]> = this.userMenuItemsSubject.asObservable();
+
+  constructor() {
+    this.authService.userState$.subscribe(state => {
+      if (state?.token && !state?.firstAccess) {
+        this.loadUserMenu().subscribe();
+      } else {
+        this.userMenuItemsSubject.next([]);
+      }
+    });
+  }
 
   /**
    * Fetches the list of menu items for the current user and updates `userMenuItems$`.

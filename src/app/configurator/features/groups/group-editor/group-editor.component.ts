@@ -61,7 +61,7 @@ export class GroupEditorComponent implements OnInit {
       : this.groupService.createGroup(request);
 
     saveOperation.subscribe(() => {
-      this.router.navigate(['/groups']);
+      this.router.navigate(['/configurator/groups']);
     });
   }
 }

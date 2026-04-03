@@ -233,7 +233,7 @@
 
   @if (activeTab === 'JSON') {
     <div class="card-soft p-8 space-y-6">
-      <textarea [formControl]="jsonContentControl" class="w-full h-[600px] bg-black/20 text-green-400 font-mono text-xs p-6 rounded-3xl border border-white/5 focus:ring-1 focus:ring-green-500 outline-none resize-none custom-scrollbar"></textarea>
+      <textarea [formControl]="jsonContentControl" class="w-full h-[600px] bg-black/20 text-primary font-mono text-xs p-6 rounded-3xl border border-white/5 focus:ring-1 focus:ring-primary outline-none resize-none custom-scrollbar"></textarea>
       @if (jsonError) { <p class="text-red-500 text-sm font-bold">{{ jsonError }}</p> }
       <div class="flex justify-end">
         <button (click)="onSubmit()" [disabled]="!!jsonError" class="button-primary px-12">{{ i18nService.translate('ENTITIES.SAVE_JSON') }}</button>

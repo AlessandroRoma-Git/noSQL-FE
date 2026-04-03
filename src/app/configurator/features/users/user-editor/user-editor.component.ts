@@ -84,6 +84,6 @@ export class UserEditorComponent implements OnInit {
       ? this.userService.updateUser(this.userId, payload)
       : this.userService.createUser(payload);
 
-    operation.subscribe(() => this.router.navigate(['/users']));
+    operation.subscribe(() => this.router.navigate(['/configurator/users']));
   }
 }

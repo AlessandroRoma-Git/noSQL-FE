@@ -2,12 +2,12 @@ import { Component, OnInit, inject, ChangeDetectorRef, OnDestroy } from '@angula
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { MenuItem } from 'app/common/models/menu-item.model';
-import { MenuService } from 'app/configurator/services/menu.service';
+import { MenuService } from 'app/common/services/menu.service';
 import { ModalService } from 'app/common/services/modal.service';
 import { I18nService } from 'app/common/services/i18n.service';
 import { filter, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
-import { FilterCondition, FilterOperator } from 'app/consumer-app/services/filter.service';
+import { FilterCondition, FilterOperator } from 'app/common/models/filter.model';
 import { FormsModule } from '@angular/forms';
 
 @Component({

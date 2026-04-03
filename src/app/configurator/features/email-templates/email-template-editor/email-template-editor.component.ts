@@ -145,7 +145,7 @@ export class EmailTemplateEditorComponent implements OnInit, OnDestroy {
     const operation = this.isEditMode && this.templateId
       ? this.emailTemplateService.updateEmailTemplate(this.templateId, formValue)
       : this.emailTemplateService.createEmailTemplate(formValue);
-    operation.subscribe(() => this.router.navigate(['/email-templates']));
+    operation.subscribe(() => this.router.navigate(['/configurator/email-templates']));
   }
 
   showInfo(_topic: 'details' | 'placeholders' | 'attachments' | 'usage'): void {

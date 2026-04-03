@@ -1,8 +1,8 @@
 import { Component, Input, forwardRef, OnInit, inject, TemplateRef, ViewChild } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/forms';
-import { RecordService } from 'app/consumer-app/services/record.service';
-import { Record, PageResponse } from 'app/consumer-app/models/record.model';
+import { RecordService } from 'app/common/services/record.service';
+import { Record, PageResponse } from 'app/common/models/record.model';
 import { Observable, of, Subject, combineLatest } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, map, startWith } from 'rxjs/operators';
 import { ModalService } from 'app/common/services/modal.service';

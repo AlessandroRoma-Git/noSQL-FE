@@ -1,0 +1,4 @@
+@reference "../../../../../styles.css";
+
+/* Admin layout specific styles */
+/* custom-scrollbar utility is already in styles.css, but we can keep it here if we want to ensure it's applied to the host or specific elements */

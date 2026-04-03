@@ -3,7 +3,7 @@ import { Component, Input, OnInit, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { EmailTemplate } from 'app/configurator/models/email-template.model';
-import { EmailService } from 'app/consumer-app/services/email.service';
+import { EmailService } from 'app/common/services/email.service';
 import { ModalService } from 'app/common/services/modal.service';
 
 @Component({

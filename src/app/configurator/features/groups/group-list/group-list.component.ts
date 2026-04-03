@@ -8,7 +8,7 @@ import { GroupService } from 'app/configurator/services/group.service';
 import { ModalService } from 'app/common/services/modal.service';
 import { I18nService } from 'app/common/services/i18n.service';
 import { filter } from 'rxjs/operators';
-import { FilterCondition, FilterOperator } from 'app/consumer-app/services/filter.service';
+import { FilterCondition, FilterOperator } from 'app/common/models/filter.model';
 import { FormsModule } from '@angular/forms';
 
 @Component({

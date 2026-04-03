@@ -2,72 +2,135 @@
 
 /*
   UI MORBIDA (SOFT UI)
-  - Arrotondamenti ampi (rounded-2xl, 3xl)
-  - Ombre sfumate e sottili
-  - Effetti Glassmorphism (vetro trasparente)
-  - Colori meno aggressivi
 */
 :root {
-  --color-primary: 115, 239, 105; /* Verde Acido */
-  --color-accent: 219, 39, 119;  /* Magenta Elettrico */
-  --color-text: 220, 220, 220;   /* Grigio Chiaro Morbido */
-  --color-bg-base: 15, 15, 20;     /* Nero Profondo ma non assoluto */
-  --color-bg-surface: 25, 25, 35;  /* Grigio Superficie morbido */
+  --color-primary: 115, 239, 105;
+  --color-accent: 219, 39, 119;
+  --color-text: 220, 220, 220;
+  --color-bg-base: 15, 15, 20;
+  --color-bg-surface: 25, 25, 35;
 }
 
-@tailwind utilities;
+@theme {
+  --font-sans: 'Inter', ui-sans-serif, system-ui, sans-serif;
+  --color-primary: rgb(var(--color-primary));
+  --color-accent: rgb(var(--color-accent));
+  --color-base: rgb(var(--color-bg-base));
+  --color-surface: rgb(var(--color-bg-surface));
+}
 
-@layer components {
-  /* Classi base con bordi più arrotondati e ombre soffuse */
-  
-  .label {
-    @apply block text-sm font-bold text-gray-400 mb-2 px-1 tracking-wide;
-  }
+/* Custom Classes */
+.label {
+  display: block;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #9ca3af;
+  margin-bottom: 0.5rem;
+  padding-left: 0.25rem;
+  padding-right: 0.25rem;
+  letter-spacing: 0.025em;
+}
 
-  .input {
-    @apply block w-full px-4 py-3 border-none bg-white/5 text-white rounded-2xl shadow-inner focus:ring-2 focus:ring-[rgb(var(--color-primary))] transition-all placeholder:text-gray-600;
-  }
+.input {
+  display: block;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: none;
+  background-color: rgba(255, 255, 255, 0.05);
+  color: white;
+  border-radius: 1rem;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+}
+.input:focus {
+  outline: none;
+  box-shadow: 0 0 0 2px rgb(var(--color-primary));
+}
 
-  .button-primary {
-    @apply px-6 py-3 text-sm font-black text-[rgb(var(--color-bg-base))] bg-[rgb(var(--color-primary))] rounded-2xl hover:scale-[1.02] active:scale-95 shadow-lg transition-all cursor-pointer uppercase tracking-wider;
-  }
+.button-primary {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 900;
+  color: rgb(var(--color-bg-base));
+  background-color: rgb(var(--color-primary));
+  border-radius: 1rem;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  border: none;
+}
+.button-primary:hover {
+  transform: scale(1.02);
+}
+.button-primary:active {
+  transform: scale(0.95);
+}
 
-  .button-secondary {
-    @apply px-6 py-3 text-sm font-bold text-white bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all cursor-pointer;
-  }
+.button-secondary {
+  padding: 0.75rem 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: white;
+  background-color: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 1rem;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 150ms;
+  cursor: pointer;
+}
+.button-secondary:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
 
-  .button-danger-sm {
-    @apply px-3 py-1.5 text-xs font-bold text-white bg-red-500/20 text-red-500 border border-red-500/30 rounded-xl hover:bg-red-500 hover:text-white transition-all;
-  }
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: 1rem;
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: #9ca3af;
+  transition-property: all;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+  transition-duration: 300ms;
+  text-decoration: none;
+}
+.nav-link:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: white;
+}
 
-  .button-secondary-sm {
-    @apply px-3 py-1.5 text-xs font-bold text-gray-300 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all;
-  }
+.active-link {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: rgb(var(--color-primary)) !important;
+}
 
-  /* Link del menu con effetto "pillola" morbida */
-  .nav-link {
-    @apply flex items-center gap-3 px-4 py-3 rounded-2xl text-sm font-bold text-gray-400 hover:bg-white/5 hover:text-white transition-all duration-300;
-  }
+.card-soft {
+  background-color: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+  border-radius: 2.5rem;
+}
 
-  .active-link {
-    @apply bg-white/5 text-[rgb(var(--color-primary))] shadow-sm;
-  }
-
-  /* Card e contenitori morbidi */
-  .card-soft {
-    @apply bg-white/5 backdrop-blur-md border border-white/5 rounded-[2.5rem] shadow-2xl;
-  }
-
-  /* Scrollbar personalizzata e "morbida" */
-  .custom-scrollbar::-webkit-scrollbar {
-    width: 6px;
-  }
-  .custom-scrollbar::-webkit-scrollbar-track {
-    background: transparent;
-  }
-  .custom-scrollbar::-webkit-scrollbar-thumb {
-    @apply bg-white/10 rounded-full hover:bg-white/20;
-  }
+.custom-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background-color: rgba(255, 255, 255, 0.2);
 }
 
 /* Animazioni morbide */
