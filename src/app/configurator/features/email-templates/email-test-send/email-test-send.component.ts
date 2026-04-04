@@ -26,7 +26,7 @@ export class EmailTestSendComponent implements OnInit {
   }
 
   private buildForm(): void {
-    const placeholderControls: { [key: string]: any } = {};
+    const placeholderControls: Record<string, any> = {};
     this.template.placeholders.forEach(p => {
       placeholderControls[p] = ['', Validators.required];
     });

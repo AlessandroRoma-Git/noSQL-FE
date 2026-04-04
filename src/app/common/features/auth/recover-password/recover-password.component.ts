@@ -5,7 +5,6 @@ import { RouterModule } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
 import { I18nService } from '../../../services/i18n.service';
 import { ToastService } from '../../../services/toast.service';
-import { WhiteLabelService } from '../../../services/white-label.service';
 
 @Component({
   selector: 'app-recover-password',

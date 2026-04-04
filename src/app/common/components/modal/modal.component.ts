@@ -1,6 +1,6 @@
 import { Component, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ModalService, ModalContent, ModalState, ModalData } from 'app/common/services/modal.service';
+import { ModalService, ModalState, ModalData } from 'app/common/services/modal.service';
 import { I18nService } from 'app/common/services/i18n.service';
 
 /**

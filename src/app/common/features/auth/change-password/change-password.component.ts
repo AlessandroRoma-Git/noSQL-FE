@@ -67,9 +67,11 @@ import { ToastService } from '../../../services/toast.service';
                   [placeholder]="i18nService.translate('CHANGE_PASSWORD.NEW_PASSWORD')"
                 >
               </div>
-              <div *ngIf="changeForm.get('newPassword')?.touched && changeForm.get('newPassword')?.hasError('minlength')" class="text-[9px] font-black text-red-500 uppercase tracking-widest ml-4 mt-1">
-                {{ i18nService.translate('CHANGE_PASSWORD.MIN_LENGTH') }}
-              </div>
+              @if (changeForm.get('newPassword')?.touched && changeForm.get('newPassword')?.hasError('minlength')) {
+                <div class="text-[9px] font-black text-red-500 uppercase tracking-widest ml-4 mt-1">
+                  {{ i18nService.translate('CHANGE_PASSWORD.MIN_LENGTH') }}
+                </div>
+              }
             </div>
 
             <!-- Confirm Password -->
@@ -88,9 +90,11 @@ import { ToastService } from '../../../services/toast.service';
                   [placeholder]="i18nService.translate('CHANGE_PASSWORD.CONFIRM_PASSWORD')"
                 >
               </div>
-              <div *ngIf="changeForm.hasError('mismatch') && changeForm.get('confirmPassword')?.touched" class="text-[9px] font-black text-red-500 uppercase tracking-widest ml-4 mt-1">
-                {{ i18nService.translate('CHANGE_PASSWORD.MISMATCH') }}
-              </div>
+              @if (changeForm.hasError('mismatch') && changeForm.get('confirmPassword')?.touched) {
+                <div class="text-[9px] font-black text-red-500 uppercase tracking-widest ml-4 mt-1">
+                  {{ i18nService.translate('CHANGE_PASSWORD.MISMATCH') }}
+                </div>
+              }
             </div>
 
             <!-- Submit Button -->

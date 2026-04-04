@@ -114,7 +114,9 @@ export class WhiteLabelService {
       if (stored) {
         try {
           localConfig = JSON.parse(stored);
-        } catch (e) {}
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
       }
 
       const finalConfig: WhiteLabelConfig = {

@@ -15,7 +15,7 @@ export class RecordService {
     return this.http.post<PageResponse<Record>>(`${this.apiUrl}/${entityKey}/search`, request);
   }
 
-  loadRecords(entityKey: string, page: number = 0, size: number = 20, filters: any[] = []): Observable<PageResponse<Record>> {
+  loadRecords(entityKey: string, page = 0, size = 20, filters: any[] = []): Observable<PageResponse<Record>> {
     return this.searchRecords(entityKey, { page, size, filters });
   }
 

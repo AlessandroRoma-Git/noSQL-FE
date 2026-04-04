@@ -17,5 +17,4 @@ import { ToastComponent } from 'app/common/components/toast/toast.component';
   styleUrls: ['./app.css']
 })
 export class App {
-  constructor() {}
 }

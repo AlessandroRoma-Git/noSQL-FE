@@ -36,8 +36,11 @@ export class ToggleSwitchComponent implements ControlValueAccessor {
   public disabled = false;
   public isBooleanMode = true;
 
+  /* eslint-disable @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars */
+  // Angular forms will replace these
   private onChange = (_value: any) => {};
   private onTouched = () => {};
+  /* eslint-enable @typescript-eslint/no-empty-function, @typescript-eslint/no-unused-vars */
 
   /**
    * Chiamato quando l'utente clicca sull'interruttore.

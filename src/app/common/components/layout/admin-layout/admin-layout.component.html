@@ -17,7 +17,9 @@
   @if (config?.layoutMode === 'navbar') {
     <header class="fixed top-0 left-0 w-full h-20 bg-surface/80 backdrop-blur-xl border-b border-white/5 z-40 flex items-center px-6 shadow-2xl">
       <div class="flex items-center gap-3 mr-8 min-w-max">
-        <img *ngIf="config?.logoUrl" [src]="config?.logoUrl" class="h-8 w-auto" alt="Logo">
+        @if (config?.logoUrl) {
+          <img [src]="config?.logoUrl" class="h-8 w-auto" alt="Logo">
+        }
         <span class="text-lg font-black text-[rgb(var(--color-primary))] tracking-tighter uppercase leading-none">{{ config?.appName }}</span>
       </div>
       <nav class="flex items-center gap-1 overflow-x-auto no-scrollbar flex-grow py-2">
@@ -36,8 +38,20 @@
     </nav>
     
     @if (isSidebarOpen) {
-      <div class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] animate-in fade-in duration-300" (click)="layoutService.toggleSidebar()">
-        <div class="fixed bottom-0 left-0 w-full bg-surface rounded-t-[3rem] p-8 shadow-2xl border-t border-white/10 animate-in slide-in-from-bottom duration-500" (click)="$event.stopPropagation()">
+      <div 
+        class="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] animate-in fade-in duration-300" 
+        (click)="layoutService.toggleSidebar()" 
+        (keydown.enter)="$event.stopPropagation()" 
+        tabindex="0" 
+        role="button" 
+        aria-label="Close sidebar">
+        <div 
+        class="fixed bottom-0 left-0 w-full bg-surface rounded-t-[3rem] p-8 shadow-2xl border-t border-white/10 animate-in slide-in-from-bottom duration-500" 
+        (click)="$event.stopPropagation()" 
+        role="dialog" 
+        aria-label="Sidebar panel"
+        (keydown.escape)="layoutService.toggleSidebar()"
+        tabindex="-1">
           <div class="w-12 h-1.5 bg-white/10 rounded-full mx-auto mb-8"></div>
           <div class="flex items-center justify-between mb-8">
             <h3 class="text-xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">{{ i18nService.translate('SIDEBAR.ADMIN_PANEL') }}</h3>
@@ -56,7 +70,9 @@
     <header class="fixed top-0 left-0 w-full bg-surface z-40 border-b border-white/5 shadow-lg">
       <div class="h-16 flex items-center px-6 justify-between border-b border-white/5">
         <div class="flex items-center gap-3">
-          <img *ngIf="config?.logoUrl" [src]="config?.logoUrl" class="h-8 w-auto" alt="Logo">
+          @if (config?.logoUrl) {
+          <img [src]="config?.logoUrl" class="h-8 w-auto" alt="Logo">
+        }
           <span class="font-black text-[rgb(var(--color-primary))] uppercase leading-none">{{ config?.appName }}</span>
         </div>
         <ng-container *ngTemplateOutlet="userActions"></ng-container>
@@ -82,7 +98,9 @@
       @if (isSidebarOpen) {
         <div class="bg-surface/95 backdrop-blur-2xl p-6 rounded-[3rem] border border-white/10 shadow-2xl min-w-[280px] animate-soft-in">
           <div class="flex items-center gap-3 mb-6 pb-4 border-b border-white/5">
-            <img *ngIf="config?.logoUrl" [src]="config?.logoUrl" class="h-6 w-auto" alt="Logo">
+            @if (config?.logoUrl) {
+            <img [src]="config?.logoUrl" class="h-6 w-auto" alt="Logo">
+          }
             <span class="font-black text-[rgb(var(--color-primary))] uppercase text-xs tracking-widest">{{ config?.appName }}</span>
           </div>
           <nav class="flex flex-col gap-1 max-h-[65vh] overflow-y-auto custom-scrollbar pr-2">
@@ -110,8 +128,11 @@
         [style.left]="isSidebarOpen ? '18rem' : '1.5rem'"
         [style.transform]="'translateX(-50%)'">
         <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path *ngIf="isSidebarOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
-          <path *ngIf="!isSidebarOpen" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          @if (isSidebarOpen) {
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+          } @else {
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+          }
         </svg>
       </button>
     }
@@ -131,7 +152,9 @@
 <ng-template #fullSidebarContent>
   <div class="flex flex-col h-full">
     <div class="flex items-center gap-3 h-20 px-6 border-b border-white/5 bg-black/10">
-      <img *ngIf="(whiteLabelConfig$ | async)?.logoUrl" [src]="(whiteLabelConfig$ | async)?.logoUrl" class="h-8 w-auto" alt="Logo">
+      @if ((whiteLabelConfig$ | async)?.logoUrl) {
+        <img [src]="(whiteLabelConfig$ | async)?.logoUrl" class="h-8 w-auto" alt="Logo">
+      }
       <div class="flex flex-col overflow-hidden">
         <span class="text-lg font-black text-[rgb(var(--color-primary))] truncate uppercase tracking-tighter leading-none">{{ (whiteLabelConfig$ | async)?.appName }}</span>
         <span class="text-[9px] text-gray-500 font-bold uppercase tracking-widest mt-1">{{ i18nService.translate('SIDEBAR.ADMIN_PANEL') }}</span>

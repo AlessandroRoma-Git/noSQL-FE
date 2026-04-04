@@ -5,7 +5,9 @@
   <!-- TOP NAVBAR FOR CONSUMER APP -->
   <header class="fixed top-0 left-0 w-full h-20 bg-surface/80 backdrop-blur-xl border-b border-white/5 z-40 flex items-center px-6 shadow-2xl">
     <div class="flex items-center gap-3 mr-8 min-w-max">
-      <img *ngIf="config?.logoUrl" [src]="config?.logoUrl" class="h-8 w-auto" alt="Logo">
+      @if (config?.logoUrl) {
+        <img [src]="config?.logoUrl" class="h-8 w-auto" alt="Logo">
+      }
       <span class="text-lg font-black text-[rgb(var(--color-primary))] tracking-tighter uppercase leading-none">{{ config?.appName }}</span>
     </div>
     

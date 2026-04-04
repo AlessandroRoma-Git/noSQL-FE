@@ -11,7 +11,7 @@ import { BehaviorSubject } from 'rxjs';
 export interface Theme {
   name: string;
   id: string;
-  colors: { [key: string]: string };
+  colors: Record<string, string>;
   isCustom?: boolean; // Ci dice se è un tema creato dall'utente
 }
 
@@ -105,7 +105,7 @@ export class ThemeService {
   /**
    * Crea un nuovo tema personalizzato e lo salva nel browser.
    */
-  saveCustomTheme(name: string, colors: { [key: string]: string }): string {
+  saveCustomTheme(name: string, colors: Record<string, string>): string {
     const id = 'custom-' + Date.now(); // ID unico basato sul tempo
     const newTheme: Theme = { name, id, colors, isCustom: true };
     
@@ -120,7 +120,7 @@ export class ThemeService {
   /**
    * Modifica un tema esistente salvando i nuovi colori o il nuovo nome.
    */
-  updateCustomTheme(themeId: string, name: string, colors: { [key: string]: string }): void {
+  updateCustomTheme(themeId: string, name: string, colors: Record<string, string>): void {
     const index = this.customThemes.findIndex(t => t.id === themeId);
     if (index !== -1) {
       this.customThemes[index] = { ...this.customThemes[index], name, colors };
@@ -145,7 +145,7 @@ export class ThemeService {
   /**
    * Applica temporaneamente dei colori (utile per l'anteprima mentre li scegli).
    */
-  previewColors(colors: { [key: string]: string }): void {
+  previewColors(colors: Record<string, string>): void {
     if (!isPlatformBrowser(this.platformId)) return;
     this.applyColors(colors);
   }
@@ -153,7 +153,7 @@ export class ThemeService {
   /**
    * Scrive i colori nelle variabili CSS del sito.
    */
-  private applyColors(colors: { [key: string]: string }): void {
+  private applyColors(colors: Record<string, string>): void {
     Object.entries(colors).forEach(([key, value]) => {
       document.documentElement.style.setProperty(key, value);
     });

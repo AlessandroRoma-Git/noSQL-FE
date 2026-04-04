@@ -38,8 +38,11 @@ export class ReferenceSearchComponent implements ControlValueAccessor, OnInit {
   private searchField = new Subject<string>();
   public tempSelectedIds: string[] = [];
 
-  private onChange = (_value: string[]) => {};
+  /* eslint-disable @typescript-eslint/no-empty-function */
+  // Angular forms will replace this
+  private onChange: (value: any) => void = () => {};
   private onTouched = () => {};
+  /* eslint-enable @typescript-eslint/no-empty-function */
 
   /**
    * Gets a suitable field name for previewing the record.

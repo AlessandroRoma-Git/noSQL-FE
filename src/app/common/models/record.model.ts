@@ -1,7 +1,7 @@
 export interface Record {
   id: string;
   entityKey: string;
-  data: { [key: string]: any };
+  data: { [key: string]: any; };
   createdAt: string;
   updatedAt: string;
   version?: number;

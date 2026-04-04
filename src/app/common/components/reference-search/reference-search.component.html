@@ -45,7 +45,11 @@
             @for (record of records; track record.id) {
               <li
                 class="p-2 flex items-center cursor-pointer hover:bg-base"
-                (click)="toggleSelection(record.id)">
+                (click)="toggleSelection(record.id)"
+                (keydown.enter)="toggleSelection(record.id)"
+                tabindex="0"
+                role="option"
+                [attr.aria-selected]="tempSelectedIds.includes(record.id)">
                 <input
                   type="checkbox"
                   class="h-4 w-4 rounded border-surface text-[rgb(var(--color-primary))] focus:ring-[rgb(var(--color-primary))]"
