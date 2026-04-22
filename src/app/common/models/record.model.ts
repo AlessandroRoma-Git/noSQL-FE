@@ -1,7 +1,7 @@
-export interface Record {
+export interface CmsRecord {
   id: string;
   entityKey: string;
-  data: { [key: string]: any; };
+  data: Record<string, any>;
   createdAt: string;
   updatedAt: string;
   version?: number;

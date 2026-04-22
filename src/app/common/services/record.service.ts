@@ -2,7 +2,7 @@ import { environment } from 'src/environments/environment';
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Record, PageResponse, RecordSearchRequest } from '../models/record.model';
+import { CmsRecord, PageResponse, RecordSearchRequest } from '../models/record.model';
 
 @Injectable({
   providedIn: 'root'
@@ -11,24 +11,24 @@ export class RecordService {
   private readonly apiUrl = environment.apiUrl + '/records';
   private http = inject(HttpClient);
 
-  searchRecords(entityKey: string, request: RecordSearchRequest): Observable<PageResponse<Record>> {
-    return this.http.post<PageResponse<Record>>(`${this.apiUrl}/${entityKey}/search`, request);
+  searchRecords(entityKey: string, request: RecordSearchRequest): Observable<PageResponse<CmsRecord>> {
+    return this.http.post<PageResponse<CmsRecord>>(`${this.apiUrl}/${entityKey}/search`, request);
   }
 
-  loadRecords(entityKey: string, page = 0, size = 20, filters: any[] = []): Observable<PageResponse<Record>> {
+  loadRecords(entityKey: string, page = 0, size = 20, filters: any[] = []): Observable<PageResponse<CmsRecord>> {
     return this.searchRecords(entityKey, { page, size, filters });
   }
 
-  getRecord(entityKey: string, id: string): Observable<Record> {
-    return this.http.get<Record>(`${this.apiUrl}/${entityKey}/${id}`);
+  getRecord(entityKey: string, id: string): Observable<CmsRecord> {
+    return this.http.get<CmsRecord>(`${this.apiUrl}/${entityKey}/${id}`);
   }
 
-  createRecord(entityKey: string, data: any): Observable<Record> {
-    return this.http.post<Record>(`${this.apiUrl}/${entityKey}`, { data });
+  createRecord(entityKey: string, data: any): Observable<CmsRecord> {
+    return this.http.post<CmsRecord>(`${this.apiUrl}/${entityKey}`, { data });
   }
 
-  updateRecord(entityKey: string, id: string, data: any): Observable<Record> {
-    return this.http.put<Record>(`${this.apiUrl}/${entityKey}/${id}`, { data });
+  updateRecord(entityKey: string, id: string, data: any): Observable<CmsRecord> {
+    return this.http.put<CmsRecord>(`${this.apiUrl}/${entityKey}/${id}`, { data });
   }
 
   deleteRecord(entityKey: string, id: string): Observable<void> {

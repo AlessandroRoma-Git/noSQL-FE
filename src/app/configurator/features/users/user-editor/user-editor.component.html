@@ -3,7 +3,7 @@
     <h1 class="text-3xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">
       {{ isEditMode ? i18nService.translate('COMMON.EDIT') : i18nService.translate('COMMON.CREATE') }} {{ i18nService.translate('SIDEBAR.USERS').slice(0, -1) }}
     </h1>
-    <a routerLink="/users" class="button-secondary">
+    <a routerLink="/configurator/users" class="button-secondary">
       &larr; {{ i18nService.translate('COMMON.BACK_TO_LIST') }}
     </a>
   </div>
@@ -60,7 +60,7 @@
 
     <!-- Form Actions -->
     <div class="flex justify-end space-x-4 border-t border-white/5 pt-8">
-      <a routerLink="/users" class="button-secondary px-8">{{ i18nService.translate('COMMON.CANCEL_SHORT') }}</a>
+      <a routerLink="/configurator/users" class="button-secondary px-8">{{ i18nService.translate('COMMON.CANCEL_SHORT') }}</a>
       <button type="submit" [disabled]="editorForm.invalid" class="button-primary px-10">
         {{ isEditMode ? i18nService.translate('COMMON.SAVE') : i18nService.translate('COMMON.CREATE') }}
       </button>

@@ -9,6 +9,7 @@ import { filter, takeUntil } from 'rxjs/operators';
 import { Subject } from 'rxjs';
 import { FilterCondition, FilterOperator } from 'app/common/models/filter.model';
 import { FormsModule } from '@angular/forms';
+import { IconService } from 'app/common/services/icon.service';
 
 @Component({
   selector: 'app-menu-list',
@@ -21,6 +22,7 @@ export class MenuListComponent implements OnInit, OnDestroy {
   private modalService = inject(ModalService);
   private cdr = inject(ChangeDetectorRef);
   public i18nService = inject(I18nService);
+  public iconService = inject(IconService);
   private destroy$ = new Subject<void>();
 
   public allItems: MenuItem[] = [];

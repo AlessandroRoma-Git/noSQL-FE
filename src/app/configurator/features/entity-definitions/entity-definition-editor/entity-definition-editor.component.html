@@ -3,7 +3,7 @@
     <h1 class="text-3xl font-black text-[rgb(var(--color-primary))] uppercase tracking-tighter">
       {{ isEditMode ? i18nService.translate('COMMON.EDIT') : i18nService.translate('COMMON.CREATE') }} {{ i18nService.translate('SIDEBAR.ENTITIES').slice(0, -1) }}
     </h1>
-    <a routerLink="/entity-definitions" class="button-secondary">
+    <a routerLink="/configurator/entity-definitions" class="button-secondary">
       &larr; {{ i18nService.translate('COMMON.BACK_TO_LIST') }}
     </a>
   </div>
@@ -215,7 +215,7 @@
       </div>
 
       <div class="flex justify-end pt-8 pb-12 gap-4">
-        <a routerLink="/entity-definitions" class="button-secondary px-12 flex items-center gap-2">
+        <a routerLink="/configurator/entity-definitions" class="button-secondary px-12 flex items-center gap-2">
           {{ i18nService.translate('COMMON.CANCEL') }}
           <button type="button" (click)="$event.preventDefault(); i18nService.showFieldHelp('ACTION_CANCEL')" class="text-[rgb(var(--color-primary))] opacity-30 hover:opacity-100 text-[10px]">
             <i class="fa-solid fa-circle-info"></i>

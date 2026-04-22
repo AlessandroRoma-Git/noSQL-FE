@@ -18,7 +18,7 @@
         (toggleChange)="activeTab = $event">
       </app-toggle-switch>
       
-      <a routerLink="/email-templates" class="button-secondary">
+      <a routerLink="/configurator/email-templates" class="button-secondary">
         &larr; {{ i18nService.translate('COMMON.BACK_TO_LIST') }}
       </a>
     </div>
@@ -127,7 +127,7 @@
           <div class="text-red-500 text-xs font-bold uppercase tracking-widest">{{ jsonError }}</div>
         }
         <div class="flex justify-end gap-4 pt-4">
-          <a routerLink="/email-templates" class="button-secondary px-8">{{ i18nService.translate('COMMON.CANCEL_SHORT') }}</a>
+          <a routerLink="/configurator/email-templates" class="button-secondary px-8">{{ i18nService.translate('COMMON.CANCEL_SHORT') }}</a>
           <button type="button" (click)="onSubmit()" [disabled]="editorForm.invalid || jsonError" class="button-primary px-12">
             {{ i18nService.translate('COMMON.UPDATE') }}
           </button>

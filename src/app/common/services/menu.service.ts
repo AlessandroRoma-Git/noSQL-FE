@@ -4,11 +4,11 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { BehaviorSubject, Observable, tap } from 'rxjs';
 import { MenuItem, CreateMenuItemRequest, UpdateMenuItemRequest } from 'app/common/models/menu-item.model';
-import { AuthService } from './auth.service';
+// AuthService is no longer directly needed in MenuService after removing user-specific menu logic
 
 /**
  * @class MenuService
- * @description Service for managing the main menu items.
+ * @description Service for managing the main menu items for the configurator.
  * It handles fetching, creating, updating, and deleting menu items,
  * and provides a reactive stream of the menu items list.
  */
@@ -17,44 +17,19 @@ import { AuthService } from './auth.service';
 })
 export class MenuService {
   private readonly manageApiUrl = environment.apiUrl + '/menu/manage';
-  private readonly publicApiUrl = environment.apiUrl + '/menu';
   private http = inject(HttpClient);
-  private authService = inject(AuthService);
+  // private authService = inject(AuthService); // No longer needed for user menu logic
 
   private menuItemsSubject = new BehaviorSubject<MenuItem[]>([]);
-  private userMenuItemsSubject = new BehaviorSubject<MenuItem[]>([]);
 
   /**
    * Observable stream of the list of menu items for management (ADMIN).
    */
   public menuItems$: Observable<MenuItem[]> = this.menuItemsSubject.asObservable();
 
-  /**
-   * Observable stream of the list of menu items for the current user.
-   */
-  public userMenuItems$: Observable<MenuItem[]> = this.userMenuItemsSubject.asObservable();
-
   constructor() {
-    this.authService.userState$.subscribe(state => {
-      if (state?.token && !state?.firstAccess) {
-        this.loadUserMenu().subscribe();
-      } else {
-        this.userMenuItemsSubject.next([]);
-      }
-    });
-  }
-
-  /**
-   * Fetches the list of menu items for the current user and updates `userMenuItems$`.
-   */
-  loadUserMenu(): Observable<MenuItem[]> {
-    return this.http.get<MenuItem[]>(this.publicApiUrl).pipe(
-      tap(items => {
-        // Sort items by position
-        const sorted = items.sort((a, b) => (a.position || 0) - (b.position || 0));
-        this.userMenuItemsSubject.next(sorted);
-      })
-    );
+    // Constructor no longer needs to subscribe to authService.userState$
+    // as user-specific menu loading has been removed.
   }
 
   /**

@@ -17,12 +17,12 @@
     <div class="flex items-center gap-3">
       <button (click)="showFilters = !showFilters"
               class="button-secondary flex items-center gap-3"
-              [class.bg-[rgb(var(--color-primary)/0.1)]]="showFilters">
+              [class.bg-[rgb(var(--color-primary))]]="showFilters">
         <i class="fa-solid fa-filter"></i>
         {{ filterRows.length > 0 ? 'Filtri (' + filterRows.length + ')' : 'Filtra' }}
       </button>
 
-      <a routerLink="/email-templates/new" class="button-primary flex items-center justify-center gap-3 px-8 shadow-lg">
+      <a routerLink="/configurator/email-templates/new" class="button-primary flex items-center justify-center gap-3 px-8 shadow-lg">
         <i class="fa-solid fa-plus"></i>
         {{ i18nService.translate('COMMON.CREATE') }}
       </a>
@@ -82,7 +82,7 @@
             <i class="fa-solid fa-envelope-open-text"></i>
           </div>
           <div class="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-            <a [routerLink]="['/email-templates/edit', template.id]" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-[rgb(var(--color-primary))] hover:text-white transition-all shadow-sm">
+            <a [routerLink]="['/configurator/email-templates/edit', template.id]" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-[rgb(var(--color-primary))] hover:text-white transition-all shadow-sm">
               <i class="fa-solid fa-pen text-[10px]"></i>
             </a>
             <button (click)="onDelete(template.id, template.name)" class="w-8 h-8 rounded-lg bg-white/5 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm">
@@ -117,7 +117,7 @@
       <div class="col-span-full py-32 text-center card-soft border-dashed border-2 border-white/5">
         <i class="fa-solid fa-envelope-circle-check text-5xl text-gray-700 mb-6"></i>
         <p class="text-gray-500 font-black uppercase tracking-[0.3em]">Nessun template email trovato.</p>
-        <a routerLink="/email-templates/new" class="button-primary mt-8 px-12 uppercase tracking-widest">Crea Primo Template</a>
+        <a routerLink="/configurator/email-templates/new" class="button-primary mt-8 px-12 uppercase tracking-widest">Crea Primo Template</a>
       </div>
     }
   </div>

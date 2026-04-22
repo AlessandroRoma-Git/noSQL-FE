@@ -35,7 +35,7 @@ export const routes: Routes = [
         children: [
           {
             path: 'dashboard',
-            loadComponent: () => import('app/configurator/features/settings/settings.component').then(m => m.SettingsComponent) // Temporary placeholder
+            loadComponent: () => import('app/configurator/features/dashboard/dashboard.component').then(m => m.DashboardComponent)
           },
           {
             path: 'settings',
@@ -132,7 +132,7 @@ export const routes: Routes = [
           },
           {
             path: 'records/:entityKey',
-            loadComponent: () => import('app/configurator/features/settings/settings.component').then(m => m.SettingsComponent) // Placeholder
+            loadComponent: () => import('app/configurator/features/records/record-list.component').then(m => m.RecordListComponent)
           },
           {
             path: '',
@@ -142,28 +142,13 @@ export const routes: Routes = [
         ]
       },
 
-      // CONSUMER APP (ALL AUTHENTICATED USERS)
-      {
-        path: 'consumer-app',
-        loadComponent: () => import('app/common/components/layout/consumer-layout/consumer-layout.component').then(m => m.ConsumerLayoutComponent),
-        children: [
-          {
-            path: 'dashboard',
-            loadComponent: () => import('app/common/features/auth/login/login.component').then(m => m.LoginComponent) // Temporary placeholder
-          },
-          {
-            path: '',
-            redirectTo: 'dashboard',
-            pathMatch: 'full'
-          }
-        ]
-      },
 
-      // Default redirect after login based on role
+
+      // Default redirect handled by HomeRedirectComponent
       {
         path: '',
         pathMatch: 'full',
-        redirectTo: 'configurator'
+        loadComponent: () => import('./home-redirect.component').then(m => m.HomeRedirectComponent)
       }
     ]
   },

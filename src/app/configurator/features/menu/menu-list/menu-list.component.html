@@ -22,7 +22,7 @@
         {{ filterRows.length > 0 ? 'Filtri (' + filterRows.length + ')' : 'Filtra' }}
       </button>
 
-      <a routerLink="/menu/new" class="button-primary flex items-center justify-center gap-3 px-8 shadow-lg">
+      <a routerLink="/configurator/menu/new" class="button-primary flex items-center justify-center gap-3 px-8 shadow-lg">
         <i class="fa-solid fa-plus"></i>
         {{ i18nService.translate('COMMON.CREATE') }}
       </a>
@@ -91,7 +91,7 @@
               @if (item.icon && item.icon.startsWith('fa-')) {
                 <i class="fa-solid {{ item.icon }}"></i>
               } @else if (item.icon) {
-                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" [attr.d]="item.icon" /></svg>
+                <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" [innerHTML]="iconService.getIcon(item.icon)"></svg>
               } @else {
                 <i class="fa-solid fa-circle text-[8px] opacity-20"></i>
               }
@@ -112,7 +112,7 @@
             </td>
             <td class="px-6 py-4 text-right">
               <div class="flex items-center justify-end gap-2">
-                <a [routerLink]="['/menu/edit', item.id]" class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm">
+                <a [routerLink]="['/configurator/menu/edit', item.id]" class="w-8 h-8 rounded-lg bg-blue-500/10 text-blue-500 flex items-center justify-center hover:bg-blue-500 hover:text-white transition-all shadow-sm">
                   <i class="fa-solid fa-pen text-[10px]"></i>
                 </a>
                 <button (click)="onDelete(item.id, item.label)" class="w-8 h-8 rounded-lg bg-red-500/10 text-red-500 flex items-center justify-center hover:bg-red-500 hover:text-white transition-all shadow-sm">

@@ -2,7 +2,7 @@ import { Component, Input, forwardRef, OnInit, inject, TemplateRef, ViewChild } 
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR, FormsModule } from '@angular/forms';
 import { RecordService } from 'app/common/services/record.service';
-import { Record, PageResponse } from 'app/common/models/record.model';
+import { CmsRecord, PageResponse } from 'app/common/models/record.model';
 import { Observable, of, Subject, combineLatest } from 'rxjs';
 import { debounceTime, distinctUntilChanged, switchMap, map, startWith } from 'rxjs/operators';
 import { ModalService } from 'app/common/services/modal.service';
@@ -31,7 +31,7 @@ export class ReferenceSearchComponent implements ControlValueAccessor, OnInit {
   private entityDefService = inject(EntityDefinitionService);
 
   public selectedIds: string[] = [];
-  public availableRecords$: Observable<Record[]> = of([]);
+  public availableRecords$: Observable<CmsRecord[]> = of([]);
   public referencedEntityDef: EntityDefinition | null = null;
 
   private searchTerms = new Subject<string>();
@@ -68,7 +68,7 @@ export class ReferenceSearchComponent implements ControlValueAccessor, OnInit {
         const filters = term ? [{ field, op: 'like', value: term }] : [];
         return this.recordService.loadRecords(this.entityKey, 0, 20, filters);
       }),
-      map((response: PageResponse<Record>) => response.content)
+      map((response: PageResponse<CmsRecord>) => response.content)
     );
   }
 

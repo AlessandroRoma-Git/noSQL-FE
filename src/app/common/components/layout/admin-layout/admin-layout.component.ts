@@ -6,6 +6,7 @@ import { I18nService } from 'app/common/services/i18n.service';
 import { LayoutService } from 'app/common/services/layout.service';
 import { WhiteLabelService } from 'app/common/services/white-label.service';
 import { MenuService } from 'app/common/services/menu.service';
+import { IconService } from 'app/common/services/icon.service';
 import { map } from 'rxjs/operators';
 
 @Component({
@@ -20,10 +21,11 @@ export class AdminLayoutComponent {
   public i18nService = inject(I18nService);
   public layoutService = inject(LayoutService);
   public whiteLabelService = inject(WhiteLabelService);
-  private menuService = inject(MenuService);
+  public menuService = inject(MenuService);
+  public iconService = inject(IconService);
 
   public whiteLabelConfig$ = this.whiteLabelService.config$;
-  public userMenuItems$ = this.menuService.userMenuItems$;
+  public menuItems$ = this.menuService.menuItems$;
   public isAdmin$ = this.authService.systemRoles$.pipe(
     map(roles => roles.includes('ADMIN') || roles.includes('SUPER_ADMIN'))
   );

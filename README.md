@@ -1,59 +1,59 @@
-# CmsNoSqlFe
+# CMS NoSQL Frontend - Configurator
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.0.2.
+Questo repository contiene il frontend per il modulo Configurator del CMS NoSQL. L'obiettivo primario di questo applicativo è fornire un'interfaccia robusta e intuitiva per l'amministrazione e la configurazione del sistema CMS, focalizzandosi sulla gestione delle entità, utenti, permessi e altre impostazioni cruciali.
 
-## Development server
+## Tecnologie Fondamentali
 
-To start a local development server, run:
+-   **Framework:** Angular (Standalone Components)
+-   **Styling:** Tailwind CSS, potenziato da un sistema di temi dinamico basato su variabili CSS.
+-   **Gestione dello Stato:** Un pattern reattivo "Service-with-a-Subject" che utilizza RxJS, evitando la complessità di librerie di stato più grandi come NgRx.
+-   **Build Tool:** Angular CLI
 
-```bash
-ng serve
-```
+## Struttura del Progetto
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Il codice sorgente in `src/app` è organizzato in due macro-aree principali:
 
-## Code scaffolding
+1.  **`common` (Il Nucleo Condiviso):**
+    -   Contiene tutti i componenti, servizi, modelli e direttive riutilizzabili all'interno dell'applicazione Configurator.
+    -   Funge da libreria di base, garantendo coerenza e riducendo la duplicazione del codice. Qui risiedono la logica di autenticazione, il sistema di modali, i componenti UI di base, ecc.
 
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
+2.  **`configurator` (L'Applicazione di Amministrazione):**
+    -   Questa è l'interfaccia di amministrazione principale del CMS.
+    -   Permette agli amministratori di sistema di:
+        -   Definire le strutture dati (definizioni di entità).
+        -   Gestire utenti e gruppi di autorizzazione.
+        -   Creare e modificare template per le email.
+        -   Configurare le impostazioni globali del sistema.
+        -   Gestire la struttura del menu di navigazione.
+        -   Accedere a una dashboard di controllo.
+    -   In breve, è il "cervello" dove si modella e si configura il comportamento dell'applicazione.
 
-```bash
-ng generate component component-name
-```
+## Concetti Architettonici Chiave
 
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
+-   **Gestione dello Stato ("Service-with-a-Subject"):** I servizi sono la fonte unica della verità. Mantengono lo stato in un `BehaviorSubject` privato e lo espongono tramite un `Observable` pubblico. I componenti si sottoscrivono a questi stream per ricevere i dati e aggiornarsi automaticamente.
+-   **Sistema di Temi Dinamico:** Il `ThemeService` permette di cambiare l'aspetto dell'applicazione in tempo reale. I temi sono definiti come set di variabili CSS che vengono iniettate nel DOM. Tailwind CSS è configurato per utilizzare queste variabili, garantendo un'applicazione coerente e flessibile dello stile.
+-   **Flusso di Autenticazione:** L'autenticazione è basata su token JWT. Un `HttpInterceptor` aggiunge automaticamente il token alle richieste API. Le `RouteGuard` proteggono le pagine, impedendo l'accesso a utenti non autorizzati o forzando azioni specifiche (es. cambio password al primo accesso).
+-   **Natura Dinamica:**
+    -   **Form Dinamici:** Le form di creazione e modifica dei dati (`RecordEditor`) vengono generate dinamicamente in base alla definizione dell'entità, permettendo al frontend di adattarsi a qualsiasi struttura dati senza bisogno di modifiche al codice.
+    -   **Sistema di Modali Globale:** Un `ModalService` centrale permette di aprire qualsiasi componente come modale, o di mostrare semplici dialoghi di conferma, da qualsiasi punto dell'applicazione.
 
-```bash
-ng generate --help
-```
+## Getting Started
 
-## Building
+Per avviare l'applicativo:
 
-To build the project run:
+1.  **Installa le dipendenze:**
+    ```bash
+    npm install
+    ```
+2.  **Avvia il server di sviluppo:**
+    ```bash
+    ng serve
+    ```
+    L'applicazione sarà disponibile su `http://localhost:4200/`.
 
-```bash
-ng build
-```
+## Sviluppo
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+-   **Linting:** `npm run lint` per controllare la qualità del codice.
+-   **Build:** `npm run build` per compilare l'applicazione per la produzione.
 
-## Running unit tests
-
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Questo `README.md` serve come memoria storica e punto di riferimento per lo sviluppo del modulo Configurator.
